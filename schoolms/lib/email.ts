@@ -1,11 +1,18 @@
 import nodemailer from "nodemailer";
 import { getSecureSetting } from "@/lib/secure-settings";
 
+interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 interface SendEmailOptions {
   to: string;
   subject: string;
   html: string;
   text: string;
+  attachments?: EmailAttachment[];
 }
 
 export async function sendEmail({
@@ -13,10 +20,15 @@ export async function sendEmail({
   subject,
   html,
   text,
+  attachments,
 }: SendEmailOptions): Promise<void> {
   // Fetch API keys from secure settings
   const resendApiKey = await getSecureSetting("RESEND_API_KEY");
   const smtpHost = await getSecureSetting("SMTP_HOST");
+  const emailFrom =
+    (await getSecureSetting("EMAIL_FROM")) ||
+    process.env.EMAIL_FROM ||
+    "SchoolMS <noreply@schoolms.app>";
 
   // Strategy 1: Resend
   if (resendApiKey) {
@@ -24,11 +36,16 @@ export async function sendEmail({
     const resend = new Resend(resendApiKey);
 
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "SchoolMS <noreply@schoolms.app>",
+      from: emailFrom,
       to,
       subject,
       html,
       text,
+      attachments: attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        content_type: a.contentType,
+      })),
     });
     return;
   }
@@ -49,11 +66,16 @@ export async function sendEmail({
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "SchoolMS <noreply@schoolms.app>",
+      from: emailFrom,
       to,
       subject,
       html,
       text,
+      attachments: attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
     });
     return;
   }

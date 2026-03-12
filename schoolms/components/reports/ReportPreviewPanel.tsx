@@ -8,6 +8,7 @@ import {
   Eye,
   Download,
   Printer,
+  Mail,
   Loader2,
   FileText,
   AlertCircle,
@@ -26,6 +27,8 @@ interface ReportPreviewPanelProps {
   loading: boolean;
   error: string | null;
   onPreview: () => void;
+  onEmail: () => void;
+  emailConfigured: boolean;
 }
 
 export default function ReportPreviewPanel({
@@ -35,6 +38,8 @@ export default function ReportPreviewPanel({
   loading,
   error,
   onPreview,
+  onEmail: _onEmail,
+  emailConfigured: _emailConfigured,
 }: ReportPreviewPanelProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -93,6 +98,18 @@ export default function ReportPreviewPanel({
             >
               <Printer className="mr-2 h-4 w-4" />
               Print
+            </Button>
+
+            <Button
+              disabled
+              variant="outline"
+              size="sm"
+              title="Coming Soon"
+              className="opacity-60"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Email
+              <span className="ml-1 text-[10px] font-medium text-muted-foreground">(Coming Soon)</span>
             </Button>
           </div>
 

@@ -18,7 +18,6 @@ interface ProgressReportDocumentProps {
   className: string;
   processedMarks: Record<string, Record<string, string>>;
   rawMarks: Record<string, Record<string, number | null>>;
-  wNoteData: { subject: string; terms: string[] }[];
   electiveLabels: { labelI: string; labelII: string; labelIII: string };
   studentElectives: { categoryI: string; categoryII: string; categoryIII: string };
   generatedAt: string;
@@ -26,6 +25,9 @@ interface ProgressReportDocumentProps {
   classTeacherSignUrl?: string | null;
   principalSignUrl?: string | null;
   vicePrincipalSignUrl?: string | null;
+  classTeacherField?: boolean;
+  principalField?: boolean;
+  vicePrincipalField?: boolean;
 }
 
 // ─── Subject Configuration ───────────────────────────────
@@ -331,29 +333,6 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
 
-  // ─── W-Note ───
-  wNoteBox: {
-    backgroundColor: colors.warningBg,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.warningBorder,
-    borderRadius: 4,
-    padding: 6,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  wNoteTitle: {
-    fontSize: 9,
-    fontFamily: "Helvetica-Bold",
-    color: colors.warningTitle,
-    marginBottom: 4,
-  },
-  wNoteText: {
-    fontSize: 8,
-    color: colors.warningText,
-    marginBottom: 2,
-    paddingLeft: 8,
-  },
-
   // ─── Signatures ───
   signatureSection: {
     flexDirection: "row",
@@ -368,7 +347,11 @@ const styles = StyleSheet.create({
   signatureImage: {
     width: 90,
     height: 35,
-    objectFit: "contain",
+    objectFit: "contain" as const,
+    marginBottom: 2,
+  },
+  signatureEmptySpace: {
+    height: 35,
     marginBottom: 2,
   },
   signatureLine: {
@@ -474,7 +457,6 @@ export default function ProgressReportDocument({
   className,
   processedMarks,
   rawMarks,
-  wNoteData,
   electiveLabels,
   studentElectives,
   generatedAt,
@@ -482,6 +464,9 @@ export default function ProgressReportDocument({
   classTeacherSignUrl,
   principalSignUrl,
   vicePrincipalSignUrl,
+  classTeacherField,
+  principalField,
+  vicePrincipalField,
 }: ProgressReportDocumentProps) {
   const formattedDate = new Date(generatedAt).toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -529,7 +514,7 @@ export default function ProgressReportDocument({
     return { key: s.key, label: s.label, termMarks };
   });
 
-  const hasSignatures = !!classTeacherSignUrl || !!principalSignUrl || !!vicePrincipalSignUrl;
+  const hasSignatures = !!classTeacherField || !!principalField || !!vicePrincipalField;
 
   return (
     <Document>
@@ -764,41 +749,38 @@ export default function ProgressReportDocument({
           </View>
         </View>
 
-        {/* ─── W-Note Section ─── */}
-        {wNoteData.length > 0 && (
-          <View style={styles.wNoteBox}>
-            <Text style={styles.wNoteTitle}>W-Rule Notice</Text>
-            <Text style={[styles.wNoteText, { paddingLeft: 0, marginBottom: 4 }]}>
-              The following subjects have marks below the threshold (below 35):
-            </Text>
-            {wNoteData.map((entry) => (
-              <Text key={entry.subject} style={styles.wNoteText}>
-                {"\u2022"} {entry.subject} — {entry.terms.join(", ")}
-              </Text>
-            ))}
-          </View>
-        )}
-
         {/* ─── Digital Signatures ─── */}
         {hasSignatures && (
           <View style={styles.signatureSection}>
-            {classTeacherSignUrl && (
+            {classTeacherField && (
               <View style={styles.signatureBlock}>
-                <Image src={classTeacherSignUrl} style={styles.signatureImage} />
+                {classTeacherSignUrl ? (
+                  <Image src={classTeacherSignUrl} style={styles.signatureImage} />
+                ) : (
+                  <View style={styles.signatureEmptySpace} />
+                )}
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Class Teacher</Text>
               </View>
             )}
-            {principalSignUrl && (
+            {principalField && (
               <View style={styles.signatureBlock}>
-                <Image src={principalSignUrl} style={styles.signatureImage} />
+                {principalSignUrl ? (
+                  <Image src={principalSignUrl} style={styles.signatureImage} />
+                ) : (
+                  <View style={styles.signatureEmptySpace} />
+                )}
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Principal</Text>
               </View>
             )}
-            {vicePrincipalSignUrl && (
+            {vicePrincipalField && (
               <View style={styles.signatureBlock}>
-                <Image src={vicePrincipalSignUrl} style={styles.signatureImage} />
+                {vicePrincipalSignUrl ? (
+                  <Image src={vicePrincipalSignUrl} style={styles.signatureImage} />
+                ) : (
+                  <View style={styles.signatureEmptySpace} />
+                )}
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Vice Principal</Text>
               </View>

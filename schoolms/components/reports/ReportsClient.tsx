@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import StudentSearchPanel from "@/components/reports/StudentSearchPanel";
 import ReportPreviewPanel from "@/components/reports/ReportPreviewPanel";
 import RecentReportsList from "@/components/reports/RecentReportsList";
 import SignatureSelector from "@/components/reports/SignatureSelector";
+import EmailReportDialog from "@/components/reports/EmailReportDialog";
 
 interface ReportsClientProps {
   role: string;
@@ -22,27 +24,74 @@ interface SelectedStudent {
 }
 
 interface SignatureOptions {
-  classTeacherSign: boolean;
-  principalSign: boolean;
-  vicePrincipalSign: boolean;
+  classTeacherField: boolean;
+  classTeacherDigital: boolean;
+  principalField: boolean;
+  principalDigital: boolean;
+  vicePrincipalField: boolean;
+  vicePrincipalDigital: boolean;
 }
 
 export default function ReportsClient({ role }: ReportsClientProps) {
+  const searchParams = useSearchParams();
   const [selectedStudent, setSelectedStudent] = useState<SelectedStudent | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  // Auto-populate student from URL search params (e.g. navigating from student profile)
+  useEffect(() => {
+    const studentId = searchParams.get("studentId");
+    const studentName = searchParams.get("studentName");
+    const indexNumber = searchParams.get("indexNumber");
+    const className = searchParams.get("className");
+
+    if (studentId && studentName && indexNumber) {
+      setSelectedStudent({
+        id: studentId,
+        name: studentName,
+        indexNumber,
+        className: className || undefined,
+      });
+    }
+  }, [searchParams]);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signatureOptions, setSignatureOptions] = useState<SignatureOptions>({
-    classTeacherSign: true,
-    principalSign: true,
-    vicePrincipalSign: true,
+    classTeacherField: false,
+    classTeacherDigital: false,
+    principalField: false,
+    principalDigital: false,
+    vicePrincipalField: false,
+    vicePrincipalDigital: false,
   });
   const [availableSignatures, setAvailableSignatures] = useState<{
     hasClassTeacher: boolean;
     hasPrincipal: boolean;
     hasVicePrincipal: boolean;
   }>({ hasClassTeacher: false, hasPrincipal: false, hasVicePrincipal: false });
+  const [emailConfigured, setEmailConfigured] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+
+  // Check if email provider is configured
+  useEffect(() => {
+    async function checkEmailConfig() {
+      try {
+        const res = await fetch("/api/settings/secure");
+        if (!res.ok) return;
+        const data = await res.json();
+        const keys: { key: string; hasDbValue: boolean; hasEnvFallback: boolean }[] =
+          data.keys || [];
+        const resend = keys.find((k) => k.key === "RESEND_API_KEY");
+        const smtp = keys.find((k) => k.key === "SMTP_HOST");
+        setEmailConfigured(
+          !!(resend?.hasDbValue || resend?.hasEnvFallback || smtp?.hasDbValue || smtp?.hasEnvFallback)
+        );
+      } catch {
+        // silently fail — email button stays disabled
+      }
+    }
+    checkEmailConfig();
+  }, []);
 
   // Check available signatures when student changes
   useEffect(() => {
@@ -110,9 +159,12 @@ export default function ReportsClient({ role }: ReportsClientProps) {
       const params = new URLSearchParams({
         year: String(selectedYear),
       });
-      if (signatureOptions.classTeacherSign) params.set("classTeacherSign", "true");
-      if (signatureOptions.principalSign) params.set("principalSign", "true");
-      if (signatureOptions.vicePrincipalSign) params.set("vicePrincipalSign", "true");
+      if (signatureOptions.classTeacherField) params.set("classTeacherField", "true");
+      if (signatureOptions.classTeacherDigital) params.set("classTeacherDigital", "true");
+      if (signatureOptions.principalField) params.set("principalField", "true");
+      if (signatureOptions.principalDigital) params.set("principalDigital", "true");
+      if (signatureOptions.vicePrincipalField) params.set("vicePrincipalField", "true");
+      if (signatureOptions.vicePrincipalDigital) params.set("vicePrincipalDigital", "true");
 
       const res = await fetch(
         `/api/reports/${selectedStudent.id}?${params.toString()}`
@@ -206,9 +258,23 @@ export default function ReportsClient({ role }: ReportsClientProps) {
             loading={loading}
             error={error}
             onPreview={handlePreview}
+            onEmail={() => setShowEmailDialog(true)}
+            emailConfigured={emailConfigured}
           />
         </div>
       </div>
+
+      {showEmailDialog && selectedStudent && selectedYear && (
+        <EmailReportDialog
+          open={showEmailDialog}
+          onClose={() => setShowEmailDialog(false)}
+          studentName={selectedStudent.name}
+          studentIndexNumber={selectedStudent.indexNumber}
+          year={selectedYear}
+          studentId={selectedStudent.id}
+          signatureOptions={signatureOptions}
+        />
+      )}
     </div>
   );
 }

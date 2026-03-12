@@ -58,6 +58,13 @@ export const SECURE_KEYS: SecureKeyMeta[] = [
     description: "SMTP authentication password",
     isSensitive: true,
   },
+  {
+    key: "EMAIL_FROM",
+    label: "Sender Email",
+    group: "Email",
+    description: "Sender email address (e.g. SchoolMS <noreply@yourdomain.com>)",
+    isSensitive: false,
+  },
 
   // Blob Storage (for signatures, logo upload)
   {

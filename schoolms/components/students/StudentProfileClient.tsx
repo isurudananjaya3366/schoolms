@@ -297,10 +297,13 @@ export default function StudentProfileClient({
             <CardDescription>Reports and presentations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link href={`/api/reports/${student.id}`} target="_blank" className="block mb-2">
+            <Link
+              href={`/dashboard/reports?studentId=${student.id}&studentName=${encodeURIComponent(student.name)}&indexNumber=${encodeURIComponent(student.indexNumber ?? "")}&className=${encodeURIComponent(`${student.class.grade}${student.class.section}`)}`}
+              className="block mb-2"
+            >
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="size-4 mr-2" />
-                PDF Progress Report
+                View Progress Report
               </Button>
             </Link>
 

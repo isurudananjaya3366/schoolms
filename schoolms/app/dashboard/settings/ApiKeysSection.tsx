@@ -47,7 +47,12 @@ const GROUP_ICONS: Record<string, React.ReactNode> = {
 };
 
 // Groups disabled with "Coming Soon" overlay
-const COMING_SOON_GROUPS = new Set(["Rate Limiting"]);
+const COMING_SOON_GROUPS = new Set(["Email", "Rate Limiting"]);
+
+const COMING_SOON_DESCRIPTIONS: Record<string, string> = {
+  Email: "Email integration requires a verified domain. This feature will be available in a future update.",
+  "Rate Limiting": "Rate limiting integration will be available in a future update.",
+};
 
 // ─── Component ───────────────────────────────────────────
 
@@ -251,7 +256,7 @@ export default function ApiKeysSection() {
               {/* Coming Soon description */}
               {isComingSoon && (
                 <p className="text-sm text-muted-foreground">
-                  Rate limiting integration will be available in a future update.
+                  {COMING_SOON_DESCRIPTIONS[groupName] || "This feature will be available in a future update."}
                 </p>
               )}
 
