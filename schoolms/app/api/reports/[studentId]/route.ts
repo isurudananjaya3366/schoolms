@@ -88,7 +88,7 @@ export async function GET(
     }
 
     const configMap = new Map(configs.map((c) => [c.key, c.value]));
-    const schoolName = configMap.get("school_name") || "School";
+    const schoolName = configMap.get("school_name") || "SchoolMS";
     const currentYear =
       configMap.get("academic_year") || String(new Date().getFullYear());
     const labelI = configMap.get("elective_label_I") || "Category I";

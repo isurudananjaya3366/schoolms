@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     }
 
     const configMap = new Map(configs.map((c) => [c.key, c.value]));
-    const schoolName = configMap.get("school_name") || "School";
+    const schoolName = configMap.get("school_name") || "SchoolMS";
     const labelI = configMap.get("elective_label_I") || "Category I";
     const labelII = configMap.get("elective_label_II") || "Category II";
     const labelIII = configMap.get("elective_label_III") || "Category III";

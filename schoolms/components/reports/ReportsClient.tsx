@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FileText, AlertTriangle } from "lucide-react";
 import StudentSearchPanel from "@/components/reports/StudentSearchPanel";
 import ReportPreviewPanel from "@/components/reports/ReportPreviewPanel";
 import RecentReportsList from "@/components/reports/RecentReportsList";
@@ -71,6 +72,22 @@ export default function ReportsClient({ role }: ReportsClientProps) {
   }>({ hasClassTeacher: false, hasPrincipal: false, hasVicePrincipal: false });
   const [emailConfigured, setEmailConfigured] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [schoolNameMissing, setSchoolNameMissing] = useState(false);
+
+  // Check if school name is configured (not just the default "SchoolMS")
+  useEffect(() => {
+    async function checkSchoolName() {
+      try {
+        const res = await fetch("/api/settings");
+        if (!res.ok) return;
+        const data = await res.json();
+        const schoolName = data.school_name;
+        // If it's the default "SchoolMS" or empty, it hasn't been customized
+        setSchoolNameMissing(!schoolName || schoolName === "SchoolMS");
+      } catch { /* ignore */ }
+    }
+    checkSchoolName();
+  }, []);
 
   // Check if email provider is configured
   useEffect(() => {
@@ -206,6 +223,21 @@ export default function ReportsClient({ role }: ReportsClientProps) {
           </p>
         </div>
       </div>
+
+      {/* School name warning */}
+      {schoolNameMissing && (
+        <Alert className="border-amber-300 bg-amber-50 text-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-sm">
+            <strong>School name is not configured.</strong> The report will display
+            &quot;SchoolMS&quot; as the school name. You can set it in{" "}
+            <a href="/dashboard/settings" className="underline font-medium">
+              Settings
+            </a>
+            .
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column */}
