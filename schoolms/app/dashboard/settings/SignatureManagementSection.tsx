@@ -11,13 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   Loader2,
   PenLine,
@@ -216,26 +210,38 @@ export default function SignatureManagementSection() {
             Class Teacher Signatures
           </div>
 
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="space-y-1.5 min-w-[140px]">
-              <Label>Select Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Class..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {classGroups.map((cg) => {
-                    const label = `${cg.grade}${cg.section}`;
-                    return (
-                      <SelectItem key={cg.id} value={label}>
-                        {label}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+          {/* Class grid selector */}
+          <div className="space-y-1.5">
+            <Label>Select Class</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {classGroups.map((cg) => {
+                const label = `${cg.grade}${cg.section}`;
+                const isSelected = selectedClass === label;
+                const hasSig = classesWithSigs.includes(label);
+                return (
+                  <button
+                    key={cg.id}
+                    type="button"
+                    onClick={() => setSelectedClass(label)}
+                    className={cn(
+                      "relative rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+                      "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                      isSelected
+                        ? "border-primary bg-primary text-white"
+                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5"
+                    )}
+                  >
+                    {label}
+                    {hasSig && !isSelected && (
+                      <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
+          <div className="flex flex-wrap items-end gap-3">
             {/* Upload button */}
             <div>
               <input

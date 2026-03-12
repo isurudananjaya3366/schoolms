@@ -62,8 +62,8 @@ export default function ReportsClient({ role }: ReportsClientProps) {
             const studentRes = await fetch(`/api/students/${selectedStudent.id}`);
             if (studentRes.ok) {
               const studentData = await studentRes.json();
-              className = studentData.data?.class
-                ? `${studentData.data.class.grade}${studentData.data.class.section}`
+              className = studentData.class
+                ? `${studentData.class.grade}${studentData.class.section}`
                 : undefined;
             }
           } catch { /* ignore */ }

@@ -11,6 +11,19 @@ import type { DocumentProps } from "@react-pdf/renderer";
 import ProgressReportDocument from "@/components/reports/ProgressReportDocument";
 import { REPORT_VIEWED } from "@/lib/audit-actions";
 
+/** Fetch a remote image and return as data URI for @react-pdf/renderer */
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const contentType = res.headers.get("content-type") || "image/png";
+    return `data:${contentType};base64,${Buffer.from(buffer).toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 const SUBJECT_KEYS = [
   "sinhala",
   "buddhism",
@@ -207,6 +220,14 @@ export async function GET(
         console.error("Failed to create audit log for REPORT_VIEWED:", err);
       });
 
+    // Convert remote image URLs to base64 data URIs for PDF rendering
+    const [logoBase64, ctSignBase64, pSignBase64, vpSignBase64] = await Promise.all([
+      schoolLogoUrl ? fetchImageAsBase64(schoolLogoUrl) : Promise.resolve(null),
+      classTeacherSignUrl ? fetchImageAsBase64(classTeacherSignUrl) : Promise.resolve(null),
+      principalSignUrl ? fetchImageAsBase64(principalSignUrl) : Promise.resolve(null),
+      vicePrincipalSignUrl ? fetchImageAsBase64(vicePrincipalSignUrl) : Promise.resolve(null),
+    ]);
+
     // Render PDF
     const pdfElement = createElement(ProgressReportDocument, {
       schoolName,
@@ -229,10 +250,10 @@ export async function GET(
         categoryIII: student.electives.categoryIII,
       },
       generatedAt: new Date().toISOString(),
-      schoolLogoUrl,
-      classTeacherSignUrl,
-      principalSignUrl,
-      vicePrincipalSignUrl,
+      schoolLogoUrl: logoBase64,
+      classTeacherSignUrl: ctSignBase64,
+      principalSignUrl: pSignBase64,
+      vicePrincipalSignUrl: vpSignBase64,
     }) as unknown as ReactElement<DocumentProps>;
 
     const pdfBuffer = await renderToBuffer(pdfElement);

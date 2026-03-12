@@ -23,6 +23,7 @@ interface SelectedStudent {
   id: string;
   name: string;
   indexNumber: string;
+  className?: string;
 }
 
 interface StudentSearchPanelProps {
@@ -118,6 +119,9 @@ export default function StudentSearchPanel({
       id: student.id,
       name: student.name,
       indexNumber: student.indexNumber,
+      className: student.class
+        ? `${student.class.grade}${student.class.section}`
+        : undefined,
     });
     setQuery(`${student.indexNumber} — ${student.name}`);
     setShowDropdown(false);

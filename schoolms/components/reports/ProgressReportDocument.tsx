@@ -71,10 +71,10 @@ const colors = {
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 30,
-    paddingBottom: 60,
-    paddingLeft: 40,
-    paddingRight: 40,
+    paddingTop: 25,
+    paddingBottom: 35,
+    paddingLeft: 50,
+    paddingRight: 35,
     fontFamily: "Helvetica",
     fontSize: 9,
     color: colors.body,
@@ -82,45 +82,48 @@ const styles = StyleSheet.create({
 
   // ─── Header ───
   headerRow: {
-    flexDirection: "row",
+    position: "relative",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
     borderBottomWidth: 2,
     borderBottomColor: colors.primary,
-    paddingBottom: 10,
+    paddingBottom: 8,
+    paddingTop: 2,
   },
   logo: {
-    width: 60,
-    height: 60,
+    position: "absolute",
+    left: 0,
+    top: 2,
+    width: 50,
+    height: 50,
     objectFit: "contain",
-    marginRight: 14,
   },
   headerTextBlock: {
-    flex: 1,
     alignItems: "center",
+    width: "100%",
   },
   schoolName: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: "Helvetica-Bold",
     color: colors.primary,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   reportTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Helvetica-Bold",
     color: colors.subHeader,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   academicYear: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: colors.muted,
   },
   headerNoLogo: {
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
     borderBottomWidth: 2,
     borderBottomColor: colors.primary,
-    paddingBottom: 10,
+    paddingBottom: 8,
   },
 
   // ─── Student Info ───
@@ -128,9 +131,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.bgAlt,
     borderRadius: 4,
-    padding: 10,
-    marginBottom: 14,
-    marginTop: 8,
+    padding: 8,
+    marginBottom: 10,
+    marginTop: 6,
   },
   infoCol: {
     flex: 1,
@@ -150,26 +153,26 @@ const styles = StyleSheet.create({
 
   // ─── Section Title ───
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontFamily: "Helvetica-Bold",
     color: colors.primary,
-    marginBottom: 6,
-    marginTop: 12,
-    paddingBottom: 3,
+    marginBottom: 4,
+    marginTop: 8,
+    paddingBottom: 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
 
   // ─── Table ───
   table: {
-    marginBottom: 10,
+    marginBottom: 6,
   },
   tableHeaderRow: {
     flexDirection: "row",
     backgroundColor: colors.primary,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 4,
   },
   tableHeaderText: {
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 5,
+    paddingVertical: 3.5,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border,
@@ -240,43 +243,43 @@ const styles = StyleSheet.create({
   // ─── Summary Stats ───
   statsRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-    marginTop: 4,
+    gap: 8,
+    marginBottom: 8,
+    marginTop: 3,
   },
   statBox: {
     flex: 1,
     backgroundColor: colors.bgAlt,
     borderRadius: 4,
-    padding: 8,
+    padding: 6,
     alignItems: "center",
   },
   statLabel: {
-    fontSize: 7,
+    fontSize: 6,
     color: colors.muted,
     textTransform: "uppercase",
-    marginBottom: 3,
+    marginBottom: 1,
     letterSpacing: 0.5,
   },
   statValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Helvetica-Bold",
     color: colors.primary,
   },
 
   // ─── Chart Section ───
   chartSection: {
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 6,
+    marginBottom: 6,
   },
   chartRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    height: 100,
-    paddingTop: 4,
+    height: 80,
+    paddingTop: 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
   },
   chartBarGroup: {
     flex: 1,
@@ -311,7 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 12,
-    marginTop: 6,
+    marginTop: 3,
   },
   chartLegendItem: {
     flexDirection: "row",
@@ -334,9 +337,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: colors.warningBorder,
     borderRadius: 4,
-    padding: 8,
-    marginBottom: 10,
-    marginTop: 6,
+    padding: 6,
+    marginBottom: 6,
+    marginTop: 4,
   },
   wNoteTitle: {
     fontSize: 9,
@@ -354,19 +357,19 @@ const styles = StyleSheet.create({
   // ─── Signatures ───
   signatureSection: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-    paddingTop: 10,
+    justifyContent: "space-around",
+    marginTop: 14,
+    paddingTop: 6,
   },
   signatureBlock: {
     alignItems: "center",
     width: "30%",
   },
   signatureImage: {
-    width: 100,
-    height: 40,
+    width: 90,
+    height: 35,
     objectFit: "contain",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   signatureLine: {
     width: "80%",
@@ -383,9 +386,9 @@ const styles = StyleSheet.create({
   // ─── Footer ───
   footer: {
     position: "absolute",
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 25,
+    left: 50,
+    right: 35,
     borderTopWidth: 0.5,
     borderTopColor: colors.border,
     paddingTop: 6,
@@ -548,6 +551,7 @@ export default function ProgressReportDocument({
             <Text style={styles.academicYear}>Academic Year {academicYear}</Text>
           </View>
         )}
+
 
         {/* ─── Student Info Bar ─── */}
         <View style={styles.infoBar}>
@@ -778,43 +782,23 @@ export default function ProgressReportDocument({
         {/* ─── Digital Signatures ─── */}
         {hasSignatures && (
           <View style={styles.signatureSection}>
-            {classTeacherSignUrl ? (
+            {classTeacherSignUrl && (
               <View style={styles.signatureBlock}>
                 <Image src={classTeacherSignUrl} style={styles.signatureImage} />
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Class Teacher</Text>
               </View>
-            ) : (
-              <View style={styles.signatureBlock}>
-                <View style={{ height: 40 }} />
-                <View style={styles.signatureLine} />
-                <Text style={styles.signatureLabel}>Class Teacher</Text>
-              </View>
             )}
-
-            {principalSignUrl ? (
+            {principalSignUrl && (
               <View style={styles.signatureBlock}>
                 <Image src={principalSignUrl} style={styles.signatureImage} />
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Principal</Text>
               </View>
-            ) : (
-              <View style={styles.signatureBlock}>
-                <View style={{ height: 40 }} />
-                <View style={styles.signatureLine} />
-                <Text style={styles.signatureLabel}>Principal</Text>
-              </View>
             )}
-
-            {vicePrincipalSignUrl ? (
+            {vicePrincipalSignUrl && (
               <View style={styles.signatureBlock}>
                 <Image src={vicePrincipalSignUrl} style={styles.signatureImage} />
-                <View style={styles.signatureLine} />
-                <Text style={styles.signatureLabel}>Vice Principal</Text>
-              </View>
-            ) : (
-              <View style={styles.signatureBlock}>
-                <View style={{ height: 40 }} />
                 <View style={styles.signatureLine} />
                 <Text style={styles.signatureLabel}>Vice Principal</Text>
               </View>

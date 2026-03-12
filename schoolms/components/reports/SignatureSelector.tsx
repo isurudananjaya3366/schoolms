@@ -25,7 +25,8 @@ export default function SignatureSelector({
   onSignatureOptionsChange,
   availableSignatures,
 }: SignatureSelectorProps) {
-  const toggle = (key: keyof SignatureOptions) => {
+  const toggle = (key: keyof SignatureOptions, available: boolean) => {
+    if (!available) return;
     onSignatureOptionsChange({
       ...signatureOptions,
       [key]: !signatureOptions[key],
@@ -71,13 +72,14 @@ export default function SignatureSelector({
               <input
                 type="checkbox"
                 id={`sig-${item.key}`}
-                checked={signatureOptions[item.key]}
-                onChange={() => toggle(item.key)}
-                className="h-4 w-4 rounded border-gray-300 accent-[var(--color-primary)]"
+                checked={item.available ? signatureOptions[item.key] : false}
+                onChange={() => toggle(item.key, item.available)}
+                disabled={!item.available}
+                className={`h-4 w-4 rounded border-gray-300 accent-[var(--color-primary)] ${!item.available ? 'opacity-40 cursor-not-allowed' : ''}`}
               />
               <Label
                 htmlFor={`sig-${item.key}`}
-                className="text-sm cursor-pointer"
+                className={`text-sm ${item.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
               >
                 {item.label}
               </Label>
