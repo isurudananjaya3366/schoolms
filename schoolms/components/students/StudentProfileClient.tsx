@@ -5,6 +5,7 @@ import { Role } from "@prisma/client";
 import ProfileHeader from "@/components/students/ProfileHeader";
 import MarksTable from "@/components/students/MarksTable";
 import WNoteBlock from "@/components/students/WNoteBlock";
+import RankingDisplay from "@/components/students/RankingDisplay";
 import { StudentPerformanceBar } from "@/components/charts";
 import { SUBJECT_KEYS } from "@/lib/chartPalette";
 import type { TermMarkData, ElectiveLabels } from "@/types/charts";
@@ -226,6 +227,7 @@ export default function StudentProfileClient({
                 markRecords={records}
                 electives={student.electives}
               />
+              <RankingDisplay studentId={student.id} year={year} />
             </div>
           ))
         )
@@ -249,6 +251,7 @@ export default function StudentProfileClient({
             markRecords={filteredMarkRecords}
             electives={student.electives}
           />
+          <RankingDisplay studentId={student.id} year={selectedYear} />
         </>
       )}
 
