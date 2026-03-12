@@ -1,0 +1,17 @@
+@media print {
+  /* Hide toolbar and thumbnail strip */
+  .fixed {
+    display: none !important;
+  }
+
+  /* Each slide on its own page */
+  body {
+    background: white !important;
+  }
+
+  /* Reset background to white for print */
+  .dark {
+    background: white !important;
+    color: black !important;
+  }
+}

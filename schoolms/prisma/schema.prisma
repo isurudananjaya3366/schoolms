@@ -1,0 +1,137 @@
+// SchoolMS Prisma Schema
+// Phase 1, Task 2 — Complete database layer
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  STAFF
+}
+
+enum Term {
+  TERM_1
+  TERM_2
+  TERM_3
+}
+
+// ─── Embedded Types ──────────────────────────────────────
+
+type Electives {
+  categoryI   String
+  categoryII  String
+  categoryIII String
+}
+
+type Marks {
+  sinhala     Int?
+  buddhism    Int?
+  maths       Int?
+  science     Int?
+  english     Int?
+  history     Int?
+  categoryI   Int?
+  categoryII  Int?
+  categoryIII Int?
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  email               String    @unique
+  passwordHash        String
+  role                Role      @default(STAFF)
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+  sessionInvalidatedAt DateTime?
+
+  @@map("users")
+}
+
+model ClassGroup {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  grade    Int
+  section  String
+  students Student[]
+
+  @@map("classGroups")
+}
+
+model Student {
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  indexNumber       String?      @unique
+  classId          String       @db.ObjectId
+  class            ClassGroup   @relation(fields: [classId], references: [id])
+  electives        Electives
+  scholarshipMarks Int?
+  markRecords      MarkRecord[]
+  createdAt        DateTime     @default(now())
+  isDeleted        Boolean      @default(false)
+
+  @@index([classId])
+  @@map("students")
+}
+
+model MarkRecord {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String   @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id])
+  term      Term
+  year      Int
+  marks     Marks
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String   @db.ObjectId
+
+  @@unique([studentId, term, year])
+  @@index([term, year])
+  @@map("markRecords")
+}
+
+model SystemConfig {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("systemConfigs")
+}
+
+model AuditLog {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  timestamp       DateTime @default(now())
+  userId          String?  @db.ObjectId
+  userDisplayName String
+  action          String
+  targetId        String?  @db.ObjectId
+  targetType      String?
+  ipAddress       String?
+  details         String
+
+  @@index([timestamp(sort: Desc)])
+  @@map("auditLogs")
+}
+
+model SecureSetting {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     String   // AES-256-GCM encrypted: iv:authTag:ciphertext (base64)
+  updatedAt DateTime @updatedAt
+
+  @@map("secureSettings")
+}
