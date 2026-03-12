@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import StudentSearchPanel from "@/components/reports/StudentSearchPanel";
 import ReportPreviewPanel from "@/components/reports/ReportPreviewPanel";
 import RecentReportsList from "@/components/reports/RecentReportsList";
+import SignatureSelector from "@/components/reports/SignatureSelector";
 
 interface ReportsClientProps {
   role: string;
@@ -17,6 +18,13 @@ interface SelectedStudent {
   id: string;
   name: string;
   indexNumber: string;
+  className?: string;
+}
+
+interface SignatureOptions {
+  classTeacherSign: boolean;
+  principalSign: boolean;
+  vicePrincipalSign: boolean;
 }
 
 export default function ReportsClient({ role }: ReportsClientProps) {
@@ -25,6 +33,56 @@ export default function ReportsClient({ role }: ReportsClientProps) {
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signatureOptions, setSignatureOptions] = useState<SignatureOptions>({
+    classTeacherSign: true,
+    principalSign: true,
+    vicePrincipalSign: true,
+  });
+  const [availableSignatures, setAvailableSignatures] = useState<{
+    hasClassTeacher: boolean;
+    hasPrincipal: boolean;
+    hasVicePrincipal: boolean;
+  }>({ hasClassTeacher: false, hasPrincipal: false, hasVicePrincipal: false });
+
+  // Check available signatures when student changes
+  useEffect(() => {
+    if (!selectedStudent) return;
+
+    async function checkSignatures() {
+      try {
+        const res = await fetch("/api/uploads/signature");
+        if (!res.ok) return;
+        const data = await res.json();
+        const sigs: { type: string; classLabel: string | null }[] = data.signatures || [];
+
+        // Extract className from student — fetch if not available
+        let className = selectedStudent?.className;
+        if (!className && selectedStudent) {
+          try {
+            const studentRes = await fetch(`/api/students/${selectedStudent.id}`);
+            if (studentRes.ok) {
+              const studentData = await studentRes.json();
+              className = studentData.data?.class
+                ? `${studentData.data.class.grade}${studentData.data.class.section}`
+                : undefined;
+            }
+          } catch { /* ignore */ }
+        }
+
+        setAvailableSignatures({
+          hasClassTeacher: sigs.some(
+            (s) => s.type === "class_teacher" && s.classLabel === className
+          ),
+          hasPrincipal: sigs.some((s) => s.type === "principal"),
+          hasVicePrincipal: sigs.some((s) => s.type === "vice_principal"),
+        });
+      } catch {
+        // silently fail
+      }
+    }
+
+    checkSignatures();
+  }, [selectedStudent]);
 
   const handleStudentSelect = useCallback((student: SelectedStudent) => {
     setSelectedStudent(student);
@@ -49,8 +107,15 @@ export default function ReportsClient({ role }: ReportsClientProps) {
     }
 
     try {
+      const params = new URLSearchParams({
+        year: String(selectedYear),
+      });
+      if (signatureOptions.classTeacherSign) params.set("classTeacherSign", "true");
+      if (signatureOptions.principalSign) params.set("principalSign", "true");
+      if (signatureOptions.vicePrincipalSign) params.set("vicePrincipalSign", "true");
+
       const res = await fetch(
-        `/api/reports/${selectedStudent.id}?year=${selectedYear}`
+        `/api/reports/${selectedStudent.id}?${params.toString()}`
       );
 
       if (!res.ok) {
@@ -73,7 +138,7 @@ export default function ReportsClient({ role }: ReportsClientProps) {
     } finally {
       setLoading(false);
     }
-  }, [selectedStudent, selectedYear, pdfBlobUrl]);
+  }, [selectedStudent, selectedYear, pdfBlobUrl, signatureOptions]);
 
   const isAdminOrAbove = role === "ADMIN" || role === "SUPERADMIN";
 
@@ -106,6 +171,15 @@ export default function ReportsClient({ role }: ReportsClientProps) {
               />
             </CardContent>
           </Card>
+
+          {/* Signature Options */}
+          {selectedStudent && (
+            <SignatureSelector
+              signatureOptions={signatureOptions}
+              onSignatureOptionsChange={setSignatureOptions}
+              availableSignatures={availableSignatures}
+            />
+          )}
 
           {isAdminOrAbove && (
             <Card>

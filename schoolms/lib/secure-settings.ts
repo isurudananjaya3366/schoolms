@@ -59,6 +59,15 @@ export const SECURE_KEYS: SecureKeyMeta[] = [
     isSensitive: true,
   },
 
+  // Blob Storage (for signatures, logo upload)
+  {
+    key: "BLOB_READ_WRITE_TOKEN",
+    label: "Vercel Blob Token",
+    group: "Blob Storage",
+    description: "Vercel Blob read/write token for file uploads (signatures, logo). Works on free tier.",
+    isSensitive: true,
+  },
+
   // Rate Limiting (Coming Soon)
   {
     key: "UPSTASH_REDIS_REST_URL",

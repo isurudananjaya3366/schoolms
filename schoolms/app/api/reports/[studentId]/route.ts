@@ -32,6 +32,7 @@ const TERM_DISPLAY: Record<string, string> = {
 };
 
 type ProcessedMarks = Record<string, Record<string, string>>;
+type RawMarks = Record<string, Record<string, number | null>>;
 type WNoteEntry = { subject: string; terms: string[] };
 
 export async function GET(
@@ -45,6 +46,9 @@ export async function GET(
     const { studentId } = await params;
     const { searchParams } = new URL(request.url);
     const yearParam = searchParams.get("year");
+    const includeClassTeacherSign = searchParams.get("classTeacherSign") === "true";
+    const includePrincipalSign = searchParams.get("principalSign") === "true";
+    const includeVicePrincipalSign = searchParams.get("vicePrincipalSign") === "true";
 
     // Fetch settings, student, and resolve year in parallel
     const [configs, student] = await Promise.all([
@@ -57,6 +61,7 @@ export async function GET(
               "elective_label_I",
               "elective_label_II",
               "elective_label_III",
+              "school_logo_url",
             ],
           },
         },
@@ -81,6 +86,16 @@ export async function GET(
     const labelI = configMap.get("elective_label_I") || "Category I";
     const labelII = configMap.get("elective_label_II") || "Category II";
     const labelIII = configMap.get("elective_label_III") || "Category III";
+    const schoolLogoUrl = configMap.get("school_logo_url") || null;
+
+    // Parse elective labels — may be JSON arrays, take first element as default
+    function parseElectiveLabel(raw: string): string {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed[0] || raw;
+      } catch { /* plain string */ }
+      return raw;
+    }
 
     const yearNum = yearParam ? parseInt(yearParam, 10) : parseInt(currentYear, 10);
 
@@ -104,26 +119,30 @@ export async function GET(
       );
     }
 
-    // Build processed marks: { TERM_1: { sinhala: "85", ... }, ... }
+    // Build processed marks and raw marks
     const processedMarks: ProcessedMarks = {};
+    const rawMarks: RawMarks = {};
     for (const term of TERM_ORDER) {
       const record = markRecords.find((r) => r.term === term);
       const termMarks: Record<string, string> = {};
+      const termRawMarks: Record<string, number | null> = {};
       for (const key of SUBJECT_KEYS) {
         const markValue = record
           ? (record.marks as Record<string, number | null | undefined>)[key]
           : undefined;
         termMarks[key] = applyWRule(markValue ?? null);
+        termRawMarks[key] = markValue !== undefined ? (markValue ?? null) : null;
       }
       processedMarks[term] = termMarks;
+      rawMarks[term] = termRawMarks;
     }
 
     // Build W-note data
     const wNoteMap = new Map<string, string[]>();
     const electivesForWRule = {
-      categoryI: labelI,
-      categoryII: labelII,
-      categoryIII: labelIII,
+      categoryI: student.electives.categoryI || parseElectiveLabel(labelI),
+      categoryII: student.electives.categoryII || parseElectiveLabel(labelII),
+      categoryIII: student.electives.categoryIII || parseElectiveLabel(labelIII),
     };
 
     for (const term of TERM_ORDER) {
@@ -142,6 +161,31 @@ export async function GET(
     const wNoteData: WNoteEntry[] = Array.from(wNoteMap.entries()).map(
       ([subject, terms]) => ({ subject, terms })
     );
+
+    // Fetch signature URLs if requested
+    const className = `${student.class.grade}${student.class.section}`;
+    let classTeacherSignUrl: string | null = null;
+    let principalSignUrl: string | null = null;
+    let vicePrincipalSignUrl: string | null = null;
+
+    const sigKeys: string[] = [];
+    if (includeClassTeacherSign) sigKeys.push(`signature_class_${className}`);
+    if (includePrincipalSign) sigKeys.push("signature_principal");
+    if (includeVicePrincipalSign) sigKeys.push("signature_vice_principal");
+
+    if (sigKeys.length > 0) {
+      const sigConfigs = await prisma.systemConfig.findMany({
+        where: { key: { in: sigKeys } },
+      });
+      for (const sc of sigConfigs) {
+        try {
+          const parsed = JSON.parse(sc.value);
+          if (sc.key === `signature_class_${className}`) classTeacherSignUrl = parsed.url;
+          if (sc.key === "signature_principal") principalSignUrl = parsed.url;
+          if (sc.key === "signature_vice_principal") vicePrincipalSignUrl = parsed.url;
+        } catch { /* ignore */ }
+      }
+    }
 
     // Audit log - fire and forget
     prisma.auditLog
@@ -170,11 +214,25 @@ export async function GET(
       studentName: student.name,
       indexNumber: student.indexNumber ?? "N/A",
       grade: student.class.grade,
-      className: `${student.class.grade}${student.class.section}`,
+      className,
       processedMarks,
+      rawMarks,
       wNoteData,
-      electiveLabels: { labelI, labelII, labelIII },
+      electiveLabels: {
+        labelI: parseElectiveLabel(labelI),
+        labelII: parseElectiveLabel(labelII),
+        labelIII: parseElectiveLabel(labelIII),
+      },
+      studentElectives: {
+        categoryI: student.electives.categoryI,
+        categoryII: student.electives.categoryII,
+        categoryIII: student.electives.categoryIII,
+      },
       generatedAt: new Date().toISOString(),
+      schoolLogoUrl,
+      classTeacherSignUrl,
+      principalSignUrl,
+      vicePrincipalSignUrl,
     }) as unknown as ReactElement<DocumentProps>;
 
     const pdfBuffer = await renderToBuffer(pdfElement);

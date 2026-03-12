@@ -3,8 +3,11 @@ import {
   Page,
   View,
   Text,
+  Image,
   StyleSheet,
 } from "@react-pdf/renderer";
+
+// ─── Types ───────────────────────────────────────────────
 
 interface ProgressReportDocumentProps {
   schoolName: string;
@@ -14,187 +17,450 @@ interface ProgressReportDocumentProps {
   grade: number;
   className: string;
   processedMarks: Record<string, Record<string, string>>;
+  rawMarks: Record<string, Record<string, number | null>>;
   wNoteData: { subject: string; terms: string[] }[];
   electiveLabels: { labelI: string; labelII: string; labelIII: string };
+  studentElectives: { categoryI: string; categoryII: string; categoryIII: string };
   generatedAt: string;
+  schoolLogoUrl?: string | null;
+  classTeacherSignUrl?: string | null;
+  principalSignUrl?: string | null;
+  vicePrincipalSignUrl?: string | null;
 }
 
-const SUBJECT_ROWS: { key: string; labelKey?: string }[] = [
-  { key: "sinhala" },
-  { key: "buddhism" },
-  { key: "maths" },
-  { key: "science" },
-  { key: "english" },
-  { key: "history" },
-  { key: "categoryI", labelKey: "labelI" },
-  { key: "categoryII", labelKey: "labelII" },
-  { key: "categoryIII", labelKey: "labelIII" },
-];
+// ─── Subject Configuration ───────────────────────────────
 
-const CORE_DISPLAY_NAMES: Record<string, string> = {
-  sinhala: "Sinhala",
-  buddhism: "Buddhism",
-  maths: "Maths",
-  science: "Science",
-  english: "English",
-  history: "History",
-};
+const CORE_SUBJECTS: { key: string; label: string }[] = [
+  { key: "sinhala", label: "Sinhala" },
+  { key: "buddhism", label: "Buddhism" },
+  { key: "maths", label: "Mathematics" },
+  { key: "science", label: "Science" },
+  { key: "english", label: "English" },
+  { key: "history", label: "History" },
+];
 
 const TERM_KEYS = ["TERM_1", "TERM_2", "TERM_3"] as const;
 const TERM_LABELS = ["Term 1", "Term 2", "Term 3"];
 
+// ─── Styles ──────────────────────────────────────────────
+
+const colors = {
+  primary: "#254E58",
+  primaryLight: "#3a6d78",
+  header: "#0f172a",
+  subHeader: "#334155",
+  body: "#1e293b",
+  muted: "#64748b",
+  lightMuted: "#94a3b8",
+  bg: "#f8fafc",
+  bgAlt: "#f1f5f9",
+  border: "#e2e8f0",
+  accent: "#0ea5e9",
+  warning: "#ea580c",
+  warningBg: "#fef9c3",
+  warningBorder: "#ea580c",
+  warningText: "#78350f",
+  warningTitle: "#92400e",
+  white: "#ffffff",
+  success: "#16a34a",
+  danger: "#dc2626",
+  chartBar1: "#254E58",
+  chartBar2: "#3a6d78",
+  chartBar3: "#88BDBC",
+};
+
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingLeft: 50,
-    paddingRight: 50,
+    paddingTop: 30,
+    paddingBottom: 60,
+    paddingLeft: 40,
+    paddingRight: 40,
     fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#1e293b",
+    fontSize: 9,
+    color: colors.body,
   },
-  // Header
-  header: {
+
+  // ─── Header ───
+  headerRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+    paddingBottom: 10,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    objectFit: "contain",
+    marginRight: 14,
+  },
+  headerTextBlock: {
+    flex: 1,
+    alignItems: "center",
   },
   schoolName: {
     fontSize: 18,
     fontFamily: "Helvetica-Bold",
-    color: "#0f172a",
-    marginBottom: 4,
+    color: colors.primary,
+    marginBottom: 2,
   },
   reportTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Helvetica-Bold",
-    color: "#334155",
+    color: colors.subHeader,
     marginBottom: 2,
   },
   academicYear: {
-    fontSize: 11,
-    color: "#64748b",
+    fontSize: 10,
+    color: colors.muted,
   },
-  // Student info bar
+  headerNoLogo: {
+    alignItems: "center",
+    marginBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+    paddingBottom: 10,
+  },
+
+  // ─── Student Info ───
   infoBar: {
     flexDirection: "row",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: colors.bgAlt,
     borderRadius: 4,
     padding: 10,
-    marginBottom: 16,
+    marginBottom: 14,
+    marginTop: 8,
   },
   infoCol: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 8,
-    color: "#64748b",
+    fontSize: 7,
+    color: colors.muted,
     marginBottom: 2,
     textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   infoValue: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: colors.header,
+  },
+
+  // ─── Section Title ───
+  sectionTitle: {
     fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    color: "#0f172a",
+    color: colors.primary,
+    marginBottom: 6,
+    marginTop: 12,
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  // Table
+
+  // ─── Table ───
   table: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   tableHeaderRow: {
     flexDirection: "row",
-    backgroundColor: "#1e293b",
+    backgroundColor: colors.primary,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 4,
   },
   tableHeaderText: {
-    color: "#ffffff",
-    fontSize: 9,
+    color: colors.white,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   subjectCol: {
-    width: "40%",
+    width: "34%",
     paddingLeft: 8,
   },
   termCol: {
-    width: "20%",
+    width: "16%",
+    textAlign: "center",
+  },
+  avgCol: {
+    width: "14%",
     textAlign: "center",
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 7,
+    paddingVertical: 5,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: colors.border,
   },
   tableRowAlt: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: colors.bg,
   },
   subjectText: {
-    fontSize: 10,
+    fontSize: 9,
     paddingLeft: 8,
   },
+  subjectTextBold: {
+    fontSize: 9,
+    paddingLeft: 8,
+    fontFamily: "Helvetica-Bold",
+  },
   markText: {
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
+  },
+  markTextBold: {
+    fontSize: 9,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
   },
   markW: {
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
-    color: "#ea580c",
+    color: colors.warning,
   },
   markDash: {
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
-    color: "#9ca3af",
+    color: colors.lightMuted,
   },
-  // W-Note section
-  wNoteBox: {
-    backgroundColor: "#fef9c3",
-    borderLeftWidth: 3,
-    borderLeftColor: "#ea580c",
+  markHighlight: {
+    fontSize: 9,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    color: colors.success,
+  },
+
+  // ─── Summary Stats ───
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: colors.bgAlt,
     borderRadius: 4,
-    padding: 10,
-    marginBottom: 16,
+    padding: 8,
+    alignItems: "center",
+  },
+  statLabel: {
+    fontSize: 7,
+    color: colors.muted,
+    textTransform: "uppercase",
+    marginBottom: 3,
+    letterSpacing: 0.5,
+  },
+  statValue: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: colors.primary,
+  },
+
+  // ─── Chart Section ───
+  chartSection: {
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  chartRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 100,
+    paddingTop: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: 10,
+  },
+  chartBarGroup: {
+    flex: 1,
+    alignItems: "center",
+    height: "100%",
+    justifyContent: "flex-end",
+  },
+  chartBarWrapper: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 2,
+    height: "100%",
+  },
+  chartBar: {
+    width: 14,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  chartBarLabel: {
+    fontSize: 6,
+    color: colors.muted,
+    textAlign: "center",
+    marginTop: 3,
+  },
+  chartBarValue: {
+    fontSize: 6,
+    color: colors.white,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+  },
+  chartLegend: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    marginTop: 6,
+  },
+  chartLegendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  chartLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+  },
+  chartLegendText: {
+    fontSize: 7,
+    color: colors.muted,
+  },
+
+  // ─── W-Note ───
+  wNoteBox: {
+    backgroundColor: colors.warningBg,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.warningBorder,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 10,
+    marginTop: 6,
   },
   wNoteTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: "#92400e",
-    marginBottom: 6,
+    color: colors.warningTitle,
+    marginBottom: 4,
   },
   wNoteText: {
-    fontSize: 9,
-    color: "#78350f",
+    fontSize: 8,
+    color: colors.warningText,
     marginBottom: 2,
     paddingLeft: 8,
   },
-  // Footer
+
+  // ─── Signatures ───
+  signatureSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    paddingTop: 10,
+  },
+  signatureBlock: {
+    alignItems: "center",
+    width: "30%",
+  },
+  signatureImage: {
+    width: 100,
+    height: 40,
+    objectFit: "contain",
+    marginBottom: 4,
+  },
+  signatureLine: {
+    width: "80%",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.body,
+    marginBottom: 4,
+  },
+  signatureLabel: {
+    fontSize: 8,
+    color: colors.muted,
+    textAlign: "center",
+  },
+
+  // ─── Footer ───
   footer: {
     position: "absolute",
-    bottom: 40,
-    left: 50,
-    right: 50,
+    bottom: 30,
+    left: 40,
+    right: 40,
     borderTopWidth: 0.5,
-    borderTopColor: "#cbd5e1",
-    paddingTop: 8,
+    borderTopColor: colors.border,
+    paddingTop: 6,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   footerText: {
-    fontSize: 8,
-    color: "#94a3b8",
+    fontSize: 7,
+    color: colors.lightMuted,
   },
 });
+
+// ─── Helpers ─────────────────────────────────────────────
 
 function getMarkStyle(value: string) {
   if (value === "W") return styles.markW;
   if (value === "\u2014") return styles.markDash;
+  const num = parseInt(value, 10);
+  if (!isNaN(num) && num >= 75) return styles.markHighlight;
   return styles.markText;
 }
+
+function computeAverage(marksByTerm: Record<string, Record<string, string>>, subjectKey: string): string {
+  let sum = 0;
+  let count = 0;
+  for (const termKey of TERM_KEYS) {
+    const val = marksByTerm[termKey]?.[subjectKey];
+    if (val && val !== "W" && val !== "\u2014") {
+      const num = parseInt(val, 10);
+      if (!isNaN(num)) {
+        sum += num;
+        count++;
+      }
+    }
+  }
+  return count > 0 ? (sum / count).toFixed(1) : "\u2014";
+}
+
+function computeTermTotal(
+  _processedMarks: Record<string, Record<string, string>>,
+  rawMarks: Record<string, Record<string, number | null>>,
+  termKey: string,
+  subjectKeys: string[]
+): { total: number; count: number } {
+  let total = 0;
+  let count = 0;
+  for (const key of subjectKeys) {
+    const raw = rawMarks[termKey]?.[key];
+    if (raw !== null && raw !== undefined) {
+      total += raw;
+      count++;
+    }
+  }
+  return { total, count };
+}
+
+function computeOverallAverage(
+  rawMarks: Record<string, Record<string, number | null>>,
+  subjectKeys: string[]
+): string {
+  let totalSum = 0;
+  let totalCount = 0;
+  for (const termKey of TERM_KEYS) {
+    for (const key of subjectKeys) {
+      const raw = rawMarks[termKey]?.[key];
+      if (raw !== null && raw !== undefined) {
+        totalSum += raw;
+        totalCount++;
+      }
+    }
+  }
+  return totalCount > 0 ? (totalSum / totalCount).toFixed(1) : "\u2014";
+}
+
+// ─── Component ───────────────────────────────────────────
 
 export default function ProgressReportDocument({
   schoolName,
@@ -204,43 +470,94 @@ export default function ProgressReportDocument({
   grade,
   className,
   processedMarks,
+  rawMarks,
   wNoteData,
   electiveLabels,
+  studentElectives,
   generatedAt,
+  schoolLogoUrl,
+  classTeacherSignUrl,
+  principalSignUrl,
+  vicePrincipalSignUrl,
 }: ProgressReportDocumentProps) {
-  const electiveLabelMap: Record<string, string> = {
-    labelI: electiveLabels.labelI,
-    labelII: electiveLabels.labelII,
-    labelIII: electiveLabels.labelIII,
-  };
-
   const formattedDate = new Date(generatedAt).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 
+  // Build subject rows: core + student-specific electives
+  const electiveRows = [
+    { key: "categoryI", label: studentElectives.categoryI || electiveLabels.labelI },
+    { key: "categoryII", label: studentElectives.categoryII || electiveLabels.labelII },
+    { key: "categoryIII", label: studentElectives.categoryIII || electiveLabels.labelIII },
+  ];
+  
+  const allSubjectRows = [...CORE_SUBJECTS, ...electiveRows];
+  const allSubjectKeys = allSubjectRows.map((r) => r.key);
+
+  // Compute term totals and averages for summary
+  const termStats = TERM_KEYS.map((termKey) => {
+    const { total, count } = computeTermTotal(processedMarks, rawMarks, termKey, allSubjectKeys);
+    return { termKey, total, count, avg: count > 0 ? total / count : 0 };
+  });
+
+  const overallAvg = computeOverallAverage(rawMarks, allSubjectKeys);
+
+  // Best and worst subjects
+  const subjectAvgs = allSubjectRows.map((s) => {
+    const avg = computeAverage(processedMarks, s.key);
+    return { ...s, avg, avgNum: avg === "\u2014" ? -1 : parseFloat(avg) };
+  }).filter(s => s.avgNum >= 0);
+  
+  const bestSubject = subjectAvgs.length > 0 
+    ? subjectAvgs.reduce((best, s) => s.avgNum > best.avgNum ? s : best)
+    : null;
+  const worstSubject = subjectAvgs.length > 0
+    ? subjectAvgs.reduce((worst, s) => s.avgNum < worst.avgNum ? s : worst)
+    : null;
+
+  // Chart data: per-subject marks per term
+  const chartData = allSubjectRows.map((s) => {
+    const termMarks = TERM_KEYS.map((tk) => {
+      const raw = rawMarks[tk]?.[s.key];
+      return raw !== null && raw !== undefined ? raw : null;
+    });
+    return { key: s.key, label: s.label, termMarks };
+  });
+
+  const hasSignatures = !!classTeacherSignUrl || !!principalSignUrl || !!vicePrincipalSignUrl;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.schoolName}>{schoolName}</Text>
-          <Text style={styles.reportTitle}>Progress Report</Text>
-          <Text style={styles.academicYear}>
-            Academic Year {academicYear}
-          </Text>
-        </View>
+        {/* ─── Header with Logo ─── */}
+        {schoolLogoUrl ? (
+          <View style={styles.headerRow}>
+            <Image src={schoolLogoUrl} style={styles.logo} />
+            <View style={styles.headerTextBlock}>
+              <Text style={styles.schoolName}>{schoolName}</Text>
+              <Text style={styles.reportTitle}>Student Progress Report</Text>
+              <Text style={styles.academicYear}>Academic Year {academicYear}</Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.headerNoLogo}>
+            <Text style={styles.schoolName}>{schoolName}</Text>
+            <Text style={styles.reportTitle}>Student Progress Report</Text>
+            <Text style={styles.academicYear}>Academic Year {academicYear}</Text>
+          </View>
+        )}
 
-        {/* Student Info Bar */}
+        {/* ─── Student Info Bar ─── */}
         <View style={styles.infoBar}>
           <View style={styles.infoCol}>
-            <Text style={styles.infoLabel}>Index No.</Text>
-            <Text style={styles.infoValue}>{indexNumber ?? "N/A"}</Text>
+            <Text style={styles.infoLabel}>Student Name</Text>
+            <Text style={styles.infoValue}>{studentName}</Text>
           </View>
           <View style={styles.infoCol}>
-            <Text style={styles.infoLabel}>Name</Text>
-            <Text style={styles.infoValue}>{studentName}</Text>
+            <Text style={styles.infoLabel}>Index Number</Text>
+            <Text style={styles.infoValue}>{indexNumber ?? "N/A"}</Text>
           </View>
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>Grade</Text>
@@ -252,7 +569,24 @@ export default function ProgressReportDocument({
           </View>
         </View>
 
-        {/* Marks Table */}
+        {/* ─── Summary Statistics ─── */}
+        <View style={styles.statsRow}>
+          {termStats.map((ts, i) => (
+            <View key={ts.termKey} style={styles.statBox}>
+              <Text style={styles.statLabel}>{TERM_LABELS[i]} Avg</Text>
+              <Text style={styles.statValue}>
+                {ts.count > 0 ? ts.avg.toFixed(1) : "\u2014"}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>Overall Avg</Text>
+            <Text style={styles.statValue}>{overallAvg}</Text>
+          </View>
+        </View>
+
+        {/* ─── Marks Table ─── */}
+        <Text style={styles.sectionTitle}>Subject Marks</Text>
         <View style={styles.table}>
           {/* Table Header */}
           <View style={styles.tableHeaderRow}>
@@ -264,47 +598,174 @@ export default function ProgressReportDocument({
                 <Text style={styles.tableHeaderText}>{label}</Text>
               </View>
             ))}
+            <View style={styles.avgCol}>
+              <Text style={styles.tableHeaderText}>Average</Text>
+            </View>
           </View>
 
-          {/* Table Rows */}
-          {SUBJECT_ROWS.map((row, idx) => {
-            const displayName = row.labelKey
-              ? electiveLabelMap[row.labelKey] || CORE_DISPLAY_NAMES[row.key] || row.key
-              : CORE_DISPLAY_NAMES[row.key] || row.key;
-
+          {/* Core Subjects */}
+          {CORE_SUBJECTS.map((row, idx) => {
+            const avg = computeAverage(processedMarks, row.key);
             return (
               <View
                 key={row.key}
-                style={[
-                  styles.tableRow,
-                  idx % 2 === 1 ? styles.tableRowAlt : {},
-                ]}
+                style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowAlt : {}]}
               >
                 <View style={styles.subjectCol}>
-                  <Text style={styles.subjectText}>{displayName}</Text>
+                  <Text style={styles.subjectText}>{row.label}</Text>
                 </View>
                 {TERM_KEYS.map((termKey) => {
-                  const value =
-                    processedMarks[termKey]?.[row.key] ?? "\u2014";
+                  const value = processedMarks[termKey]?.[row.key] ?? "\u2014";
                   return (
                     <View key={termKey} style={styles.termCol}>
                       <Text style={getMarkStyle(value)}>{value}</Text>
                     </View>
                   );
                 })}
+                <View style={styles.avgCol}>
+                  <Text style={styles.markTextBold}>{avg}</Text>
+                </View>
               </View>
             );
           })}
+
+          {/* Elective Separator */}
+          <View style={[styles.tableRow, { backgroundColor: colors.bgAlt }]}>
+            <View style={styles.subjectCol}>
+              <Text style={[styles.subjectTextBold, { color: colors.primary, fontSize: 8 }]}>
+                Elective Subjects
+              </Text>
+            </View>
+            {TERM_LABELS.map((l) => (
+              <View key={l} style={styles.termCol}><Text> </Text></View>
+            ))}
+            <View style={styles.avgCol}><Text> </Text></View>
+          </View>
+
+          {/* Elective Subjects (student-specific) */}
+          {electiveRows.map((row, idx) => {
+            const avg = computeAverage(processedMarks, row.key);
+            return (
+              <View
+                key={row.key}
+                style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowAlt : {}]}
+              >
+                <View style={styles.subjectCol}>
+                  <Text style={styles.subjectText}>{row.label}</Text>
+                </View>
+                {TERM_KEYS.map((termKey) => {
+                  const value = processedMarks[termKey]?.[row.key] ?? "\u2014";
+                  return (
+                    <View key={termKey} style={styles.termCol}>
+                      <Text style={getMarkStyle(value)}>{value}</Text>
+                    </View>
+                  );
+                })}
+                <View style={styles.avgCol}>
+                  <Text style={styles.markTextBold}>{avg}</Text>
+                </View>
+              </View>
+            );
+          })}
+
+          {/* Total Row */}
+          <View style={[styles.tableRow, { backgroundColor: colors.primary }]}>
+            <View style={styles.subjectCol}>
+              <Text style={[styles.subjectTextBold, { color: colors.white }]}>Total</Text>
+            </View>
+            {TERM_KEYS.map((termKey) => {
+              const { total, count } = computeTermTotal(processedMarks, rawMarks, termKey, allSubjectKeys);
+              return (
+                <View key={termKey} style={styles.termCol}>
+                  <Text style={[styles.markTextBold, { color: colors.white }]}>
+                    {count > 0 ? String(total) : "\u2014"}
+                  </Text>
+                </View>
+              );
+            })}
+            <View style={styles.avgCol}>
+              <Text style={[styles.markTextBold, { color: colors.white }]}>{overallAvg}</Text>
+            </View>
+          </View>
         </View>
 
-        {/* W-Note Section */}
+        {/* ─── Performance Highlights ─── */}
+        {(bestSubject || worstSubject) && (
+          <View style={styles.statsRow}>
+            {bestSubject && (
+              <View style={[styles.statBox, { borderLeftWidth: 3, borderLeftColor: colors.success }]}>
+                <Text style={styles.statLabel}>Best Subject</Text>
+                <Text style={[styles.statValue, { fontSize: 10, color: colors.success }]}>
+                  {bestSubject.label}
+                </Text>
+                <Text style={[styles.statLabel, { marginTop: 2 }]}>Avg: {bestSubject.avg}</Text>
+              </View>
+            )}
+            {worstSubject && (
+              <View style={[styles.statBox, { borderLeftWidth: 3, borderLeftColor: colors.danger }]}>
+                <Text style={styles.statLabel}>Needs Improvement</Text>
+                <Text style={[styles.statValue, { fontSize: 10, color: colors.danger }]}>
+                  {worstSubject.label}
+                </Text>
+                <Text style={[styles.statLabel, { marginTop: 2 }]}>Avg: {worstSubject.avg}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ─── Term Performance Chart ─── */}
+        <Text style={styles.sectionTitle}>Term-wise Performance</Text>
+        <View style={styles.chartSection}>
+          <View style={styles.chartRow}>
+            {chartData.map((subject) => (
+              <View key={subject.key} style={styles.chartBarGroup}>
+                <View style={styles.chartBarWrapper}>
+                  {subject.termMarks.map((mark, tIdx) => {
+                    const height = mark !== null ? Math.max((mark / 100) * 90, 4) : 4;
+                    const barColors = [colors.chartBar1, colors.chartBar2, colors.chartBar3];
+                    return (
+                      <View
+                        key={tIdx}
+                        style={[
+                          styles.chartBar,
+                          {
+                            height,
+                            backgroundColor: mark !== null ? barColors[tIdx] : colors.border,
+                          },
+                        ]}
+                      >
+                        {mark !== null && height > 12 && (
+                          <Text style={[styles.chartBarValue, { marginTop: 2 }]}>{mark}</Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+                <Text style={styles.chartBarLabel}>
+                  {subject.label.length > 6 ? subject.label.substring(0, 5) + "." : subject.label}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.chartLegend}>
+            {TERM_LABELS.map((label, idx) => {
+              const barColors = [colors.chartBar1, colors.chartBar2, colors.chartBar3];
+              return (
+                <View key={label} style={styles.chartLegendItem}>
+                  <View style={[styles.chartLegendDot, { backgroundColor: barColors[idx] }]} />
+                  <Text style={styles.chartLegendText}>{label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ─── W-Note Section ─── */}
         {wNoteData.length > 0 && (
           <View style={styles.wNoteBox}>
-            <Text style={styles.wNoteTitle}>
-              W-Rule Notice
-            </Text>
+            <Text style={styles.wNoteTitle}>W-Rule Notice</Text>
             <Text style={[styles.wNoteText, { paddingLeft: 0, marginBottom: 4 }]}>
-              The following subjects have marks below the threshold (W):
+              The following subjects have marks below the threshold (below 35):
             </Text>
             {wNoteData.map((entry) => (
               <Text key={entry.subject} style={styles.wNoteText}>
@@ -314,7 +775,54 @@ export default function ProgressReportDocument({
           </View>
         )}
 
-        {/* Footer */}
+        {/* ─── Digital Signatures ─── */}
+        {hasSignatures && (
+          <View style={styles.signatureSection}>
+            {classTeacherSignUrl ? (
+              <View style={styles.signatureBlock}>
+                <Image src={classTeacherSignUrl} style={styles.signatureImage} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Class Teacher</Text>
+              </View>
+            ) : (
+              <View style={styles.signatureBlock}>
+                <View style={{ height: 40 }} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Class Teacher</Text>
+              </View>
+            )}
+
+            {principalSignUrl ? (
+              <View style={styles.signatureBlock}>
+                <Image src={principalSignUrl} style={styles.signatureImage} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Principal</Text>
+              </View>
+            ) : (
+              <View style={styles.signatureBlock}>
+                <View style={{ height: 40 }} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Principal</Text>
+              </View>
+            )}
+
+            {vicePrincipalSignUrl ? (
+              <View style={styles.signatureBlock}>
+                <Image src={vicePrincipalSignUrl} style={styles.signatureImage} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Vice Principal</Text>
+              </View>
+            ) : (
+              <View style={styles.signatureBlock}>
+                <View style={{ height: 40 }} />
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureLabel}>Vice Principal</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ─── Footer ─── */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
             Generated by SchoolMS on {formattedDate}

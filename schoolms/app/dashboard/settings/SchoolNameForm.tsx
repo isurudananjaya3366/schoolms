@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 export default function SchoolNameForm({
   initialValue,
@@ -27,6 +27,8 @@ export default function SchoolNameForm({
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl);
   const [logoError, setLogoError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoFileRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
     if (!value.trim()) return;
@@ -50,10 +52,44 @@ export default function SchoolNameForm({
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/uploads/logo", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Upload failed");
+      }
+
+      const { url } = await res.json();
+      setLogoUrl(url);
+      setLogoError(false);
+      toast.success("Logo uploaded successfully.");
+      router.refresh();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to upload logo."
+      );
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>School Name</CardTitle>
+        <CardTitle>School Name & Logo</CardTitle>
         <CardDescription>
           Displayed on the login page and in generated PDF reports.
         </CardDescription>
@@ -69,17 +105,41 @@ export default function SchoolNameForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="school-logo-url">Logo URL</Label>
-          <Input
-            id="school-logo-url"
-            type="url"
-            value={logoUrl}
-            onChange={(e) => {
-              setLogoUrl(e.target.value);
-              setLogoError(false);
-            }}
-            placeholder="https://example.com/logo.png"
-          />
+          <Label htmlFor="school-logo-url">Logo URL <span className="text-xs text-muted-foreground">(paste URL or upload)</span></Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="school-logo-url"
+              type="url"
+              value={logoUrl}
+              onChange={(e) => {
+                setLogoUrl(e.target.value);
+                setLogoError(false);
+              }}
+              placeholder="https://example.com/logo.png"
+              className="flex-1"
+            />
+            <input
+              ref={logoFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLogoUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploadingLogo}
+              onClick={() => logoFileRef.current?.click()}
+            >
+              {uploadingLogo ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+              ) : (
+                <Upload className="h-4 w-4 mr-1" />
+              )}
+              Upload
+            </Button>
+          </div>
           {logoUrl.trim() ? (
             <div className="flex items-center gap-3 rounded-md border p-3">
               {!logoError ? (

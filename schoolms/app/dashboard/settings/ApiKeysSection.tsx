@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Mail,
   Gauge,
+  HardDrive,
   Save,
   Trash2,
   CheckCircle2,
@@ -41,6 +42,7 @@ interface KeyMeta {
 // Map group names to icons
 const GROUP_ICONS: Record<string, React.ReactNode> = {
   Email: <Mail className="h-5 w-5" />,
+  "Blob Storage": <HardDrive className="h-5 w-5" />,
   "Rate Limiting": <Gauge className="h-5 w-5" />,
 };
 
@@ -183,7 +185,7 @@ export default function ApiKeysSection() {
     );
   }
 
-  const groupOrder = ["Email", "Rate Limiting"];
+  const groupOrder = ["Email", "Blob Storage", "Rate Limiting"];
 
   return (
     <Card>

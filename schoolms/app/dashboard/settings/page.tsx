@@ -6,6 +6,7 @@ import SchoolNameForm from "./SchoolNameForm";
 import AcademicYearForm from "./AcademicYearForm";
 import SubjectConfigForm from "./SubjectConfigForm";
 import ClassGroupsSection from "./ClassGroupsSection";
+import SignatureManagementSection from "./SignatureManagementSection";
 import ApiKeysSection from "./ApiKeysSection";
 
 export const metadata = { title: "Settings | SchoolMS" };
@@ -97,6 +98,7 @@ export default async function SettingsPage() {
         initialSubjectsIII={subjectsIII}
       />
       <ClassGroupsSection />
+      <SignatureManagementSection />
       {role === Role.SUPERADMIN && <ApiKeysSection />}
     </div>
   );
