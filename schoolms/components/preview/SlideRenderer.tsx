@@ -16,9 +16,11 @@ const TOTAL_SLIDES = 8;
 
 interface SlideRendererProps {
   data: PreviewData;
+  /** Called when the user advances past the final slide (e.g. to auto-load next student). */
+  onLastSlide?: () => void;
 }
 
-export default function SlideRenderer({ data }: SlideRendererProps) {
+export default function SlideRenderer({ data, onLastSlide }: SlideRendererProps) {
   const [slideIndex, setSlideIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "A4">("16:9");
@@ -27,8 +29,12 @@ export default function SlideRenderer({ data }: SlideRendererProps) {
   const chartSlideRef = useRef<HTMLDivElement>(null);
 
   const goNext = useCallback(() => {
+    if (slideIndex >= TOTAL_SLIDES - 1) {
+      onLastSlide?.();
+      return;
+    }
     setSlideIndex((i) => Math.min(i + 1, TOTAL_SLIDES - 1));
-  }, []);
+  }, [slideIndex, onLastSlide]);
 
   const goPrev = useCallback(() => {
     setSlideIndex((i) => Math.max(i - 1, 0));
