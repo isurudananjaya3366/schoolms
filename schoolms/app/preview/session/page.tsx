@@ -10,12 +10,12 @@ export const metadata = {
 export default async function PreviewSessionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classId?: string; year?: string }>;
+  searchParams: Promise<{ classId?: string; year?: string; focusTerm?: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const { classId, year: yearParam } = await searchParams;
+  const { classId, year: yearParam, focusTerm } = await searchParams;
   if (!classId) notFound();
 
   const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
@@ -47,6 +47,7 @@ export default async function PreviewSessionPage({
       classGroup={{ grade: classGroup.grade, section: classGroup.section }}
       students={plainStudents}
       year={year}
+      focusTerm={focusTerm}
     />
   );
 }

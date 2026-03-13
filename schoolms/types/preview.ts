@@ -1,5 +1,20 @@
 import type { TermMarkData, ElectiveLabels } from "@/types/charts";
 
+export interface RankingEntry {
+  name: string;
+  average: number;
+  isCurrent: boolean;
+}
+
+export interface PreviewRanking {
+  classRank: number | null;
+  classTotal: number;
+  classTop10: RankingEntry[];
+  sectionRank: number | null;
+  sectionTotal: number;
+  sectionTop10: RankingEntry[];
+}
+
 export interface EnrichedSubject {
   key: string;
   displayName: string;
@@ -13,6 +28,13 @@ export interface EnrichedTerm {
   termLabel: string; // "Term 1"
   subjects: EnrichedSubject[];
   hasData: boolean;
+}
+
+export interface AnnualSubjectAverage {
+  name: string;
+  average: number;
+  color: string;
+  wCount: number;
 }
 
 export interface PreviewData {
@@ -46,4 +68,15 @@ export interface PreviewData {
     descriptorColor: string;
     totalSubjectsRecorded: number;
   };
+  /** The term key that overallStats and highlights are calculated from (e.g. "TERM_2") */
+  focusTerm: string;
+  /** Populated only when all 3 terms have data — shows year-level averages */
+  annualStats: {
+    overallAverage: number;
+    descriptor: string;
+    descriptorColor: string;
+    totalSubjectsRecorded: number;
+    subjectAverages: AnnualSubjectAverage[];
+  } | null;
+  ranking: PreviewRanking | null;
 }

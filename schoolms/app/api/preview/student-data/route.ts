@@ -20,7 +20,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid year" }, { status: 400 });
   }
 
-  const data = await buildPreviewData(studentId, year);
+  const focusTerm = searchParams.get("focusTerm") ?? undefined;
+
+  const data = await buildPreviewData(studentId, year, focusTerm);
   if (!data) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }

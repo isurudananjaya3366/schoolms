@@ -1,18 +1,32 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { createElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PresenterToolbar from "./PresenterToolbar";
 import SlideOverview from "./slides/SlideOverview";
-import SlideTermMarks from "./slides/SlideTermMarks";
+import SlideAllTermsMarks from "./slides/SlideAllTermsMarks";
+import SlideAnnualSummary from "./slides/SlideAnnualSummary";
 import SlidePerformanceChart from "./slides/SlidePerformanceChart";
 import SlideSubjectHighlights from "./slides/SlideSubjectHighlights";
 import SlideWSummary from "./slides/SlideWSummary";
 import SlideOverallSummary from "./slides/SlideOverallSummary";
-import type { PreviewData } from "@/types/preview";
+import SlideTopClassPerformers from "./slides/SlideTopClassPerformers";
+import SlideTopSectionPerformers from "./slides/SlideTopSectionPerformers";
+import type { PreviewData, EnrichedTerm } from "@/types/preview";
+import type { TermMarkData } from "@/types/charts";
 
-const TOTAL_SLIDES = 8;
+type SlideDesc =
+  | { id: string; type: "overview" }
+  | { id: string; type: "allTermsMarks"; terms: EnrichedTerm[] }
+  | { id: string; type: "topClass" }
+  | { id: string; type: "topSection" }
+  | { id: string; type: "latestChart"; chartData: TermMarkData[] }
+  | { id: string; type: "chart"; chartData: TermMarkData[] }
+  | { id: string; type: "annualSummary" }
+  | { id: string; type: "highlights" }
+  | { id: string; type: "wSummary" }
+  | { id: string; type: "overallSummary" };
 
 interface SlideRendererProps {
   data: PreviewData;
@@ -29,14 +43,62 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
   const [fontSize, setFontSize] = useState(1.0);
   const [isPDFExporting, setIsPDFExporting] = useState(false);
   const chartSlideRef = useRef<HTMLDivElement>(null);
+  const latestChartSlideRef = useRef<HTMLDivElement>(null);
+
+  const slideDescriptors = useMemo((): SlideDesc[] => {
+    const list: SlideDesc[] = [];
+    list.push({ id: "overview", type: "overview" });
+    const termsWithData = data.enrichedTerms.filter((t) => t.hasData);
+    if (termsWithData.length > 0) {
+      list.push({ id: "allTermsMarks", type: "allTermsMarks", terms: termsWithData });
+    }
+    // Conditional: class top-10 ranking slide
+    if (
+      data.ranking?.classRank !== null &&
+      data.ranking?.classRank !== undefined &&
+      data.ranking.classRank <= 10
+    ) {
+      list.push({ id: "topClass", type: "topClass" });
+    }
+    // Conditional: section (grade-level) top-10 ranking slide
+    if (
+      data.ranking?.sectionRank !== null &&
+      data.ranking?.sectionRank !== undefined &&
+      data.ranking.sectionRank <= 10
+    ) {
+      list.push({ id: "topSection", type: "topSection" });
+    }
+    const hasAnyTermData = data.enrichedTerms.some((t) => t.hasData);
+    if (hasAnyTermData) {
+      const filteredChartData = data.chartData.filter((d) =>
+        data.enrichedTerms.find((t) => t.termKey === d.termKey)?.hasData,
+      );
+      if (filteredChartData.length >= 2) {
+        // Show focus term chart (falls back to latest if focusTerm not in filtered data)
+        const focusEntry = filteredChartData.find((d) => d.termKey === data.focusTerm);
+        const focusChartData = focusEntry
+          ? [focusEntry]
+          : [filteredChartData[filteredChartData.length - 1]];
+        list.push({ id: "latestChart", type: "latestChart", chartData: focusChartData });
+      }
+      list.push({ id: "chart", type: "chart", chartData: filteredChartData });
+    }
+    // Conditional: annual summary (only when all 3 terms have data)
+    if (data.annualStats) list.push({ id: "annualSummary", type: "annualSummary" });
+    list.push({ id: "highlights", type: "highlights" });
+    if (data.wSummary.hasWGrades) list.push({ id: "wSummary", type: "wSummary" });
+    list.push({ id: "overallSummary", type: "overallSummary" });
+    return list;
+  }, [data]);
+  const totalSlides = slideDescriptors.length;
 
   const goNext = useCallback(() => {
-    if (slideIndex >= TOTAL_SLIDES - 1) {
+    if (slideIndex >= totalSlides - 1) {
       onLastSlide?.();
       return;
     }
-    setSlideIndex((i) => Math.min(i + 1, TOTAL_SLIDES - 1));
-  }, [slideIndex, onLastSlide]);
+    setSlideIndex((i) => Math.min(i + 1, totalSlides - 1));
+  }, [slideIndex, totalSlides, onLastSlide]);
 
   const goPrev = useCallback(() => {
     if (slideIndex <= 0) {
@@ -76,15 +138,28 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
   const handleDownloadPDF = useCallback(async () => {
     setIsPDFExporting(true);
     try {
-      // 1. Capture slide 5 (chart) via html2canvas
+      // 1. Capture chart slides via html-to-image
       const previousIndex = slideIndex;
-      setSlideIndex(4);
-      // Wait for render + animation
-      await new Promise((r) => setTimeout(r, 600));
+      const { toPng } = await import("html-to-image");
 
+      let latestChartImageBase64: string | null = null;
+      const latestChartIdx = slideDescriptors.findIndex((s) => s.type === "latestChart");
+      if (latestChartIdx >= 0) {
+        setSlideIndex(latestChartIdx);
+        await new Promise((r) => setTimeout(r, 600));
+        if (latestChartSlideRef.current) {
+          latestChartImageBase64 = await toPng(latestChartSlideRef.current, {
+            pixelRatio: 2,
+            backgroundColor: "#ffffff",
+          });
+        }
+      }
+
+      const chartIdx = slideDescriptors.findIndex((s) => s.type === "chart");
+      if (chartIdx >= 0) setSlideIndex(chartIdx);
+      await new Promise((r) => setTimeout(r, 600));
       let chartImageBase64: string | null = null;
       if (chartSlideRef.current) {
-        const { toPng } = await import("html-to-image");
         chartImageBase64 = await toPng(chartSlideRef.current, {
           pixelRatio: 2,
           backgroundColor: "#ffffff",
@@ -217,48 +292,97 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
         )
       );
 
-      // Pages 2-4: Term marks
-      const termPages = data.enrichedTerms.map((et, i) => {
-        const rows = et.subjects.map((subj, j) =>
-          createElement(
-            View,
-            { key: `r-${i}-${j}`, style: styles.row },
-            createElement(Text, { style: styles.cellSubject }, subj.displayName),
-            createElement(
+      // Page 2: Combined term marks table
+      const hasLatestChartPage = latestChartIdx >= 0;
+      const allTermsWithData = data.enrichedTerms.filter((et) => et.hasData);
+      const termMarksCols = allTermsWithData.map((et) => et.termLabel);
+      const subjectRows = (allTermsWithData[0]?.subjects ?? []).map((subj, idx) =>
+        createElement(
+          View,
+          { key: `mr-${idx}`, style: styles.row },
+          createElement(Text, { style: styles.cellSubject }, subj.displayName),
+          ...allTermsWithData.map((et, ti) => {
+            const cell = et.subjects[idx];
+            return createElement(
               Text,
               {
+                key: `mc-${ti}`,
                 style: {
-                  ...styles.cellMark,
-                  ...(subj.isW
-                    ? { color: "#dc2626", fontWeight: "bold" as const }
-                    : {}),
+                  width: `${50 / allTermsWithData.length}%`,
+                  fontSize: 10,
+                  textAlign: "right" as const,
+                  ...(cell?.isW ? { color: "#dc2626", fontWeight: "bold" as const } : {}),
                 },
               },
-              subj.display
-            )
-          )
-        );
-        return createElement(
-          Page,
-          {
-            key: `term-${i}`,
-            size: "A4" as const,
-            orientation: pageOrientation,
-            style: styles.page,
-          },
-          makeHeader(),
-          createElement(Text, { style: styles.slideTitle }, `${et.termLabel} Marks`),
-          !et.hasData
-            ? createElement(
-                Text,
-                { style: styles.text },
-                "No marks recorded for this term."
-              )
-            : createElement(View, null, ...rows)
-        );
-      });
+              cell?.display ?? "—"
+            );
+          })
+        )
+      );
+      const headerRow = createElement(
+        View,
+        { key: "mh", style: { ...styles.row, borderBottomWidth: 2 } },
+        createElement(Text, { style: { ...styles.cellSubject, fontWeight: "bold" as const } }, "Subject"),
+        ...termMarksCols.map((label, ti) =>
+          createElement(Text, {
+            key: `mhc-${ti}`,
+            style: {
+              width: `${50 / allTermsWithData.length}%`,
+              fontSize: 10,
+              fontWeight: "bold" as const,
+              textAlign: "right" as const,
+              color: allTermsWithData[ti]?.termKey === data.focusTerm ? "#d97706" : "#374151",
+            },
+          }, label)
+        )
+      );
+      const termPages = allTermsWithData.length > 0
+        ? [
+            createElement(
+              Page,
+              {
+                key: "term-marks",
+                size: "A4" as const,
+                orientation: pageOrientation,
+                style: styles.page,
+              },
+              makeHeader(),
+              createElement(Text, { style: styles.slideTitle }, "Term Marks"),
+              createElement(View, null, headerRow, ...subjectRows)
+            ),
+          ]
+        : [];
 
-      // Page 5: Chart (image)
+      // Latest term chart page (only if >= 2 terms)
+      const pgLatestChart = hasLatestChartPage
+        ? createElement(
+            Page,
+            {
+              key: "latestChart",
+              size: "A4" as const,
+              orientation: pageOrientation,
+              style: styles.page,
+            },
+            makeHeader(),
+            createElement(
+              Text,
+              { style: styles.slideTitle },
+              "Latest Term Performance"
+            ),
+            latestChartImageBase64
+              ? createElement(Image, {
+                  style: styles.chartImage,
+                  src: latestChartImageBase64,
+                })
+              : createElement(
+                  Text,
+                  { style: styles.text },
+                  "Chart capture unavailable."
+                )
+          )
+        : null;
+
+      // Full performance chart page
       const pg5 = createElement(
         Page,
         {
@@ -462,7 +586,64 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
         )
       );
 
-      const doc = createElement(Document, null, pg1, ...termPages, pg5, pg6, pg7, pg8);
+      // Optional: Annual Summary page (only when all 3 terms have data)
+      const pgAnnual = data.annualStats
+        ? createElement(
+            Page,
+            {
+              key: "annual",
+              size: "A4" as const,
+              orientation: pageOrientation,
+              style: styles.page,
+            },
+            makeHeader(),
+            createElement(Text, { style: styles.slideTitle }, `Annual Summary — ${data.academicYear}`),
+            createElement(
+              Text,
+              {
+                style: {
+                  fontSize: 24,
+                  fontWeight: "bold" as const,
+                  color: data.annualStats.descriptorColor,
+                  textAlign: "center",
+                  marginVertical: 12,
+                },
+              },
+              data.annualStats.descriptor
+            ),
+            createElement(
+              Text,
+              { style: { ...styles.text, textAlign: "center" } },
+              `Year Average: ${data.annualStats.overallAverage.toFixed(1)}%`
+            ),
+            createElement(Text, { style: { ...styles.spacer } }, ""),
+            ...data.annualStats.subjectAverages.map((s, idx) =>
+              createElement(
+                View,
+                { key: `as-${idx}`, style: styles.row },
+                createElement(Text, { style: styles.cellSubject }, s.name),
+                createElement(
+                  Text,
+                  { style: { ...styles.cellMark, color: s.color } },
+                  `${s.average.toFixed(1)}%`
+                )
+              )
+            )
+          )
+        : null;
+
+      const doc = createElement(
+        Document,
+        null,
+        pg1,
+        ...termPages,
+        ...(pgLatestChart ? [pgLatestChart] : []),
+        pg5,
+        ...(pgAnnual ? [pgAnnual] : []),
+        pg6,
+        pg7,
+        pg8
+      );
       const pdfBuffer = await renderToBuffer(doc);
 
       // Download
@@ -479,7 +660,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
       console.error("PDF export failed:", err);
     }
     setIsPDFExporting(false);
-  }, [data, slideIndex, aspectRatio]);
+  }, [data, slideIndex, aspectRatio, slideDescriptors]);
 
   const aspectClass =
     aspectRatio === "16:9"
@@ -489,8 +670,10 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
   const themeClass = theme === "dark" ? "dark bg-gray-900 text-white" : "bg-white text-gray-900";
 
   function renderSlide() {
-    switch (slideIndex) {
-      case 0:
+    const desc = slideDescriptors[slideIndex];
+    if (!desc) return null;
+    switch (desc.type) {
+      case "overview":
         return (
           <SlideOverview
             student={data.student}
@@ -498,27 +681,69 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
             academicYear={data.academicYear}
           />
         );
-      case 1:
-        return <SlideTermMarks enrichedTerm={data.enrichedTerms[0]} />;
-      case 2:
-        return <SlideTermMarks enrichedTerm={data.enrichedTerms[1]} />;
-      case 3:
-        return <SlideTermMarks enrichedTerm={data.enrichedTerms[2]} />;
-      case 4:
+      case "allTermsMarks":
+        return <SlideAllTermsMarks terms={desc.terms} focusTerm={data.focusTerm} />;
+      case "topClass":
+        return data.ranking ? (
+          <SlideTopClassPerformers
+            ranking={data.ranking}
+            className={data.student.className}
+          />
+        ) : null;
+      case "topSection":
+        return data.ranking ? (
+          <SlideTopSectionPerformers
+            ranking={data.ranking}
+            grade={data.student.grade}
+          />
+        ) : null;
+      case "latestChart":
         return (
-          <div ref={chartSlideRef}>
+          <div ref={latestChartSlideRef} className="h-full">
             <SlidePerformanceChart
-              chartData={data.chartData}
+              chartData={desc.chartData}
               electiveLabels={data.electiveLabels}
+              title={`${desc.chartData[0]?.term ?? "Latest Term"} Performance`}
             />
           </div>
         );
-      case 5:
-        return <SlideSubjectHighlights highlights={data.highlights} />;
-      case 6:
+      case "chart":
+        return (
+          <div ref={chartSlideRef} className="h-full">
+            <SlidePerformanceChart
+              chartData={desc.chartData}
+              electiveLabels={data.electiveLabels}
+              title="Performance Overview"
+            />
+          </div>
+        );
+      case "annualSummary":
+        return data.annualStats ? (
+          <SlideAnnualSummary
+            annualStats={data.annualStats}
+            academicYear={data.academicYear}
+          />
+        ) : null;
+      case "highlights":
+        return (
+          <SlideSubjectHighlights
+            highlights={data.highlights}
+            focusTermLabel={
+              data.enrichedTerms.find((t) => t.termKey === data.focusTerm)?.termLabel
+            }
+          />
+        );
+      case "wSummary":
         return <SlideWSummary wSummary={data.wSummary} />;
-      case 7:
-        return <SlideOverallSummary overallStats={data.overallStats} />;
+      case "overallSummary":
+        return (
+          <SlideOverallSummary
+            overallStats={data.overallStats}
+            focusTermLabel={
+              data.enrichedTerms.find((t) => t.termKey === data.focusTerm)?.termLabel
+            }
+          />
+        );
       default:
         return null;
     }
@@ -548,7 +773,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
       {/* Toolbar */}
       <PresenterToolbar
         slideIndex={slideIndex}
-        totalSlides={TOTAL_SLIDES}
+        totalSlides={totalSlides}
         onPrev={goPrev}
         onNext={goNext}
         onSetSlide={setSlideIndex}

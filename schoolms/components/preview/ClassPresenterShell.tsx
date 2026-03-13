@@ -21,12 +21,14 @@ interface ClassPresenterShellProps {
   students: Student[];
   year: number;
   classGroup: ClassGroup;
+  focusTerm?: string;
 }
 
 export default function ClassPresenterShell({
   students,
   year,
   classGroup,
+  focusTerm,
 }: ClassPresenterShellProps) {
   const [currentStudentIdx, setCurrentStudentIdx] = useState(0);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -48,8 +50,9 @@ export default function ClassPresenterShell({
     setLoading(true);
     setPreviewData(null);
 
+    const termParam = focusTerm ? `&focusTerm=${encodeURIComponent(focusTerm)}` : "";
     fetch(
-      `/api/preview/student-data?studentId=${encodeURIComponent(student.id)}&year=${year}`,
+      `/api/preview/student-data?studentId=${encodeURIComponent(student.id)}&year=${year}${termParam}`,
     )
       .then((r) => {
         if (!r.ok) throw new Error(r.statusText);
@@ -66,7 +69,7 @@ export default function ClassPresenterShell({
     return () => {
       cancelled = true;
     };
-  }, [currentStudentIdx, students, year]);
+  }, [currentStudentIdx, students, year, focusTerm]);
 
   // Auto-advance to next student and mark current as presented
   const advanceToNext = useCallback(() => {

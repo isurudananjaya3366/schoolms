@@ -7,11 +7,13 @@ import type { TermMarkData, ElectiveLabels } from "@/types/charts";
 interface SlidePerformanceChartProps {
   chartData: TermMarkData[];
   electiveLabels: ElectiveLabels;
+  title?: string;
 }
 
 export default function SlidePerformanceChart({
   chartData,
   electiveLabels,
+  title = "Performance Overview",
 }: SlidePerformanceChartProps) {
   return (
     <div className="flex flex-col h-full px-10 py-8">
@@ -21,7 +23,7 @@ export default function SlidePerformanceChart({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Performance Overview
+        {title}
       </motion.h2>
 
       <motion.div

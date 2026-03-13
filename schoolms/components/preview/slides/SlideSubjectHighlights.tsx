@@ -15,24 +15,35 @@ interface SlideSubjectHighlightsProps {
     bestSubject: SubjectHighlight | null;
     worstSubject: (SubjectHighlight & { wCount: number }) | null;
   };
+  focusTermLabel?: string;
 }
 
 export default function SlideSubjectHighlights({
   highlights,
+  focusTermLabel,
 }: SlideSubjectHighlightsProps) {
   const { bestSubject, worstSubject } = highlights;
 
   return (
     <div className="flex flex-col h-full px-10 py-8">
       <motion.h2
-        className="text-3xl font-bold mb-8"
+        className="text-3xl font-bold mb-1"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
         Subject Highlights
       </motion.h2>
-
+      {focusTermLabel && (
+        <motion.p
+          className="text-sm text-muted-foreground mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+        >
+          Based on {focusTermLabel} results
+        </motion.p>
+      )}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         {/* Best Subject */}
         <motion.div

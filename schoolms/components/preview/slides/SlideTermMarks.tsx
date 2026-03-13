@@ -54,10 +54,10 @@ export default function SlideTermMarks({ enrichedTerm }: SlideTermMarksProps) {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-2 border-border">
-                <th className="py-3 px-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="py-2 px-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Subject
                 </th>
-                <th className="py-3 px-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground text-right">
+                <th className="py-2 px-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground text-right">
                   Mark
                 </th>
               </tr>
@@ -73,11 +73,11 @@ export default function SlideTermMarks({ enrichedTerm }: SlideTermMarksProps) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.25 + idx * 0.04 }}
                 >
-                  <td className="py-3 px-4 text-base font-medium">
+                  <td className="py-2 px-4 text-base font-medium">
                     {subject.displayName}
                   </td>
                   <td
-                    className={`py-3 px-4 text-base text-right font-mono ${
+                    className={`py-2 px-4 text-base text-right font-mono ${
                       subject.isW
                         ? "text-red-600 dark:text-red-400 font-bold"
                         : subject.mark === null

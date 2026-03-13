@@ -17,6 +17,12 @@ import { Presentation, ExternalLink, Users, Loader2, CalendarX } from "lucide-re
 const GRADES = [10, 11];
 const CURRENT_YEAR = new Date().getFullYear();
 
+const TERM_LABELS: Record<string, string> = {
+  TERM_1: "Term 1",
+  TERM_2: "Term 2",
+  TERM_3: "Term 3",
+};
+
 interface ClassGroup {
   id: string;
   grade: number;
@@ -32,6 +38,9 @@ export default function PresentationPreviewPage() {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [loadingYears, setLoadingYears] = useState(false);
+  const [availableTerms, setAvailableTerms] = useState<string[]>([]);
+  const [loadingTerms, setLoadingTerms] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
 
   // Fetch class groups whenever grade changes
   useEffect(() => {
@@ -39,6 +48,8 @@ export default function PresentationPreviewPage() {
     setSelectedClassId("");
     setClassGroups([]);
     setAvailableYears([]);
+    setAvailableTerms([]);
+    setSelectedTerm("");
 
     fetch(`/api/class-groups?grade=${grade}`)
       .then((r) => r.json())
@@ -54,11 +65,15 @@ export default function PresentationPreviewPage() {
   useEffect(() => {
     if (!selectedClassId) {
       setAvailableYears([]);
+      setAvailableTerms([]);
+      setSelectedTerm("");
       return;
     }
 
     setLoadingYears(true);
     setAvailableYears([]);
+    setAvailableTerms([]);
+    setSelectedTerm("");
 
     fetch(`/api/preview/available-years?classId=${encodeURIComponent(selectedClassId)}`)
       .then((r) => r.json())
@@ -73,13 +88,42 @@ export default function PresentationPreviewPage() {
       .finally(() => setLoadingYears(false));
   }, [selectedClassId]);
 
+  // Fetch available terms whenever class + year combination changes
+  useEffect(() => {
+    if (!selectedClassId || !availableYears.length) {
+      setAvailableTerms([]);
+      setSelectedTerm("");
+      return;
+    }
+
+    setLoadingTerms(true);
+    setAvailableTerms([]);
+    setSelectedTerm("");
+
+    fetch(
+      `/api/preview/available-terms?classId=${encodeURIComponent(selectedClassId)}&year=${year}`,
+    )
+      .then((r) => r.json())
+      .then((data: { terms: string[] }) => {
+        const terms = data.terms ?? [];
+        setAvailableTerms(terms);
+        // Default to latest available term
+        if (terms.length > 0) setSelectedTerm(terms[terms.length - 1]);
+      })
+      .catch(() => {/* ignore */})
+      .finally(() => setLoadingTerms(false));
+  }, [selectedClassId, year, availableYears.length]);
+
   const selectedClass = classGroups.find((c) => c.id === selectedClassId);
   const hasYearData = availableYears.length > 0;
 
   function launchPresenter() {
     if (!selectedClassId || !hasYearData) return;
+    const termParam = selectedTerm
+      ? `&focusTerm=${encodeURIComponent(selectedTerm)}`
+      : "";
     window.open(
-      `/preview/session?classId=${encodeURIComponent(selectedClassId)}&year=${year}`,
+      `/preview/session?classId=${encodeURIComponent(selectedClassId)}&year=${year}${termParam}`,
       "_blank",
     );
   }
@@ -182,6 +226,34 @@ export default function PresentationPreviewPage() {
             )}
           </div>
 
+          {/* Focus Term */}
+          <div className="flex items-center gap-4">
+            <Label className="w-24 shrink-0 text-sm">Focus Term</Label>
+            {loadingTerms ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Loading terms…
+              </div>
+            ) : !selectedClassId || !hasYearData ? (
+              <p className="text-sm text-muted-foreground">Select a class and year first</p>
+            ) : availableTerms.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No terms available</p>
+            ) : (
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTerms.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TERM_LABELS[t] ?? t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           {/* Preview of selection */}
           {selectedClass && hasYearData && (
             <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-4 py-3">
@@ -194,7 +266,9 @@ export default function PresentationPreviewPage() {
                   {selectedClass._count.students} students in queue
                 </p>
               </div>
-              <Badge variant="secondary">{year}</Badge>
+              <Badge variant="secondary">
+                {year}{selectedTerm ? ` · ${TERM_LABELS[selectedTerm] ?? selectedTerm}` : ""}
+              </Badge>
             </div>
           )}
 

@@ -10,17 +10,18 @@ interface SlideOverallSummaryProps {
     descriptorColor: string;
     totalSubjectsRecorded: number;
   };
+  focusTermLabel?: string;
 }
 
 export default function SlideOverallSummary({
   overallStats,
+  focusTermLabel,
 }: SlideOverallSummaryProps) {
   const {
     totalMarks,
     overallAverage,
     descriptor,
     descriptorColor,
-    totalSubjectsRecorded,
   } = overallStats;
 
   return (
@@ -78,9 +79,11 @@ export default function SlideOverallSummary({
           transition={{ delay: 0.45 }}
         >
           <span className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
-            Subjects Recorded
+            Focus Term
           </span>
-          <span className="text-3xl font-bold">{totalSubjectsRecorded}</span>
+          <span className="text-3xl font-bold">
+            {focusTermLabel ?? "—"}
+          </span>
         </motion.div>
       </div>
     </div>
