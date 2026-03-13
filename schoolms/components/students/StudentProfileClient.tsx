@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { BarChart3, FileText, Presentation, TrendingUp, TrendingDown, Star, Hash } from "lucide-react";
+import { BarChart3, FileText, TrendingUp, TrendingDown, Star, Hash } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -378,18 +378,11 @@ export default function StudentProfileClient({
             <CardContent className="space-y-3">
               <Link
                 href={`/dashboard/student-reports?studentId=${student.id}&studentName=${encodeURIComponent(student.name)}&indexNumber=${encodeURIComponent(student.indexNumber ?? "")}&className=${encodeURIComponent(`${student.class.grade}${student.class.section}`)}`}
-                className="block mb-2"
+                className="block"
               >
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="size-4 mr-2" />
                   View Progress Report
-                </Button>
-              </Link>
-
-              <Link href={`/preview/${student.id}`} target="_blank">
-                <Button variant="outline" className="w-full justify-start">
-                  <Presentation className="size-4 mr-2" />
-                  Preview Mode
                 </Button>
               </Link>
             </CardContent>

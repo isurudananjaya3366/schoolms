@@ -10,6 +10,7 @@ import {
   UserCog,
   ScrollText,
   Trophy,
+  Presentation,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,6 +26,7 @@ const iconMap: Record<string, LucideIcon> = {
   UserCog,
   ScrollText,
   Trophy,
+  Presentation,
 };
 
 export function resolveIcon(name: string): LucideIcon {
