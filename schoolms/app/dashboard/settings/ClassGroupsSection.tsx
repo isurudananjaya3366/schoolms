@@ -29,7 +29,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Users } from "lucide-react";
 
-const GRADES = [6, 7, 8, 9, 10, 11] as const;
+const GRADES = [10, 11] as const;
 const SECTIONS = ["A", "B", "C", "D", "E", "F"] as const;
 
 interface ClassGroup {
@@ -123,7 +123,7 @@ export default function ClassGroupsSection() {
           <CardTitle>Class Groups</CardTitle>
           <CardDescription>
             Manage class groups per grade. Toggle sections A–F for each grade
-            (6–11).
+            (10–11).
             <span className="ml-2">
               <Badge variant="outline">{totalCount}</Badge> configured
             </span>

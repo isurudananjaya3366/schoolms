@@ -37,7 +37,7 @@ interface Props {
   onBackToClass: () => void;
 }
 
-const GRADES = [6, 7, 8, 9, 10, 11];
+const GRADES = [10, 11];
 
 export default function ViewMarksFilters({
   grade,

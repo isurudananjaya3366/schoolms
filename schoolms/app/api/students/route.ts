@@ -8,7 +8,7 @@ import { STUDENT_CREATED } from "@/lib/audit-actions";
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  grade: z.coerce.number().int().min(6).max(11).optional(),
+  grade: z.coerce.number().int().min(10).max(11).optional(),
   classId: z.string().optional(),
   classSection: z.string().optional(),
   search: z.string().optional(),

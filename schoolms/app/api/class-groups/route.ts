@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 }
 
 const postSchema = z.object({
-  grade: z.number().int().min(6).max(11),
+  grade: z.number().int().min(10).max(11),
   section: z.enum(["A", "B", "C", "D", "E", "F"]),
 });
 

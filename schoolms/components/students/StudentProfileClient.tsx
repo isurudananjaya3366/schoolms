@@ -301,7 +301,7 @@ export default function StudentProfileClient({
           </CardHeader>
           <CardContent className="space-y-3">
             <Link
-              href={`/dashboard/reports?studentId=${student.id}&studentName=${encodeURIComponent(student.name)}&indexNumber=${encodeURIComponent(student.indexNumber ?? "")}&className=${encodeURIComponent(`${student.class.grade}${student.class.section}`)}`}
+              href={`/dashboard/student-reports?studentId=${student.id}&studentName=${encodeURIComponent(student.name)}&indexNumber=${encodeURIComponent(student.indexNumber ?? "")}&className=${encodeURIComponent(`${student.class.grade}${student.class.section}`)}`}
               className="block mb-2"
             >
               <Button variant="outline" className="w-full justify-start">

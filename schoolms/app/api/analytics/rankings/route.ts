@@ -7,7 +7,7 @@ import { z } from "zod";
 // ─── Validation ──────────────────────────────────────────
 
 const querySchema = z.object({
-  grade: z.enum(["6", "7", "8", "9", "10", "11"]).optional(),
+  grade: z.enum(["10", "11"]).optional(),
   term: z.enum(["TERM_1", "TERM_2", "TERM_3"]).optional(),
   year: z.string().regex(/^\d{4}$/).optional(),
   section: z.string().regex(/^[A-F]$/).optional(),
@@ -24,6 +24,7 @@ type MarkRecord = {
   student: {
     id: string;
     name: string;
+    indexNumber: string | null;
     isDeleted: boolean;
     electives: { categoryI: string; categoryII: string; categoryIII: string };
     class: { id: string; grade: number; section: string };

@@ -274,6 +274,21 @@ export default function AnalyticsContainer({
     radar: true,
   });
 
+  // ── Student Reports modal state ─────────────────────────
+  const [showStudentReportsModal, setShowStudentReportsModal] = useState(false);
+  const [srYear, setSrYear] = useState(String(new Date().getFullYear()));
+  const [srGrade, setSrGrade] = useState("");
+  const [srSection, setSrSection] = useState("");
+  const [srTerm, setSrTerm] = useState("");
+  const [srIsGenerating, setSrIsGenerating] = useState(false);
+  const [srAvailableYears, setSrAvailableYears] = useState<number[]>([]);
+  const [srSections, setSrSections] = useState<string[]>([]);
+  const [srIncludeSignatures, setSrIncludeSignatures] = useState(false);
+  const [srSigPrincipalField, setSrSigPrincipalField] = useState(true);
+  const [srSigPrincipalDigital, setSrSigPrincipalDigital] = useState(false);
+  const [srSigVPField, setSrSigVPField] = useState(true);
+  const [srSigVPDigital, setSrSigVPDigital] = useState(false);
+
   // ── Chart refs for PNG / PDF capture ───────────────────
   const heatmapRef = useRef<HTMLDivElement>(null);
   const subjectAveragesRef = useRef<HTMLDivElement>(null);
@@ -326,6 +341,87 @@ export default function AnalyticsContainer({
     }
     fetchSigs();
   }, []);
+
+  // ── Fetch available years for Student Reports modal ────
+  useEffect(() => {
+    if (!showStudentReportsModal) return;
+    fetch("/api/marks/years")
+      .then((r) => r.json())
+      .then((years: number[]) => {
+        setSrAvailableYears(years);
+        if (years.length > 0) setSrYear(String(years[0]));
+      })
+      .catch(() => {});
+  }, [showStudentReportsModal]);
+
+  // ── Fetch sections for the selected grade in SR modal ──
+  useEffect(() => {
+    if (!srGrade) {
+      setSrSections([]);
+      setSrSection("");
+      return;
+    }
+    fetch(`/api/class-groups?grade=${srGrade}`)
+      .then((r) => r.json())
+      .then((groups: { section: string }[]) => {
+        const secs = groups.map((g) => g.section).sort();
+        setSrSections(secs);
+        setSrSection("");
+      })
+      .catch(() => {});
+  }, [srGrade]);
+
+  // ── Download Student Reports PDF ───────────────────────
+  const downloadStudentReports = async () => {
+    if (!srYear) return;
+    setSrIsGenerating(true);
+    try {
+      const res = await fetch("/api/analytics/student-reports-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: srYear,
+          grade: srGrade || undefined,
+          section: srSection || undefined,
+          term: srTerm || undefined,
+          principalField: srIncludeSignatures ? srSigPrincipalField : false,
+          principalSignUrl:
+            srIncludeSignatures && srSigPrincipalDigital
+              ? availableSignatures.principalUrl
+              : null,
+          vicePrincipalField: srIncludeSignatures ? srSigVPField : false,
+          vicePrincipalSignUrl:
+            srIncludeSignatures && srSigVPDigital
+              ? availableSignatures.vpUrl
+              : null,
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const { toast } = await import("sonner");
+        toast.error(errBody?.error || "Failed to generate student reports");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `student-reports-${srYear}${srGrade ? `-grade${srGrade}` : ""}${srSection ? srSection : ""}${srTerm ? `-${srTerm}` : ""}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setShowStudentReportsModal(false);
+    } catch (err) {
+      console.error("Student reports error:", err);
+      const { toast } = await import("sonner");
+      toast.error("Failed to generate student reports");
+    } finally {
+      setSrIsGenerating(false);
+    }
+  };
 
   // Year options: current year and two prior
   const currentYear = new Date().getFullYear();
@@ -722,7 +818,7 @@ export default function AnalyticsContainer({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">All Grades</SelectItem>
-                {[6, 7, 8, 9, 10, 11].map((g) => (
+                {[10, 11].map((g) => (
                   <SelectItem key={g} value={String(g)}>
                     Grade {g}
                   </SelectItem>
@@ -814,6 +910,15 @@ export default function AnalyticsContainer({
               Download Full Analytics Report
             </>
           )}
+        </Button>
+        {/* Download Student Reports */}
+        <Button
+          variant="outline"
+          onClick={() => setShowStudentReportsModal(true)}
+          disabled={isLoading || isCapturing}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Download Student Reports
         </Button>
       </div>
 
@@ -955,7 +1060,7 @@ export default function AnalyticsContainer({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__all__">All Grades</SelectItem>
-                        {[6, 7, 8, 9, 10, 11].map((gr) => (
+                        {[10, 11].map((gr) => (
                           <SelectItem key={gr} value={String(gr)}>
                             Grade {gr}
                           </SelectItem>
@@ -1066,7 +1171,7 @@ export default function AnalyticsContainer({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">All Grades</SelectItem>
-                  {[6, 7, 8, 9, 10, 11].map((g) => (
+                  {[10, 11].map((g) => (
                     <SelectItem key={g} value={String(g)}>
                       Grade {g}
                     </SelectItem>
@@ -1379,6 +1484,192 @@ export default function AnalyticsContainer({
               <>
                 <Download className="mr-2 h-4 w-4" />
                 Generate & Download
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* ── Student Reports Modal ────────────────────────────── */}
+    <Dialog open={showStudentReportsModal} onOpenChange={setShowStudentReportsModal}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Download Student Reports</DialogTitle>
+          <DialogDescription>
+            Select filters to generate a landscape PDF with student marks.
+            Year is the only required field.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {/* Year (required) */}
+          <div className="space-y-1">
+            <Label htmlFor="sr-year" className="text-sm font-medium">
+              Year <span className="text-destructive">*</span>
+            </Label>
+            <Select value={srYear} onValueChange={setSrYear}>
+              <SelectTrigger id="sr-year">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {(srAvailableYears.length > 0 ? srAvailableYears : yearOptions).map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Grade (optional) */}
+          <div className="space-y-1">
+            <Label htmlFor="sr-grade" className="text-sm font-medium">
+              Grade <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
+            <Select value={srGrade || "__all__"} onValueChange={(v) => setSrGrade(v === "__all__" ? "" : v)}>
+              <SelectTrigger id="sr-grade">
+                <SelectValue placeholder="All Grades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Grades</SelectItem>
+                {[10, 11].map((g) => (
+                  <SelectItem key={g} value={String(g)}>
+                    Grade {g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Section (optional, only when grade is selected) */}
+          {srGrade && (
+            <div className="space-y-1">
+              <Label htmlFor="sr-section" className="text-sm font-medium">
+                Section <span className="text-muted-foreground text-xs">(optional)</span>
+              </Label>
+              <Select
+                value={srSection || "__all__"}
+                onValueChange={(v) => setSrSection(v === "__all__" ? "" : v)}
+              >
+                <SelectTrigger id="sr-section">
+                  <SelectValue placeholder="All Sections" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Sections</SelectItem>
+                  {srSections.map((sec) => (
+                    <SelectItem key={sec} value={sec}>
+                      {sec}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Term (optional) */}
+          <div className="space-y-1">
+            <Label htmlFor="sr-term" className="text-sm font-medium">
+              Term <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
+            <Select value={srTerm || "__all__"} onValueChange={(v) => setSrTerm(v === "__all__" ? "" : v)}>
+              <SelectTrigger id="sr-term">
+                <SelectValue placeholder="All Terms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Terms</SelectItem>
+                <SelectItem value="TERM_1">Term 1</SelectItem>
+                <SelectItem value="TERM_2">Term 2</SelectItem>
+                <SelectItem value="TERM_3">Term 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Signature toggle */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="sr-sig-toggle" className="font-medium">
+              Include Signatures
+            </Label>
+            <Switch
+              id="sr-sig-toggle"
+              checked={srIncludeSignatures}
+              onCheckedChange={setSrIncludeSignatures}
+            />
+          </div>
+
+          {srIncludeSignatures && (
+            <div className="space-y-4 rounded-md border p-4">
+              {/* Principal */}
+              <p className="text-sm font-semibold text-muted-foreground">Principal</p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sr-sig-principal-field" className="text-sm">
+                  Signature field (blank line)
+                </Label>
+                <Switch
+                  id="sr-sig-principal-field"
+                  checked={srSigPrincipalField}
+                  onCheckedChange={setSrSigPrincipalField}
+                />
+              </div>
+              {availableSignatures.hasPrincipal && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sr-sig-principal-digital" className="text-sm">
+                    Digital signature image
+                  </Label>
+                  <Switch
+                    id="sr-sig-principal-digital"
+                    checked={srSigPrincipalDigital}
+                    onCheckedChange={setSrSigPrincipalDigital}
+                  />
+                </div>
+              )}
+              {/* Vice-Principal */}
+              <p className="mt-2 text-sm font-semibold text-muted-foreground">
+                Vice Principal
+              </p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sr-sig-vp-field" className="text-sm">
+                  Signature field (blank line)
+                </Label>
+                <Switch
+                  id="sr-sig-vp-field"
+                  checked={srSigVPField}
+                  onCheckedChange={setSrSigVPField}
+                />
+              </div>
+              {availableSignatures.hasVicePrincipal && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sr-sig-vp-digital" className="text-sm">
+                    Digital signature image
+                  </Label>
+                  <Switch
+                    id="sr-sig-vp-digital"
+                    checked={srSigVPDigital}
+                    onCheckedChange={setSrSigVPDigital}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button
+            onClick={downloadStudentReports}
+            disabled={srIsGenerating || !srYear}
+          >
+            {srIsGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating…
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Generate PDF
               </>
             )}
           </Button>

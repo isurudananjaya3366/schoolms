@@ -341,7 +341,7 @@ export default function LeaderboardContainer() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">All Grades</SelectItem>
-                  {[6, 7, 8, 9, 10, 11].map((g) => (
+                  {[10, 11].map((g) => (
                     <SelectItem key={g} value={String(g)}>
                       Grade {g}
                     </SelectItem>

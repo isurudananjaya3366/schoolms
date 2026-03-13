@@ -9,7 +9,7 @@ const navItems: NavItem[] = [
   { label: "Students", href: "/dashboard/students", icon: "Users", minRole: "ALL", group: "main" },
   { label: "Mark Entry", href: "/dashboard/marks/entry", icon: "ClipboardEdit", minRole: "ALL", group: "main" },
   { label: "View Marks", href: "/dashboard/marks/view", icon: "Eye", minRole: "ALL", group: "main" },
-  { label: "Reports", href: "/dashboard/reports", icon: "FileBarChart", minRole: "ALL", group: "main" },
+  { label: "Student Reports", href: "/dashboard/student-reports", icon: "FileBarChart", minRole: "ALL", group: "main" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "BarChart3", minRole: "ADMIN", group: "main" },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: "Trophy", minRole: "ADMIN", group: "main" },
   { label: "Backup", href: "/dashboard/backup", icon: "HardDriveDownload", minRole: "SUPERADMIN", group: "admin" },

@@ -10,7 +10,7 @@ import { W_THRESHOLD } from "@/lib/w-rule";
 
 const querySchema = z.object({
   grade: z
-    .enum(["6", "7", "8", "9", "10", "11"])
+    .enum(["10", "11"])
     .optional(),
   term: z
     .enum(["TERM_1", "TERM_2", "TERM_3"])
