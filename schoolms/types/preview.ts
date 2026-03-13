@@ -1,5 +1,35 @@
 import type { TermMarkData, ElectiveLabels } from "@/types/charts";
 
+/** Keys that identify each slide type (used for label overrides) */
+export type SlideLabelKey =
+  | "overview"
+  | "allTermsMarks"
+  | "topClass"
+  | "topSection"
+  | "focusChart"
+  | "chart"
+  | "annualSummary"
+  | "highlights"
+  | "wSummary"
+  | "overallSummary";
+
+/** Overrideable labels per slide type */
+export type SlideLabels = Partial<Record<SlideLabelKey, string>>;
+
+/** Default English labels (used as fallback) */
+export const DEFAULT_SLIDE_LABELS: Record<SlideLabelKey, string> = {
+  overview: "Academic Performance",
+  allTermsMarks: "Term Marks",
+  topClass: "Top Performers",
+  topSection: "Top Performers",
+  focusChart: "Focus Term Performance",
+  chart: "Performance Overview",
+  annualSummary: "Annual Summary",
+  highlights: "Subject Highlights",
+  wSummary: "W-Grade Summary",
+  overallSummary: "Overall Summary",
+};
+
 export interface RankingEntry {
   name: string;
   average: number;

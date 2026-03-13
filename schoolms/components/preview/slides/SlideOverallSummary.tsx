@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import EditableField from "@/components/preview/EditableField";
 
 interface SlideOverallSummaryProps {
   overallStats: {
@@ -32,7 +33,7 @@ export default function SlideOverallSummary({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Overall Summary
+        <EditableField labelKey="overallSummary" />
       </motion.h2>
 
       <motion.div

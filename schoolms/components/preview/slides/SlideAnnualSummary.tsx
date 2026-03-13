@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { AnnualSubjectAverage } from "@/types/preview";
+import EditableField from "@/components/preview/EditableField";
 
 interface AnnualStats {
   overallAverage: number;
@@ -34,7 +35,9 @@ export default function SlideAnnualSummary({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h2 className="text-3xl font-bold">Annual Summary</h2>
+        <h2 className="text-3xl font-bold">
+          <EditableField labelKey="annualSummary" />
+        </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Overall performance across all 3 terms &middot; {academicYear}
         </p>

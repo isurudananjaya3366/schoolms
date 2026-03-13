@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { EnrichedTerm } from "@/types/preview";
+import EditableField from "@/components/preview/EditableField";
 
 interface SlideAllTermsMarksProps {
   terms: EnrichedTerm[];
@@ -23,7 +24,7 @@ export default function SlideAllTermsMarks({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Term Marks
+        <EditableField labelKey="allTermsMarks" />
       </motion.h2>
 
       <motion.div

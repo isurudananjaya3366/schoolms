@@ -141,3 +141,13 @@ model SecureSetting {
 
   @@map("secureSettings")
 }
+
+// Stores slide label overrides for a given medium (e.g. "sinhala")
+model PresentationConfig {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique  // "sinhala" | "english"
+  labels    Json     // Partial<Record<SlideLabelKey, string>>
+  updatedAt DateTime @updatedAt
+
+  @@map("presentationConfigs")
+}

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import EditableField from "@/components/preview/EditableField";
 
 interface WEntry {
   termLabel: string;
@@ -68,7 +69,8 @@ export default function SlideWSummary({ wSummary }: SlideWSummaryProps) {
       >
         <AlertTriangle className="size-8 text-red-500" />
         <h2 className="text-3xl font-bold">
-          W Grade Summary{" "}
+          <EditableField labelKey="wSummary" />
+          {" "}
           <span className="text-red-500 text-xl font-normal">
             ({totalWCount} total)
           </span>

@@ -13,7 +13,8 @@ import SlideWSummary from "./slides/SlideWSummary";
 import SlideOverallSummary from "./slides/SlideOverallSummary";
 import SlideTopClassPerformers from "./slides/SlideTopClassPerformers";
 import SlideTopSectionPerformers from "./slides/SlideTopSectionPerformers";
-import type { PreviewData, EnrichedTerm } from "@/types/preview";
+import { EditLabelsContext } from "./EditLabelsContext";
+import type { PreviewData, EnrichedTerm, SlideLabels, SlideLabelKey } from "@/types/preview";
 import type { TermMarkData } from "@/types/charts";
 
 type SlideDesc =
@@ -34,9 +35,15 @@ interface SlideRendererProps {
   onLastSlide?: () => void;
   /** Called when the user goes back before the first slide (e.g. to load previous student). */
   onFirstSlide?: () => void;
+  /** Label overrides (from PresentationConfig for a given medium). */
+  labels?: SlideLabels;
+  /** Whether slide titles are inline-editable (configure mode). */
+  isEditable?: boolean;
+  /** Called when a label is changed in configure mode. */
+  onLabelChange?: (key: SlideLabelKey, value: string) => void;
 }
 
-export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: SlideRendererProps) {
+export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels, isEditable, onLabelChange }: SlideRendererProps) {
   const [slideIndex, setSlideIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "A4">("16:9");
@@ -750,6 +757,13 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
   }
 
   return (
+    <EditLabelsContext.Provider
+      value={{
+        isEditable: isEditable ?? false,
+        labels: labels ?? {},
+        onLabelChange: onLabelChange ?? (() => {}),
+      }}
+    >
     <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-20">
       {/* Slide canvas */}
       <div
@@ -788,5 +802,6 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: Slide
         isPDFExporting={isPDFExporting}
       />
     </div>
+    </EditLabelsContext.Provider>
   );
 }

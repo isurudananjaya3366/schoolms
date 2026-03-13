@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Users, X, CheckCircle2, Clock } from "lucide-react";
 import SlideRenderer from "./SlideRenderer";
-import type { PreviewData } from "@/types/preview";
+import type { PreviewData, SlideLabels } from "@/types/preview";
 
 interface Student {
   id: string;
@@ -22,6 +22,7 @@ interface ClassPresenterShellProps {
   year: number;
   classGroup: ClassGroup;
   focusTerm?: string;
+  medium?: string;
 }
 
 export default function ClassPresenterShell({
@@ -29,6 +30,7 @@ export default function ClassPresenterShell({
   year,
   classGroup,
   focusTerm,
+  medium,
 }: ClassPresenterShellProps) {
   const [currentStudentIdx, setCurrentStudentIdx] = useState(0);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -37,9 +39,22 @@ export default function ClassPresenterShell({
   const [buttonY, setButtonY] = useState(200);
   /** Set of student indices that have been explicitly marked as presented */
   const [presentedIndices, setPresentedIndices] = useState<Set<number>>(new Set());
+  /** Label overrides loaded from PresentationConfig for the given medium */
+  const [configLabels, setConfigLabels] = useState<SlideLabels>({});
 
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
+
+  // Fetch presentation config labels for the given medium
+  useEffect(() => {
+    if (!medium) return;
+    fetch(`/api/preview/config?key=${encodeURIComponent(medium)}`)
+      .then((r) => r.json())
+      .then((data: { labels: SlideLabels }) => {
+        if (data.labels) setConfigLabels(data.labels);
+      })
+      .catch(() => {/* silently ignore — falls back to defaults */});
+  }, [medium]);
 
   // Fetch preview data whenever the current student changes
   useEffect(() => {
@@ -149,6 +164,7 @@ export default function ClassPresenterShell({
           data={previewData}
           onLastSlide={advanceToNext}
           onFirstSlide={goToPrev}
+          labels={configLabels}
         />
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen gap-3 text-muted-foreground">

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import EditableField from "@/components/preview/EditableField";
 
 interface SubjectHighlight {
   name: string;
@@ -32,7 +33,7 @@ export default function SlideSubjectHighlights({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Subject Highlights
+        <EditableField labelKey="highlights" />
       </motion.h2>
       {focusTermLabel && (
         <motion.p

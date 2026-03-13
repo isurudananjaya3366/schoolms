@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Medal } from "lucide-react";
 import type { PreviewRanking } from "@/types/preview";
+import EditableField from "@/components/preview/EditableField";
 
 interface SlideTopSectionPerformersProps {
   ranking: PreviewRanking;
@@ -23,7 +24,7 @@ export default function SlideTopSectionPerformers({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Top Performers — Grade {grade} Section
+        <EditableField labelKey="topSection" suffix={` \u2014 Grade ${grade} Section`} />
       </motion.h2>
       <motion.p
         className="text-sm text-muted-foreground mb-5"

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Presentation, ExternalLink, Users, Loader2, CalendarX } from "lucide-react";
+import { Presentation, ExternalLink, Users, Loader2, CalendarX, Settings2 } from "lucide-react";
 
 const GRADES = [10, 11];
 const CURRENT_YEAR = new Date().getFullYear();
@@ -41,6 +41,7 @@ export default function PresentationPreviewPage() {
   const [availableTerms, setAvailableTerms] = useState<string[]>([]);
   const [loadingTerms, setLoadingTerms] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [medium, setMedium] = useState<"english" | "sinhala">("english");
 
   // Fetch class groups whenever grade changes
   useEffect(() => {
@@ -122,10 +123,15 @@ export default function PresentationPreviewPage() {
     const termParam = selectedTerm
       ? `&focusTerm=${encodeURIComponent(selectedTerm)}`
       : "";
+    const mediumParam = medium === "sinhala" ? "&medium=sinhala" : "";
     window.open(
-      `/preview/session?classId=${encodeURIComponent(selectedClassId)}&year=${year}${termParam}`,
+      `/preview/session?classId=${encodeURIComponent(selectedClassId)}&year=${year}${termParam}${mediumParam}`,
       "_blank",
     );
+  }
+
+  function openConfigureSlides() {
+    window.open("/preview/configure", "_blank");
   }
 
   return (
@@ -251,6 +257,42 @@ export default function PresentationPreviewPage() {
                   ))}
                 </SelectContent>
               </Select>
+            )}
+          </div>
+
+          {/* Medium */}
+          <div className="flex items-center gap-4">
+            <Label className="w-24 shrink-0 text-sm">Medium</Label>
+            <div className="flex items-center gap-1 rounded-md border p-0.5 bg-muted/30">
+              <button
+                onClick={() => setMedium("english")}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  medium === "english"
+                    ? "bg-background shadow text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setMedium("sinhala")}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  medium === "sinhala"
+                    ? "bg-background shadow text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sinhala
+              </button>
+            </div>
+            {medium === "sinhala" && (
+              <button
+                onClick={openConfigureSlides}
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+              >
+                <Settings2 className="size-3.5" />
+                Configure Slides
+              </button>
             )}
           </div>
 
