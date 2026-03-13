@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { hasPermission } from "@/lib/permissions";
 import StudentFilterBar from "@/components/students/StudentFilterBar";
 import StudentTable from "@/components/students/StudentTable";
 import PaginationControl from "@/components/students/PaginationControl";
@@ -17,6 +18,14 @@ export default async function StudentsPage({
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const role = session.user.role as string;
+  if (!(await hasPermission(role, "view_students"))) redirect("/dashboard");
+
+  const [canAddEdit, canDelete] = await Promise.all([
+    hasPermission(role, "add_edit_students"),
+    hasPermission(role, "delete_students"),
+  ]);
 
   const sp = await searchParams;
 
@@ -88,13 +97,15 @@ export default async function StudentsPage({
             Manage student records and profiles
           </p>
         </div>
-        <Link
-          href="/dashboard/students/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Add Student
-        </Link>
+        {canAddEdit && (
+          <Link
+            href="/dashboard/students/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" />
+            Add Student
+          </Link>
+        )}
       </div>
 
       <StudentFilterBar />
@@ -104,6 +115,8 @@ export default async function StudentsPage({
         sort={sort}
         order={order}
         role={session.user.role as Role}
+        canAddEdit={canAddEdit}
+        canDelete={canDelete}
       />
 
       <PaginationControl

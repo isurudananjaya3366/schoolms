@@ -49,6 +49,8 @@ interface StudentTableProps {
   sort: string;
   order: string;
   role: Role;
+  canAddEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export default function StudentTable({
@@ -56,6 +58,8 @@ export default function StudentTable({
   sort,
   order,
   role,
+  canAddEdit,
+  canDelete,
 }: StudentTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,6 +70,9 @@ export default function StudentTable({
   } | null>(null);
 
   const isAdmin = role === Role.ADMIN || role === Role.SUPERADMIN;
+  // Respect explicit canAddEdit/canDelete props if provided; fall back to role-based default
+  const effectiveCanAddEdit = canAddEdit !== undefined ? canAddEdit : isAdmin;
+  const effectiveCanDelete = canDelete !== undefined ? canDelete : isAdmin;
   const allSelected = data.length > 0 && selected.size === data.length;
   const someSelected = selected.size > 0 && selected.size < data.length;
 
@@ -237,7 +244,7 @@ export default function StudentTable({
                         <Eye className="size-3.5" />
                       </Link>
                     </Button>
-                    {isAdmin && (
+                    {effectiveCanAddEdit && (
                       <>
                         <Button variant="ghost" size="icon-xs" asChild>
                           <Link
@@ -246,19 +253,21 @@ export default function StudentTable({
                             <Pencil className="size-3.5" />
                           </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() =>
-                            setDeleteTarget({
-                              id: student.id,
-                              name: student.name,
-                            })
-                          }
-                        >
-                          <Trash2 className="size-3.5 text-destructive" />
-                        </Button>
                       </>
+                    )}
+                    {effectiveCanDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: student.id,
+                            name: student.name,
+                          })
+                        }
+                      >
+                        <Trash2 className="size-3.5 text-destructive" />
+                      </Button>
                     )}
                   </div>
                 </TableCell>

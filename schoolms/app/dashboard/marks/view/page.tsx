@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 import ViewMarksClient from "@/components/marks/ViewMarksClient";
 
 export const metadata = { title: "View Marks | SchoolMS" };
@@ -11,6 +12,8 @@ export default async function ViewMarksPage({
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  if (!(await hasPermission(session.user.role, "view_marks"))) redirect("/dashboard");
 
   const params = await searchParams;
 

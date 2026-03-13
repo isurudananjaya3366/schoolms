@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 import LeaderboardContainer from "./LeaderboardContainer";
 
 export const metadata = { title: "Leaderboard | SchoolMS" };
@@ -9,7 +10,7 @@ export default async function LeaderboardPage() {
   if (!session?.user) redirect("/login");
 
   const role = session.user.role as string;
-  if (role === "STAFF") redirect("/dashboard");
+  if (!(await hasPermission(role, "view_leaderboard"))) redirect("/dashboard");
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 import AnalyticsContainer from "./AnalyticsContainer";
 
 export const metadata = { title: "Analytics | SchoolMS" };
@@ -12,9 +13,9 @@ export default async function AnalyticsPage({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  // Role guard — STAFF cannot access
+  // Permission-based guard (respects SUPERADMIN override)
   const role = session.user.role as string;
-  if (role === "STAFF") redirect("/dashboard");
+  if (!(await hasPermission(role, "view_analytics"))) redirect("/dashboard");
 
   const params = await searchParams;
 
