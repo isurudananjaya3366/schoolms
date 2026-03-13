@@ -18,12 +18,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, Loader2, RotateCcw } from "lucide-react";
+import { Download, Loader2, RotateCcw, Trophy } from "lucide-react";
 
 import SubjectAverageBar from "@/components/charts/SubjectAverageBar";
 import WRateTracker from "@/components/charts/WRateTracker";
 import ClassComparisonRadar from "@/components/charts/ClassComparisonRadar";
 import TopBottomPerformers from "@/components/charts/TopBottomPerformers";
+import RankingsTable from "@/components/charts/RankingsTable";
+import RankingsTrendLine from "@/components/charts/RankingsTrendLine";
+import StudentRankingsTable from "@/components/charts/StudentRankingsTable";
 import GradeDistributionHeatmap from "@/components/infographics/GradeDistributionHeatmap";
 import StudentScatterPlot from "@/components/infographics/StudentScatterPlot";
 
@@ -77,6 +80,49 @@ export interface AnalyticsData {
     }[];
   }[];
   scatterData: ScatterEntry[];
+}
+
+// ─── Rankings type ──────────────────────────────────────
+
+export interface RankingsData {
+  classStudentRankings: Array<{
+    rank: number;
+    studentId: string;
+    name: string;
+    indexNumber: string;
+    classLabel: string;
+    totalMarks: number;
+    avgMark: number;
+    count: number;
+  }>;
+  gradeStudentRankings: Array<{
+    rank: number;
+    studentId: string;
+    name: string;
+    indexNumber: string;
+    classLabel: string;
+    totalMarks: number;
+    avgMark: number;
+    count: number;
+  }>;
+  classRankings: Array<{
+    rank: number;
+    classLabel: string;
+    grade: number;
+    section: string;
+    avgMark: number;
+    count: number;
+  }>;
+  sectionRankings: Array<{
+    rank: number;
+    section: string;
+    avgMark: number;
+    count: number;
+  }>;
+  classTrendData: Record<string, string | number>[];
+  sectionTrendData: Record<string, string | number>[];
+  top5Classes: string[];
+  top5Sections: string[];
 }
 
 // ─── Settings type ───────────────────────────────────────
@@ -174,6 +220,10 @@ export default function AnalyticsContainer({
   const [section, setSection] = useState(initialFilters.section || "");
   const [radarGrade, setRadarGrade] = useState("");
   const [radarSection, setRadarSection] = useState("");
+  const [rankingsData, setRankingsData] = useState<RankingsData | null>(null);
+  const [rankingsGrade, setRankingsGrade] = useState("");
+  const [rankingsSection, setRankingsSection] = useState("");
+  const [isRankingsLoading, setIsRankingsLoading] = useState(false);
 
   // ── Chart refs for PNG / PDF capture ───────────────────
   const heatmapRef = useRef<HTMLDivElement>(null);
@@ -182,6 +232,8 @@ export default function AnalyticsContainer({
   const scatterRef = useRef<HTMLDivElement>(null);
   const performersRef = useRef<HTMLDivElement>(null);
   const radarRef = useRef<HTMLDivElement>(null);
+  const rankingsRef = useRef<HTMLDivElement>(null);
+  const rankingsTrendRef = useRef<HTMLDivElement>(null);
 
   // Year options: current year and two prior
   const currentYear = new Date().getFullYear();
@@ -201,6 +253,36 @@ export default function AnalyticsContainer({
     },
     [router],
   );
+
+  // ── Fetch rankings data ────────────────────────────────
+  const fetchRankings = useCallback(
+    async (localGrade: string, localSection: string, globalYear: string, globalTerm: string) => {
+      setIsRankingsLoading(true);
+      try {
+        const sp = new URLSearchParams();
+        if (localGrade) sp.set("grade", localGrade);
+        if (localSection) sp.set("section", localSection);
+        if (globalTerm) sp.set("term", globalTerm);
+        if (globalYear) sp.set("year", globalYear);
+        const res = await fetch(`/api/analytics/rankings?${sp.toString()}`);
+        if (res.ok) {
+          const json: RankingsData = await res.json();
+          setRankingsData(json);
+        }
+      } catch {
+        /* ignore — stale data will remain */
+      } finally {
+        setIsRankingsLoading(false);
+      }
+    },
+    [],
+  );
+
+  // Auto-fetch rankings when local filters or global year/term change
+  useEffect(() => {
+    fetchRankings(rankingsGrade, rankingsSection, year, term);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankingsGrade, rankingsSection, year, term]);
 
   // ── Fetch data ─────────────────────────────────────────
   const fetchData = useCallback(
@@ -232,6 +314,8 @@ export default function AnalyticsContainer({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Rankings fetch is driven by its own useEffect above — no separate mount call needed.
 
   // ── Fetch W-rate data for all terms ────────────────────
   useEffect(() => {
@@ -332,6 +416,8 @@ export default function AnalyticsContainer({
       { name: "scatter", ref: scatterRef, fallbackId: "chart-scatter", caption: "Student Scatter Plot" },
       { name: "performers", ref: performersRef, fallbackId: "chart-performers", caption: "Top / Bottom Performers" },
       { name: "radar", ref: radarRef, fallbackId: "chart-radar", caption: "Class Comparison Radar" },
+      { name: "rankings", ref: rankingsRef, fallbackId: "chart-rankings", caption: "Class & Section Rankings" },
+      { name: "rankingsTrend", ref: rankingsTrendRef, fallbackId: "chart-rankings-trend", caption: "Rankings Performance Trend" },
     ];
 
     const images: string[] = [];
@@ -694,7 +780,7 @@ export default function AnalyticsContainer({
       </div>
 
       {/* Row 5: Full width — Class Comparison Radar */}
-      <div ref={radarRef} id="chart-radar">
+      <div ref={radarRef} id="chart-radar" className="scroll-mt-4">
         <ChartCard
           title="Class Comparison Radar"
           description="Per-section subject averages overlaid for comparison."
@@ -765,6 +851,210 @@ export default function AnalyticsContainer({
             <EmptyState />
           )}
         </ChartCard>
+      </div>
+
+      {/* ── Rankings Section ─────────────────────────────── */}
+      <div className="pt-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Class &amp; Section Rankings</h2>
+            <p className="text-sm text-muted-foreground">
+              Top 10 rankings by average mark per subject. 1st–3rd are highlighted with medals.
+            </p>
+          </div>
+          {/* Local per-class filter for the rankings section */}
+          <div className="flex items-end gap-2">
+            <div className="w-36">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Grade</label>
+              <Select
+                value={rankingsGrade || "__all__"}
+                onValueChange={(v) => {
+                  setRankingsGrade(v === "__all__" ? "" : v);
+                  setRankingsSection("");
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="All Grades" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Grades</SelectItem>
+                  {[6, 7, 8, 9, 10, 11].map((g) => (
+                    <SelectItem key={g} value={String(g)}>
+                      Grade {g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-36">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                Class
+              </label>
+              <Select
+                value={rankingsSection || "__all__"}
+                onValueChange={(v) =>
+                  setRankingsSection(v === "__all__" ? "" : v)
+                }
+                disabled={!rankingsGrade}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="All Classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Classes</SelectItem>
+                  {["A", "B", "C", "D", "E", "F"].map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {rankingsGrade ? `${rankingsGrade}${s}` : `Section ${s}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 6: Class & Section Rankings tables */}
+      <div ref={rankingsRef} id="chart-rankings">
+        <ChartCard
+          title={
+            rankingsGrade && rankingsSection
+              ? `Rankings — Class ${rankingsGrade}${rankingsSection}`
+              : rankingsGrade
+              ? `Rankings — Grade ${rankingsGrade}`
+              : "Class & Section Rankings"
+          }
+          description={
+            rankingsGrade && rankingsSection
+              ? `Top 10 students in class ${rankingsGrade}${rankingsSection} (by total marks) alongside section comparison.`
+              : rankingsGrade
+              ? `Top 10 students in Grade ${rankingsGrade} alongside class averages.`
+              : "Top 10 students overall alongside top class averages. Select a grade or class for drill-down."
+          }
+          onDownload={() =>
+            downloadPNG(rankingsRef, "rankings", "chart-rankings")
+          }
+          disabled={isLoading || isCapturing}
+        >
+          {isRankingsLoading ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+          ) : !rankingsGrade ? (
+            /* No grade selected — prompt user */
+            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-muted-foreground">
+              <Trophy className="h-8 w-8 opacity-30" />
+              <p className="text-sm">Select a Grade and Class above to see rankings.</p>
+            </div>
+          ) : rankingsData ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Left — Class Ranking: top 10 students in the selected class */}
+              {rankingsGrade && rankingsSection ? (
+                <StudentRankingsTable
+                  title={`Class Ranking — Class ${rankingsGrade}${rankingsSection}`}
+                  rankings={rankingsData.classStudentRankings.map((s) => ({
+                    rank: s.rank,
+                    studentId: s.studentId,
+                    name: s.name,
+                    indexNumber: s.indexNumber,
+                    classLabel: s.classLabel,
+                    totalMarks: s.totalMarks,
+                    avgMark: s.avgMark,
+                    profileUrl: `/dashboard/students/${s.studentId}`,
+                  }))}
+                />
+              ) : (
+                <div className="flex h-[200px] flex-col items-center justify-center gap-2 rounded-md border text-muted-foreground">
+                  <Trophy className="h-6 w-6 opacity-30" />
+                  <p className="text-sm">Select a specific Class for class-level ranking.</p>
+                </div>
+              )}
+              {/* Right — Section Ranking: top 10 students across all sections in the grade */}
+              <StudentRankingsTable
+                title={`Section Ranking — Grade ${rankingsGrade} (All Sections)`}
+                rankings={rankingsData.gradeStudentRankings.map((s) => ({
+                  rank: s.rank,
+                  studentId: s.studentId,
+                  name: s.name,
+                  indexNumber: s.indexNumber,
+                  classLabel: s.classLabel,
+                  totalMarks: s.totalMarks,
+                  avgMark: s.avgMark,
+                  profileUrl: `/dashboard/students/${s.studentId}`,
+                }))}
+              />
+            </div>
+          ) : (
+            <EmptyState />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* Row 7: Rankings trend line charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div ref={rankingsTrendRef} id="chart-rankings-trend">
+          <ChartCard
+            title="Top Classes — Performance Trend"
+            description={
+              rankingsGrade
+                ? `Average mark per subject for the top classes in Grade ${rankingsGrade} across all terms.`
+                : "Average mark per subject for the top 5 classes across all terms."
+            }
+            onDownload={() =>
+              downloadPNG(
+                rankingsTrendRef,
+                "rankings-trend-classes",
+                "chart-rankings-trend",
+              )
+            }
+            disabled={isRankingsLoading || isCapturing}
+          >
+            {isRankingsLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : rankingsData?.classTrendData?.length ? (
+              <RankingsTrendLine
+                trendData={rankingsData.classTrendData}
+                keys={rankingsData.top5Classes}
+                isAnimationActive={isAnimationActive}
+              />
+            ) : (
+              <EmptyState />
+            )}
+          </ChartCard>
+        </div>
+        <div id="chart-rankings-trend-sections">
+          <ChartCard
+            title="Top Sections — Performance Trend"
+            description={
+              rankingsGrade
+                ? `Average mark per subject for sections in Grade ${rankingsGrade} across all terms.`
+                : "Average mark per subject for the top 5 sections across all terms."
+            }
+            onDownload={() =>
+              downloadPNG(
+                { current: document.getElementById(
+                    "chart-rankings-trend-sections",
+                  ) as HTMLDivElement | null },
+                "rankings-trend-sections",
+                "chart-rankings-trend-sections",
+              )
+            }
+            disabled={isRankingsLoading || isCapturing}
+          >
+            {isRankingsLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : rankingsData?.sectionTrendData?.length ? (
+              <RankingsTrendLine
+                trendData={rankingsData.sectionTrendData}
+                keys={rankingsData.top5Sections}
+                isAnimationActive={isAnimationActive}
+              />
+            ) : (
+              <EmptyState />
+            )}
+          </ChartCard>
+        </div>
       </div>
     </div>
   );
