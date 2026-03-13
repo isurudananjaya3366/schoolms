@@ -6,3 +6,4 @@ export { default as TopBottomPerformers } from "./TopBottomPerformers";
 export { default as RankingsTable } from "./RankingsTable";
 export { default as RankingsTrendLine } from "./RankingsTrendLine";
 export { default as StudentRankingsTable } from "./StudentRankingsTable";
+export { default as LeaderboardBarChart } from "./LeaderboardBarChart";

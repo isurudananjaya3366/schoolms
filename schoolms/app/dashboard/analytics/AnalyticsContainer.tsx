@@ -19,6 +19,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Loader2, RotateCcw, Trophy } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 import SubjectAverageBar from "@/components/charts/SubjectAverageBar";
 import WRateTracker from "@/components/charts/WRateTracker";
@@ -223,7 +234,23 @@ export default function AnalyticsContainer({
   const [rankingsData, setRankingsData] = useState<RankingsData | null>(null);
   const [rankingsGrade, setRankingsGrade] = useState("");
   const [rankingsSection, setRankingsSection] = useState("");
+  const [rankingsYear, setRankingsYear] = useState(String(new Date().getFullYear()));
+  const [rankingsTerm, setRankingsTerm] = useState("TERM_3");
   const [isRankingsLoading, setIsRankingsLoading] = useState(false);
+
+  // ── Analytics Report Modal state ────────────────────
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [includeSignatures, setIncludeSignatures] = useState(false);
+  const [sigPrincipalField, setSigPrincipalField] = useState(true);
+  const [sigPrincipalDigital, setSigPrincipalDigital] = useState(false);
+  const [sigVPField, setSigVPField] = useState(true);
+  const [sigVPDigital, setSigVPDigital] = useState(false);
+  const [availableSignatures, setAvailableSignatures] = useState<{
+    hasPrincipal: boolean;
+    hasVicePrincipal: boolean;
+    principalUrl: string | null;
+    vpUrl: string | null;
+  }>({ hasPrincipal: false, hasVicePrincipal: false, principalUrl: null, vpUrl: null });
 
   // ── Chart refs for PNG / PDF capture ───────────────────
   const heatmapRef = useRef<HTMLDivElement>(null);
@@ -234,6 +261,49 @@ export default function AnalyticsContainer({
   const radarRef = useRef<HTMLDivElement>(null);
   const rankingsRef = useRef<HTMLDivElement>(null);
   const rankingsTrendRef = useRef<HTMLDivElement>(null);
+
+  // ── Fetch latest period for rankings defaults ──────────
+  useEffect(() => {
+    async function fetchLatestPeriod() {
+      try {
+        const res = await fetch("/api/analytics/latest-period");
+        if (res.ok) {
+          const { latestYear, latestTerm } = await res.json();
+          setRankingsYear(String(latestYear));
+          setRankingsTerm(latestTerm);
+        }
+      } catch {
+        // Keep defaults
+      }
+    }
+    fetchLatestPeriod();
+  }, []);
+
+  // ── Fetch available signatures ─────────────────────────
+  useEffect(() => {
+    async function fetchSigs() {
+      try {
+        const res = await fetch("/api/uploads/signature");
+        if (!res.ok) return;
+        const { signatures } = await res.json();
+        const principal = signatures.find(
+          (s: { type: string; url: string }) => s.type === "principal",
+        );
+        const vp = signatures.find(
+          (s: { type: string; url: string }) => s.type === "vice_principal",
+        );
+        setAvailableSignatures({
+          hasPrincipal: !!principal,
+          hasVicePrincipal: !!vp,
+          principalUrl: principal?.url ?? null,
+          vpUrl: vp?.url ?? null,
+        });
+      } catch {
+        // ignore
+      }
+    }
+    fetchSigs();
+  }, []);
 
   // Year options: current year and two prior
   const currentYear = new Date().getFullYear();
@@ -256,14 +326,14 @@ export default function AnalyticsContainer({
 
   // ── Fetch rankings data ────────────────────────────────
   const fetchRankings = useCallback(
-    async (localGrade: string, localSection: string, globalYear: string, globalTerm: string) => {
+    async (localGrade: string, localSection: string, localYear: string, localTerm: string) => {
       setIsRankingsLoading(true);
       try {
         const sp = new URLSearchParams();
         if (localGrade) sp.set("grade", localGrade);
         if (localSection) sp.set("section", localSection);
-        if (globalTerm) sp.set("term", globalTerm);
-        if (globalYear) sp.set("year", globalYear);
+        if (localTerm) sp.set("term", localTerm);
+        if (localYear) sp.set("year", localYear);
         const res = await fetch(`/api/analytics/rankings?${sp.toString()}`);
         if (res.ok) {
           const json: RankingsData = await res.json();
@@ -278,11 +348,11 @@ export default function AnalyticsContainer({
     [],
   );
 
-  // Auto-fetch rankings when local filters or global year/term change
+  // Auto-fetch rankings when local filters change (independent of global year/term)
   useEffect(() => {
-    fetchRankings(rankingsGrade, rankingsSection, year, term);
+    fetchRankings(rankingsGrade, rankingsSection, rankingsYear, rankingsTerm);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rankingsGrade, rankingsSection, year, term]);
+  }, [rankingsGrade, rankingsSection, rankingsYear, rankingsTerm]);
 
   // ── Fetch data ─────────────────────────────────────────
   const fetchData = useCallback(
@@ -405,29 +475,85 @@ export default function AnalyticsContainer({
 
   // ── Full PDF download handler ──────────────────────────
   const downloadFullReport = async () => {
+    setShowReportModal(false);
     setIsCapturing(true);
     setIsAnimationActive(false);
     await new Promise((r) => setTimeout(r, 300));
 
-    const chartEntries: { name: string; ref: React.RefObject<HTMLDivElement | null>; fallbackId: string; caption: string }[] = [
-      { name: "heatmap", ref: heatmapRef, fallbackId: "chart-heatmap", caption: "Grade Distribution Heatmap" },
-      { name: "subjectAverages", ref: subjectAveragesRef, fallbackId: "chart-subject-averages", caption: "Subject Averages" },
-      { name: "wRates", ref: wRatesRef, fallbackId: "chart-w-rates", caption: "W-Rate Tracker" },
-      { name: "scatter", ref: scatterRef, fallbackId: "chart-scatter", caption: "Student Scatter Plot" },
-      { name: "performers", ref: performersRef, fallbackId: "chart-performers", caption: "Top / Bottom Performers" },
-      { name: "radar", ref: radarRef, fallbackId: "chart-radar", caption: "Class Comparison Radar" },
-      { name: "rankings", ref: rankingsRef, fallbackId: "chart-rankings", caption: "Class & Section Rankings" },
-      { name: "rankingsTrend", ref: rankingsTrendRef, fallbackId: "chart-rankings-trend", caption: "Rankings Performance Trend" },
+    const chartEntries: {
+      name: string;
+      ref: React.RefObject<HTMLDivElement | null>;
+      fallbackId: string;
+      caption: string;
+      hasData: boolean;
+    }[] = [
+      {
+        name: "heatmap",
+        ref: heatmapRef,
+        fallbackId: "chart-heatmap",
+        caption: "Grade Distribution Heatmap",
+        hasData: !!(data?.heatmapData?.length),
+      },
+      {
+        name: "subjectAverages",
+        ref: subjectAveragesRef,
+        fallbackId: "chart-subject-averages",
+        caption: "Subject Averages",
+        hasData: !!(data?.subjectAverages?.length),
+      },
+      {
+        name: "wRates",
+        ref: wRatesRef,
+        fallbackId: "chart-w-rates",
+        caption: "W-Rate Tracker",
+        hasData: !!(wRatesAllTerms?.length),
+      },
+      {
+        name: "scatter",
+        ref: scatterRef,
+        fallbackId: "chart-scatter",
+        caption: "Student Scatter Plot",
+        hasData: !!(data?.scatterData?.length),
+      },
+      {
+        name: "performers",
+        ref: performersRef,
+        fallbackId: "chart-performers",
+        caption: "Top / Bottom Performers",
+        hasData: !!(data?.topPerformers?.length),
+      },
+      {
+        name: "radar",
+        ref: radarRef,
+        fallbackId: "chart-radar",
+        caption: "Class Comparison Radar",
+        hasData: !!(data?.classComparisons),
+      },
+      {
+        name: "rankings",
+        ref: rankingsRef,
+        fallbackId: "chart-rankings",
+        caption: "Class & Section Rankings",
+        hasData: !!rankingsData,
+      },
+      {
+        name: "rankingsTrend",
+        ref: rankingsTrendRef,
+        fallbackId: "chart-rankings-trend",
+        caption: "Rankings Performance Trend",
+        hasData: !!(rankingsData?.classTrendData?.length || rankingsData?.sectionTrendData?.length),
+      },
     ];
 
     const images: string[] = [];
     const captions: string[] = [];
 
     try {
-      for (let i = 0; i < chartEntries.length; i++) {
-        const entry = chartEntries[i];
+      const entries = chartEntries.filter((e) => e.hasData);
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
         setCaptureProgress(
-          `Capturing chart ${i + 1} of ${chartEntries.length}…`,
+          `Capturing chart ${i + 1} of ${entries.length}…`,
         );
         const el = entry.ref.current || document.getElementById(entry.fallbackId) as HTMLElement | null;
         if (!el) {
@@ -451,16 +577,29 @@ export default function AnalyticsContainer({
       const gradeStr = grade ? `Grade ${grade}` : "All Grades";
       const termStr = term ? term.replace("TERM_", "Term ") : "All Terms";
 
+      const principalSignUrl =
+        includeSignatures && sigPrincipalDigital
+          ? availableSignatures.principalUrl
+          : null;
+      const vpSignUrl =
+        includeSignatures && sigVPDigital
+          ? availableSignatures.vpUrl
+          : null;
+
       const res = await fetch("/api/preview/pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           images,
           chartCaptions: captions,
-          schoolName: settings?.school_name || "School",
+          schoolName: settings?.school_name || "SchoolMS",
           reportTitle: `${gradeStr} Analytics Report`,
           generatedDate: new Date().toISOString(),
           filterScope: `${gradeStr} — ${termStr} — ${year}`,
+          principalField: includeSignatures && sigPrincipalField,
+          principalSignUrl,
+          vicePrincipalField: includeSignatures && sigVPField,
+          vicePrincipalSignUrl: vpSignUrl,
         }),
       });
 
@@ -560,6 +699,7 @@ export default function AnalyticsContainer({
 
   // ── Render ─────────────────────────────────────────────
   return (
+    <>
     <div className="space-y-6">
       {/* Filters row */}
       <div className="flex items-end justify-between gap-4">
@@ -651,7 +791,7 @@ export default function AnalyticsContainer({
         {/* Download Report */}
         <Button
           variant="outline"
-          onClick={downloadFullReport}
+          onClick={() => setShowReportModal(true)}
           disabled={isLoading || isCapturing || !data}
         >
           {isCapturing ? (
@@ -859,12 +999,51 @@ export default function AnalyticsContainer({
           <div>
             <h2 className="text-lg font-semibold tracking-tight">Class &amp; Section Rankings</h2>
             <p className="text-sm text-muted-foreground">
-              Top 10 rankings by average mark per subject. 1st–3rd are highlighted with medals.
+              Top 10 rankings by total marks. 1st–3rd are highlighted with medals. Defaults to the
+              latest available year and term.
             </p>
           </div>
-          {/* Local per-class filter for the rankings section */}
-          <div className="flex items-end gap-2">
-            <div className="w-36">
+          {/* Local independent filters for the rankings section */}
+          <div className="flex flex-wrap items-end gap-2">
+            {/* Year */}
+            <div className="w-28">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Year</label>
+              <Select
+                value={rankingsYear}
+                onValueChange={(v) => setRankingsYear(v)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Term */}
+            <div className="w-28">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Term</label>
+              <Select
+                value={rankingsTerm || "__all__"}
+                onValueChange={(v) => setRankingsTerm(v === "__all__" ? "" : v)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="All Terms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Terms</SelectItem>
+                  <SelectItem value="TERM_1">Term 1</SelectItem>
+                  <SelectItem value="TERM_2">Term 2</SelectItem>
+                  <SelectItem value="TERM_3">Term 3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Grade */}
+            <div className="w-32">
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Grade</label>
               <Select
                 value={rankingsGrade || "__all__"}
@@ -886,7 +1065,8 @@ export default function AnalyticsContainer({
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-36">
+            {/* Class */}
+            <div className="w-32">
               <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 Class
               </label>
@@ -1057,5 +1237,109 @@ export default function AnalyticsContainer({
         </div>
       </div>
     </div>
+
+    {/* ── Analytics Report Modal ──────────────────────────── */}
+    <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Download Analytics Report</DialogTitle>
+          <DialogDescription>
+            Configure options for the PDF report before generating it.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          {/* Signature toggle */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="sig-toggle" className="font-medium">
+              Include Signatures
+            </Label>
+            <Switch
+              id="sig-toggle"
+              checked={includeSignatures}
+              onCheckedChange={setIncludeSignatures}
+            />
+          </div>
+
+          {includeSignatures && (
+            <div className="space-y-4 rounded-md border p-4">
+              {/* Principal */}
+              <p className="text-sm font-semibold text-muted-foreground">
+                Principal
+              </p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sig-principal-field" className="text-sm">
+                  Signature field (blank line)
+                </Label>
+                <Switch
+                  id="sig-principal-field"
+                  checked={sigPrincipalField}
+                  onCheckedChange={setSigPrincipalField}
+                />
+              </div>
+              {availableSignatures.hasPrincipal && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sig-principal-digital" className="text-sm">
+                    Digital signature image
+                  </Label>
+                  <Switch
+                    id="sig-principal-digital"
+                    checked={sigPrincipalDigital}
+                    onCheckedChange={setSigPrincipalDigital}
+                  />
+                </div>
+              )}
+
+              {/* Vice-Principal */}
+              <p className="mt-2 text-sm font-semibold text-muted-foreground">
+                Vice Principal
+              </p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sig-vp-field" className="text-sm">
+                  Signature field (blank line)
+                </Label>
+                <Switch
+                  id="sig-vp-field"
+                  checked={sigVPField}
+                  onCheckedChange={setSigVPField}
+                />
+              </div>
+              {availableSignatures.hasVicePrincipal && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sig-vp-digital" className="text-sm">
+                    Digital signature image
+                  </Label>
+                  <Switch
+                    id="sig-vp-digital"
+                    checked={sigVPDigital}
+                    onCheckedChange={setSigVPDigital}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={downloadFullReport} disabled={isCapturing}>
+            {isCapturing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {captureProgress || "Generating…"}
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Generate & Download
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

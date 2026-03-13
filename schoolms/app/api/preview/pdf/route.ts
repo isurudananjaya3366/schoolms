@@ -51,6 +51,14 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#9ca3af",
   },
+  // Signature page styles
+  signaturePage: { padding: 60, fontFamily: "Helvetica" },
+  signaturePageTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 40, textAlign: "center" },
+  signatureSection: { flexDirection: "row", justifyContent: "space-around", marginTop: 40 },
+  signatureBlock: { width: 150, alignItems: "center" },
+  signatureImage: { width: 100, height: 50, marginBottom: 8, objectFit: "contain" },
+  signatureLine: { width: 120, borderBottomWidth: 1, borderBottomColor: "#374151", marginTop: 40 },
+  signatureLabel: { fontSize: 10, color: "#374151", marginTop: 6, textAlign: "center" },
 });
 
 export async function POST(request: Request) {
@@ -64,6 +72,10 @@ export async function POST(request: Request) {
     reportTitle: string;
     generatedDate: string;
     filterScope: string;
+    principalField?: boolean;
+    principalSignUrl?: string | null;
+    vicePrincipalField?: boolean;
+    vicePrincipalSignUrl?: string | null;
   };
 
   try {
@@ -72,7 +84,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { images, chartCaptions, schoolName, reportTitle, generatedDate, filterScope } = body;
+  const { images, chartCaptions, schoolName, reportTitle, generatedDate, filterScope,
+    principalField, principalSignUrl, vicePrincipalField, vicePrincipalSignUrl } = body;
 
   if (!Array.isArray(images) || images.length === 0) {
     return NextResponse.json(
@@ -133,7 +146,53 @@ export async function POST(request: Request) {
       ),
     );
 
-    const doc = createElement(Document, null, titlePage, ...chartPages);
+    // Signature page (optional)
+    const needsSignaturePage = principalField || vicePrincipalField;
+    const signaturePage = needsSignaturePage
+      ? (() => {
+          const blocks: ReturnType<typeof createElement>[] = [];
+          if (principalField) {
+            blocks.push(
+              createElement(
+                View,
+                { style: styles.signatureBlock },
+                ...(principalSignUrl
+                  ? [createElement(Image, { style: styles.signatureImage, src: principalSignUrl })]
+                  : []),
+                createElement(View, { style: styles.signatureLine }),
+                createElement(Text, { style: styles.signatureLabel }, "Principal"),
+              ),
+            );
+          }
+          if (vicePrincipalField) {
+            blocks.push(
+              createElement(
+                View,
+                { style: styles.signatureBlock },
+                ...(vicePrincipalSignUrl
+                  ? [createElement(Image, { style: styles.signatureImage, src: vicePrincipalSignUrl })]
+                  : []),
+                createElement(View, { style: styles.signatureLine }),
+                createElement(Text, { style: styles.signatureLabel }, "Vice Principal"),
+              ),
+            );
+          }
+          return createElement(
+            Page,
+            { size: "A4", style: styles.signaturePage },
+            createElement(Text, { style: styles.signaturePageTitle }, "Authorisation"),
+            createElement(View, { style: styles.signatureSection }, ...blocks),
+          );
+        })()
+      : null;
+
+    const doc = createElement(
+      Document,
+      null,
+      titlePage,
+      ...chartPages,
+      ...(signaturePage ? [signaturePage] : []),
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfBuffer = await renderToBuffer(doc as any);

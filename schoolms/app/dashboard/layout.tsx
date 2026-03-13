@@ -11,6 +11,7 @@ const navItems: NavItem[] = [
   { label: "View Marks", href: "/dashboard/marks/view", icon: "Eye", minRole: "ALL", group: "main" },
   { label: "Reports", href: "/dashboard/reports", icon: "FileBarChart", minRole: "ALL", group: "main" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "BarChart3", minRole: "ADMIN", group: "main" },
+  { label: "Leaderboard", href: "/dashboard/leaderboard", icon: "Trophy", minRole: "ADMIN", group: "main" },
   { label: "Backup", href: "/dashboard/backup", icon: "HardDriveDownload", minRole: "SUPERADMIN", group: "admin" },
   { label: "Settings", href: "/dashboard/settings", icon: "Settings", minRole: "ADMIN", group: "admin" },
   { label: "Users", href: "/dashboard/settings/users", icon: "UserCog", minRole: "ADMIN", group: "admin" },
