@@ -29,7 +29,7 @@ export default async function UserManagementPage() {
     });
   } else {
     users = await prisma.user.findMany({
-      where: { OR: [{ role: Role.STAFF }, { id: session.user.id }] },
+      where: { OR: [{ role: Role.STAFF }, { role: Role.TEACHER }, { role: Role.STUDENT }, { id: session.user.id }] },
       select: userSelect,
       orderBy: { createdAt: "desc" },
     });

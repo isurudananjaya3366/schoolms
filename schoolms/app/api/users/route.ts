@@ -52,7 +52,9 @@ const createUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
-  role: z.enum(["STAFF", "ADMIN"]),
+  role: z.enum(["STAFF", "ADMIN", "TEACHER", "STUDENT"]),
+  assignedClassId: z.string().optional().nullable(),
+  linkedStudentId: z.string().optional().nullable(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -75,10 +77,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Validation failed", fields }, { status: 400 });
     }
 
-    const { name, email, password, role } = parsed.data;
+    const { name, email, password, role, assignedClassId, linkedStudentId } = parsed.data;
 
-    // Role elevation guard: ADMIN can only create STAFF
-    if (authResult.role === Role.ADMIN && role !== "STAFF") {
+    // Role elevation guard:
+    // ADMIN can only create STAFF, TEACHER, or STUDENT — not ADMIN or above
+    if (authResult.role === Role.ADMIN && (role === "ADMIN" || role === "SUPERADMIN" as string)) {
       return NextResponse.json(
         { error: "Insufficient permissions to create an account with this role." },
         { status: 403 }
@@ -99,7 +102,15 @@ export async function POST(request: Request) {
 
     // Create user
     const newUser = await prisma.user.create({
-      data: { name, email, passwordHash, role: role as Role, isActive: true },
+      data: {
+        name,
+        email,
+        passwordHash,
+        role: role as Role,
+        isActive: true,
+        assignedClassId: assignedClassId || null,
+        linkedStudentId: linkedStudentId || null,
+      },
       select: userSelect,
     });
 

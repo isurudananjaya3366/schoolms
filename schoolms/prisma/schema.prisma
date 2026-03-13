@@ -16,6 +16,8 @@ enum Role {
   SUPERADMIN
   ADMIN
   STAFF
+  TEACHER
+  STUDENT
 }
 
 enum Term {
@@ -58,6 +60,10 @@ model User {
   passwordResetToken  String?
   passwordResetExpiry DateTime?
   sessionInvalidatedAt DateTime?
+  // TEACHER role: the class group they are assigned to teach
+  assignedClassId     String?   @db.ObjectId
+  // STUDENT role: the linked student record for self-service login
+  linkedStudentId     String?   @db.ObjectId
 
   @@map("users")
 }

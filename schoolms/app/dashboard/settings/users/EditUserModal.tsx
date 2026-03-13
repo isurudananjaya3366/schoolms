@@ -26,7 +26,7 @@ import { Loader2 } from "lucide-react";
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  role: z.enum(["STAFF", "ADMIN"]),
+  role: z.enum(["STAFF", "ADMIN", "TEACHER", "STUDENT"]),
 });
 
 interface UserRow {
@@ -65,7 +65,7 @@ export default function EditUserModal({
 
   const isSelf = user.id === currentUserId;
   const roles =
-    currentUserRole === "SUPERADMIN" ? ["STAFF", "ADMIN"] : ["STAFF"];
+    currentUserRole === "SUPERADMIN" ? ["STAFF", "ADMIN", "TEACHER", "STUDENT"] : ["STAFF", "TEACHER", "STUDENT"];
 
   useEffect(() => {
     setForm({ name: user.name, email: user.email, role: user.role });
@@ -178,7 +178,7 @@ export default function EditUserModal({
                 <SelectContent>
                   {roles.map((r) => (
                     <SelectItem key={r} value={r}>
-                      {r === "ADMIN" ? "Admin" : "Staff"}
+                      {{ STAFF: "Staff", ADMIN: "Admin", TEACHER: "Teacher", STUDENT: "Student" }[r] ?? r}
                     </SelectItem>
                   ))}
                 </SelectContent>

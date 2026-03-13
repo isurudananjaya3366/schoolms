@@ -56,7 +56,7 @@ export default function UserTable({
   const canActOn = (user: UserRow) => {
     if (currentUserRole === "SUPERADMIN") return user.role !== "SUPERADMIN";
     if (currentUserRole === "ADMIN")
-      return user.role === "STAFF" || user.id === currentUserId;
+      return user.role === "STAFF" || user.role === "TEACHER" || user.role === "STUDENT" || user.id === currentUserId;
     return false;
   };
 
@@ -122,6 +122,10 @@ export default function UserTable({
         );
       case "ADMIN":
         return <Badge variant="secondary">Admin</Badge>;
+      case "TEACHER":
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Teacher</Badge>;
+      case "STUDENT":
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Student</Badge>;
       default:
         return <Badge variant="outline">Staff</Badge>;
     }

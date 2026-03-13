@@ -35,6 +35,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               role: true,
               isActive: true,
               passwordHash: true,
+              assignedClassId: true,
+              linkedStudentId: true,
             },
           });
 
@@ -57,6 +59,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email,
             name: user.name,
             role: user.role,
+            assignedClassId: user.assignedClassId ?? null,
+            linkedStudentId: user.linkedStudentId ?? null,
           };
         } catch (error) {
           if (error instanceof Error && error.message === "AccountDeactivated") {
@@ -84,6 +88,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.email = user.email!;
         token.name = user.name!;
         token.role = user.role;
+        token.assignedClassId = user.assignedClassId ?? null;
+        token.linkedStudentId = user.linkedStudentId ?? null;
       }
 
       // Auto-refresh: extend 8h when <2h remaining
@@ -134,6 +140,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.role = token.role;
+        session.user.assignedClassId = token.assignedClassId ?? null;
+        session.user.linkedStudentId = token.linkedStudentId ?? null;
       }
       return session;
     },

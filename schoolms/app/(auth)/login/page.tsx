@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { LoginForm } from "@/components/auth/LoginForm";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -10,6 +11,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { GraduationCap } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sign In — SchoolMS",
@@ -34,7 +38,7 @@ export default async function LoginPage({
         <CardHeader>
           <CardTitle className="text-2xl">Sign In</CardTitle>
           <CardDescription>
-            Enter your credentials to access SchoolMS
+            Sign in to SchoolMS
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,7 +50,29 @@ export default async function LoginPage({
               </AlertDescription>
             </Alert>
           )}
-          <LoginForm />
+          <Tabs defaultValue="staff" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="staff">Staff / Admin</TabsTrigger>
+              <TabsTrigger value="student">Student</TabsTrigger>
+            </TabsList>
+            <TabsContent value="staff">
+              <LoginForm />
+            </TabsContent>
+            <TabsContent value="student">
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className="rounded-full bg-primary/10 p-4">
+                  <GraduationCap className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Students don&apos;t need a password. Enter your name or index
+                  number on the student portal to view your profile and marks.
+                </p>
+                <Button asChild className="w-full">
+                  <Link href="/student">Go to Student Portal</Link>
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

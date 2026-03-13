@@ -9,6 +9,10 @@ declare module "next-auth" {
       email: string;
       name: string;
       role: Role;
+      /** TEACHER: the class group this teacher is assigned to */
+      assignedClassId: string | null;
+      /** STUDENT: the linked student profile id */
+      linkedStudentId: string | null;
     };
   }
   interface User {
@@ -16,6 +20,8 @@ declare module "next-auth" {
     email: string;
     name: string;
     role: Role;
+    assignedClassId?: string | null;
+    linkedStudentId?: string | null;
   }
 }
 
@@ -23,5 +29,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     userId: string;
     role: Role;
+    assignedClassId?: string | null;
+    linkedStudentId?: string | null;
   }
 }
