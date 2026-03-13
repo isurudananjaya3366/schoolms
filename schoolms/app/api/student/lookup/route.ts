@@ -6,6 +6,20 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/[\s\-_.]/g, "");
 }
 
+type Candidate = {
+  id: string;
+  name: string;
+  indexNumber: string | null;
+  class: { grade: number; section: string };
+};
+
+const SELECT_FIELDS = {
+  id: true,
+  name: true,
+  indexNumber: true,
+  class: { select: { grade: true, section: true } },
+} as const;
+
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("q")?.trim();
   if (!query || query.length < 2) {
@@ -17,91 +31,97 @@ export async function GET(req: NextRequest) {
 
   const normQuery = normalize(query);
 
-  // 1. Try exact index number match first
-  const byIndex = await prisma.student.findFirst({
+  // 1. Try exact index number match first (case-insensitive)
+  const exactByIndex = await prisma.student.findFirst({
     where: {
       indexNumber: { equals: query, mode: "insensitive" },
       isDeleted: false,
     },
-    select: {
-      id: true,
-      name: true,
-      indexNumber: true,
-      class: { select: { grade: true, section: true } },
-    },
+    select: SELECT_FIELDS,
   });
 
-  if (byIndex) {
-    return NextResponse.json({ students: [byIndex] });
+  if (exactByIndex) {
+    return NextResponse.json({ students: [exactByIndex] });
   }
 
-  // 2. Fuzzy name search — fetch candidates matching a case-insensitive substring
-  //    then re-rank in application by normalized match
-  const candidates = await prisma.student.findMany({
-    where: {
-      name: { contains: query.split("").slice(0, 4).join(""), mode: "insensitive" },
-      isDeleted: false,
-    },
-    select: {
-      id: true,
-      name: true,
-      indexNumber: true,
-      class: { select: { grade: true, section: true } },
-    },
-    take: 50,
-  });
+  // 2. Parallel search: partial index contains + name fuzzy search
+  const [byIndexPartial, byNamePartial] = await Promise.all([
+    prisma.student.findMany({
+      where: {
+        indexNumber: { contains: query, mode: "insensitive" },
+        isDeleted: false,
+      },
+      select: SELECT_FIELDS,
+      take: 20,
+    }),
+    prisma.student.findMany({
+      where: {
+        name: {
+          contains: query.split("").slice(0, 4).join(""),
+          mode: "insensitive",
+        },
+        isDeleted: false,
+      },
+      select: SELECT_FIELDS,
+      take: 50,
+    }),
+  ]);
 
-  // If substring search returns nothing, try a broader first 3-char prefix
-  const pool =
-    candidates.length > 0
-      ? candidates
-      : await prisma.student.findMany({
-          where: {
-            name: {
-              contains: query.substring(0, 3),
-              mode: "insensitive",
-            },
-            isDeleted: false,
-          },
-          select: {
-            id: true,
-            name: true,
-            indexNumber: true,
-            class: { select: { grade: true, section: true } },
-          },
-          take: 50,
-        });
+  // Merge candidates, deduplicate by id
+  const seenIds = new Set<string>();
+  const pool: Candidate[] = [];
+  for (const c of [...byIndexPartial, ...byNamePartial] as Candidate[]) {
+    if (!seenIds.has(c.id)) {
+      seenIds.add(c.id);
+      pool.push(c);
+    }
+  }
 
-  type Candidate = {
-    id: string;
-    name: string;
-    indexNumber: string | null;
-    class: { grade: number; section: string };
-  };
+  // If still nothing, try a broader 3-char prefix on names
+  if (pool.length === 0) {
+    const broader = await prisma.student.findMany({
+      where: {
+        name: { contains: query.substring(0, 3), mode: "insensitive" },
+        isDeleted: false,
+      },
+      select: SELECT_FIELDS,
+      take: 50,
+    });
+    pool.push(...(broader as Candidate[]));
+  }
 
-  // Score each candidate: higher = better match
-  const scored = (pool as Candidate[])
+  // Score each candidate: check against both name and index number
+  const scored = pool
     .map((s: Candidate) => {
       const normName = normalize(s.name);
+      const normIndex = normalize(s.indexNumber ?? "");
       let score = 0;
-      if (normName === normQuery) score = 100;
-      else if (normName.startsWith(normQuery)) score = 80;
-      else if (normName.includes(normQuery)) score = 60;
-      else if (normQuery.includes(normName)) score = 40;
-      else {
-        // partial overlap
-        let overlap = 0;
-        for (let i = 0; i < normQuery.length; i++) {
-          if (normName.includes(normQuery[i])) overlap++;
+      for (const norm of [normName, normIndex]) {
+        if (!norm) continue;
+        if (norm === normQuery) score = Math.max(score, 100);
+        else if (norm.startsWith(normQuery)) score = Math.max(score, 80);
+        else if (norm.includes(normQuery)) score = Math.max(score, 60);
+        else if (normQuery.includes(norm)) score = Math.max(score, 40);
+        else {
+          let overlap = 0;
+          for (let i = 0; i < normQuery.length; i++) {
+            if (norm.includes(normQuery[i])) overlap++;
+          }
+          score = Math.max(
+            score,
+            Math.floor(
+              (overlap / Math.max(norm.length, normQuery.length)) * 30
+            )
+          );
         }
-        score = Math.floor((overlap / Math.max(normName.length, normQuery.length)) * 30);
       }
       return { ...s, score };
     })
-    .filter((s: Candidate & { score: number }) => s.score > 0)
-    .sort((a: Candidate & { score: number }, b: Candidate & { score: number }) => b.score - a.score)
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
     .slice(0, 5)
-    .map(({ score: _score, ...s }: Candidate & { score: number }) => s);
+    .map(({ score: _score, ...s }) => s);
 
   return NextResponse.json({ students: scored });
 }
+

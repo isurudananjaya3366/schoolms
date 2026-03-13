@@ -1,23 +1,9 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Role } from "@prisma/client";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import StudentProfileClient from "@/components/students/StudentProfileClient";
 
 export async function generateMetadata({
   params,
@@ -25,32 +11,11 @@ export async function generateMetadata({
   params: Promise<{ indexNumber: string }>;
 }) {
   const { indexNumber } = await params;
-  return { title: `Student ${indexNumber} | SchoolMS` };
-}
-
-const TERM_LABELS: Record<string, string> = {
-  TERM_1: "Term 1",
-  TERM_2: "Term 2",
-  TERM_3: "Term 3",
-};
-
-const SUBJECT_LABELS: Record<string, string> = {
-  sinhala: "Sinhala",
-  buddhism: "Buddhism",
-  maths: "Mathematics",
-  science: "Science",
-  english: "English",
-  history: "History",
-  categoryI: "Elective I",
-  categoryII: "Elective II",
-  categoryIII: "Elective III",
-};
-
-function total(marks: Record<string, number | null | undefined>): number {
-  return Object.values(marks).reduce<number>(
-    (acc, v) => acc + (typeof v === "number" ? v : 0),
-    0
-  );
+  const student = await prisma.student.findFirst({
+    where: { indexNumber: { equals: indexNumber, mode: "insensitive" }, isDeleted: false },
+    select: { name: true },
+  });
+  return { title: student ? `${student.name} | SchoolMS` : `Student ${indexNumber} | SchoolMS` };
 }
 
 export default async function StudentViewPage({
@@ -66,34 +31,38 @@ export default async function StudentViewPage({
       isDeleted: false,
     },
     include: {
-      class: { select: { grade: true, section: true } },
-      markRecords: {
-        orderBy: [{ year: "desc" }, { term: "asc" }],
-      },
+      class: true,
+      markRecords: true,
     },
   });
 
   if (!student) notFound();
 
-  type MarkRec = (typeof student.markRecords)[number];
+  // Fetch academic year from settings
+  const academicYearSetting = await prisma.systemConfig.findUnique({
+    where: { key: "academic_year" },
+  });
+  const currentAcademicYear = academicYearSetting
+    ? Number(academicYearSetting.value)
+    : new Date().getFullYear();
 
-  // Group marks by year
-  const byYear = student.markRecords.reduce<Record<number, MarkRec[]>>(
-    (acc: Record<number, MarkRec[]>, r: MarkRec) => {
-      if (!acc[r.year]) acc[r.year] = [];
-      acc[r.year].push(r);
-      return acc;
-    },
-    {}
-  );
+  // Serialize for client components
+  const serializedStudent = JSON.parse(JSON.stringify(student));
 
-  const years = Object.keys(byYear)
-    .map(Number)
-    .sort((a, b) => b - a);
+  // Compute available years from mark records (+ always include current academic year)
+  const yearsFromRecords = Array.from(
+    new Set(serializedStudent.markRecords.map((r: { year: number }) => r.year)),
+  ) as number[];
+
+  if (!yearsFromRecords.includes(currentAcademicYear)) {
+    yearsFromRecords.push(currentAcademicYear);
+  }
+
+  const availableYears = yearsFromRecords.sort((a: number, b: number) => b - a);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Back link */}
         <Link
           href="/student"
@@ -103,88 +72,21 @@ export default async function StudentViewPage({
           Back to search
         </Link>
 
-        {/* Student header */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-xl">{student.name}</CardTitle>
-                <CardDescription>
-                  Grade {student.class.grade}
-                  {student.class.section}
-                  {student.indexNumber && ` · Index: ${student.indexNumber}`}
-                </CardDescription>
-              </div>
-              <Badge variant="secondary">
-                Grade {student.class.grade}
-                {student.class.section}
-              </Badge>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Marks by year */}
-        {years.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground text-sm">
-              No mark records available yet.
-            </CardContent>
-          </Card>
-        ) : (
-          years.map((year) => (
-            <Card key={year}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{year}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-35">Subject</TableHead>
-                        {byYear[year].map((r) => (
-                          <TableHead key={r.id} className="text-center">
-                            {TERM_LABELS[r.term] ?? r.term}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Object.keys(SUBJECT_LABELS).map((subj) => (
-                        <TableRow key={subj}>
-                          <TableCell className="font-medium text-sm">
-                            {SUBJECT_LABELS[subj]}
-                          </TableCell>
-                          {byYear[year].map((r) => {
-                            const val =
-                              r.marks[subj as keyof typeof r.marks];
-                            return (
-                              <TableCell
-                                key={r.id}
-                                className="text-center text-sm"
-                              >
-                                {val != null ? val : "—"}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
-                      {/* Total row */}
-                      <TableRow className="font-semibold bg-muted/50">
-                        <TableCell>Total</TableCell>
-                        {byYear[year].map((r) => (
-                          <TableCell key={r.id} className="text-center">
-                            {total(r.marks as Record<string, number | null>)}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+        <StudentProfileClient
+          student={{
+            id: serializedStudent.id,
+            name: serializedStudent.name,
+            indexNumber: serializedStudent.indexNumber,
+            electives: serializedStudent.electives,
+            class: serializedStudent.class,
+            scholarshipMarks: serializedStudent.scholarshipMarks ?? null,
+          }}
+          markRecords={serializedStudent.markRecords}
+          role={Role.STAFF}
+          availableYears={availableYears}
+          defaultYear={currentAcademicYear}
+          publicMode={true}
+        />
       </div>
     </div>
   );
