@@ -143,7 +143,21 @@ interface AppSettings {
   elective_label_II: string;
   elective_label_III: string;
   school_name: string;
+  school_logo_url: string;
 }
+
+// ─── Chart options for report modal ──────────────────────
+
+const CHART_OPTIONS = [
+  { key: "heatmap", label: "Grade Distribution Heatmap" },
+  { key: "subjectAverages", label: "Subject Averages" },
+  { key: "wRates", label: "W-Rate Tracker" },
+  { key: "scatter", label: "Student Scatter Plot" },
+  { key: "performers", label: "Top / Bottom Performers" },
+  { key: "radar", label: "Class Comparison Radar" },
+] as const;
+
+type ChartKey = (typeof CHART_OPTIONS)[number]["key"];
 
 // ─── WRateAllTerms type ──────────────────────────────────
 
@@ -251,6 +265,14 @@ export default function AnalyticsContainer({
     principalUrl: string | null;
     vpUrl: string | null;
   }>({ hasPrincipal: false, hasVicePrincipal: false, principalUrl: null, vpUrl: null });
+  const [chartInclusions, setChartInclusions] = useState<Record<ChartKey, boolean>>({
+    heatmap: true,
+    subjectAverages: true,
+    wRates: true,
+    scatter: true,
+    performers: true,
+    radar: true,
+  });
 
   // ── Chart refs for PNG / PDF capture ───────────────────
   const heatmapRef = useRef<HTMLDivElement>(null);
@@ -481,7 +503,7 @@ export default function AnalyticsContainer({
     await new Promise((r) => setTimeout(r, 300));
 
     const chartEntries: {
-      name: string;
+      name: ChartKey;
       ref: React.RefObject<HTMLDivElement | null>;
       fallbackId: string;
       caption: string;
@@ -529,27 +551,13 @@ export default function AnalyticsContainer({
         caption: "Class Comparison Radar",
         hasData: !!(data?.classComparisons),
       },
-      {
-        name: "rankings",
-        ref: rankingsRef,
-        fallbackId: "chart-rankings",
-        caption: "Class & Section Rankings",
-        hasData: !!rankingsData,
-      },
-      {
-        name: "rankingsTrend",
-        ref: rankingsTrendRef,
-        fallbackId: "chart-rankings-trend",
-        caption: "Rankings Performance Trend",
-        hasData: !!(rankingsData?.classTrendData?.length || rankingsData?.sectionTrendData?.length),
-      },
     ];
 
     const images: string[] = [];
     const captions: string[] = [];
 
     try {
-      const entries = chartEntries.filter((e) => e.hasData);
+      const entries = chartEntries.filter((e) => e.hasData && chartInclusions[e.name]);
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         setCaptureProgress(
@@ -593,6 +601,7 @@ export default function AnalyticsContainer({
           images,
           chartCaptions: captions,
           schoolName: settings?.school_name || "SchoolMS",
+          schoolLogoUrl: settings?.school_logo_url || "",
           reportTitle: `${gradeStr} Analytics Report`,
           generatedDate: new Date().toISOString(),
           filterScope: `${gradeStr} — ${termStr} — ${year}`,
@@ -1248,7 +1257,43 @@ export default function AnalyticsContainer({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="max-h-[60vh] space-y-5 overflow-y-auto py-2 pr-1">
+          {/* Chart sections to include */}
+          <div className="space-y-3">
+            <p className="text-sm font-semibold">Charts to Include</p>
+            {(() => {
+              const chartHasData: Record<ChartKey, boolean> = {
+                heatmap: !!(data?.heatmapData?.length),
+                subjectAverages: !!(data?.subjectAverages?.length),
+                wRates: !!(wRatesAllTerms?.length),
+                scatter: !!(data?.scatterData?.length),
+                performers: !!(data?.topPerformers?.length),
+                radar: !!(data?.classComparisons),
+              };
+              return CHART_OPTIONS.map((opt) => (
+                <div key={opt.key} className="flex items-center justify-between">
+                  <Label
+                    htmlFor={`chart-inc-${opt.key}`}
+                    className={`text-sm ${!chartHasData[opt.key] ? "text-muted-foreground line-through" : ""}`}
+                  >
+                    {opt.label}
+                    {!chartHasData[opt.key] && (
+                      <span className="ml-1 text-xs">(no data)</span>
+                    )}
+                  </Label>
+                  <Switch
+                    id={`chart-inc-${opt.key}`}
+                    checked={chartInclusions[opt.key] && chartHasData[opt.key]}
+                    disabled={!chartHasData[opt.key]}
+                    onCheckedChange={(v) =>
+                      setChartInclusions((prev) => ({ ...prev, [opt.key]: v }))
+                    }
+                  />
+                </div>
+              ));
+            })()}
+          </div>
+
           {/* Signature toggle */}
           <div className="flex items-center justify-between">
             <Label htmlFor="sig-toggle" className="font-medium">

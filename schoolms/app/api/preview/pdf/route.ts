@@ -59,6 +59,8 @@ const styles = StyleSheet.create({
   signatureImage: { width: 100, height: 50, marginBottom: 8, objectFit: "contain" },
   signatureLine: { width: 120, borderBottomWidth: 1, borderBottomColor: "#374151", marginTop: 40 },
   signatureLabel: { fontSize: 10, color: "#374151", marginTop: 6, textAlign: "center" },
+  // Logo on title page
+  logoImage: { width: 80, height: 80, marginBottom: 16, objectFit: "contain" },
 });
 
 export async function POST(request: Request) {
@@ -72,6 +74,7 @@ export async function POST(request: Request) {
     reportTitle: string;
     generatedDate: string;
     filterScope: string;
+    schoolLogoUrl?: string | null;
     principalField?: boolean;
     principalSignUrl?: string | null;
     vicePrincipalField?: boolean;
@@ -85,7 +88,7 @@ export async function POST(request: Request) {
   }
 
   const { images, chartCaptions, schoolName, reportTitle, generatedDate, filterScope,
-    principalField, principalSignUrl, vicePrincipalField, vicePrincipalSignUrl } = body;
+    schoolLogoUrl, principalField, principalSignUrl, vicePrincipalField, vicePrincipalSignUrl } = body;
 
   if (!Array.isArray(images) || images.length === 0) {
     return NextResponse.json(
@@ -111,6 +114,9 @@ export async function POST(request: Request) {
     const titlePage = createElement(
       Page,
       { size: "A4", style: styles.titlePage },
+      ...(schoolLogoUrl
+        ? [createElement(Image, { style: styles.logoImage, src: schoolLogoUrl })]
+        : []),
       createElement(Text, { style: styles.schoolName }, schoolName),
       createElement(Text, { style: styles.reportTitle }, reportTitle),
       createElement(Text, { style: styles.filterScope }, filterScope),
