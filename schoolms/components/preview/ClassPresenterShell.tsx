@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Users, X, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Users, X, CheckCircle2, Clock } from "lucide-react";
 import SlideRenderer from "./SlideRenderer";
 import type { PreviewData } from "@/types/preview";
 
@@ -33,6 +33,8 @@ export default function ClassPresenterShell({
   const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [buttonY, setButtonY] = useState(200);
+  /** Set of student indices that have been explicitly marked as presented */
+  const [presentedIndices, setPresentedIndices] = useState<Set<number>>(new Set());
 
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
@@ -56,9 +58,7 @@ export default function ClassPresenterShell({
       .then((data: PreviewData) => {
         if (!cancelled) setPreviewData(data);
       })
-      .catch(() => {
-        /* silently ignore — user sees empty state */
-      })
+      .catch(() => {/* silently ignore — user sees empty state */})
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -68,13 +68,32 @@ export default function ClassPresenterShell({
     };
   }, [currentStudentIdx, students, year]);
 
+  // Auto-advance to next student and mark current as presented
   const advanceToNext = useCallback(() => {
+    setPresentedIndices((prev) => new Set([...prev, currentStudentIdx]));
     setCurrentStudentIdx((i) => Math.min(i + 1, students.length - 1));
-  }, [students.length]);
+  }, [currentStudentIdx, students.length]);
+
+  // Go back to previous student
+  const goToPrev = useCallback(() => {
+    setCurrentStudentIdx((i) => Math.max(i - 1, 0));
+  }, []);
+
+  // Manually toggle presented state for a given student index
+  const togglePresented = useCallback((idx: number) => {
+    setPresentedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  }, []);
 
   // ── Draggable left-side toggle button ──────────────────────────────────────
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    // Only start drag on the button itself, not a click intent
     isDragging.current = false;
     const startClientY = e.clientY;
     dragStartY.current = e.clientY - buttonY;
@@ -100,11 +119,12 @@ export default function ClassPresenterShell({
   };
 
   const handleButtonClick = () => {
-    if (isDragging.current) return; // ignore click at end of drag
+    if (isDragging.current) return;
     setDrawerOpen((v) => !v);
   };
 
   const currentStudent = students[currentStudentIdx];
+  const presentedCount = presentedIndices.size;
 
   return (
     <div className="relative w-full min-h-screen">
@@ -120,18 +140,34 @@ export default function ClassPresenterShell({
           </p>
         </div>
       ) : previewData ? (
-        <SlideRenderer data={previewData} onLastSlide={advanceToNext} />
+        // key resets SlideRenderer (and its slideIndex) when student changes
+        <SlideRenderer
+          key={currentStudentIdx}
+          data={previewData}
+          onLastSlide={advanceToNext}
+          onFirstSlide={goToPrev}
+        />
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen gap-3 text-muted-foreground">
           <p className="text-sm">No mark data available for this student in {year}.</p>
-          {currentStudentIdx < students.length - 1 && (
-            <button
-              className="text-xs underline hover:text-foreground transition-colors"
-              onClick={advanceToNext}
-            >
-              Skip to next student
-            </button>
-          )}
+          <div className="flex gap-3">
+            {currentStudentIdx > 0 && (
+              <button
+                className="text-xs underline hover:text-foreground transition-colors"
+                onClick={goToPrev}
+              >
+                ← Previous student
+              </button>
+            )}
+            {currentStudentIdx < students.length - 1 && (
+              <button
+                className="text-xs underline hover:text-foreground transition-colors"
+                onClick={advanceToNext}
+              >
+                Skip to next →
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -182,7 +218,7 @@ export default function ClassPresenterShell({
                     Grade {classGroup.grade}{classGroup.section}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {students.length} students · {year}
+                    {presentedCount}/{students.length} presented · {year}
                   </p>
                 </div>
                 <button
@@ -199,7 +235,9 @@ export default function ClassPresenterShell({
                 <div
                   className="h-full bg-primary transition-all duration-500"
                   style={{
-                    width: `${((currentStudentIdx + 1) / students.length) * 100}%`,
+                    width: students.length > 0
+                      ? `${(presentedCount / students.length) * 100}%`
+                      : "0%",
                   }}
                 />
               </div>
@@ -208,42 +246,42 @@ export default function ClassPresenterShell({
               <div className="flex-1 overflow-y-auto py-1.5">
                 {students.map((student, idx) => {
                   const isCurrent = idx === currentStudentIdx;
-                  const isPast = idx < currentStudentIdx;
+                  const isPresented = presentedIndices.has(idx);
 
                   return (
-                    <button
+                    <div
                       key={student.id}
-                      onClick={() => {
-                        setCurrentStudentIdx(idx);
-                        setDrawerOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-2 transition-colors ${
                         isCurrent
                           ? "bg-primary/10 border-l-[3px] border-primary"
-                          : isPast
-                          ? "opacity-50 hover:opacity-80 hover:bg-accent/50 border-l-[3px] border-transparent"
-                          : "hover:bg-accent/60 border-l-[3px] border-transparent"
-                      }`}
+                          : "border-l-[3px] border-transparent hover:bg-accent/60"
+                      } ${isPresented && !isCurrent ? "opacity-60" : ""}`}
                     >
-                      {/* Position badge */}
+                      {/* Position / status badge */}
                       <div
                         className={`size-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                           isCurrent
                             ? "bg-primary text-primary-foreground"
-                            : isPast
-                            ? "bg-muted text-muted-foreground"
+                            : isPresented
+                            ? "bg-green-100 text-green-700"
                             : "bg-muted/50 text-foreground/70"
                         }`}
                       >
-                        {isPast ? (
-                          <CheckCircle2 className="size-4 text-muted-foreground" />
+                        {isPresented && !isCurrent ? (
+                          <CheckCircle2 className="size-4 text-green-600" />
                         ) : (
                           idx + 1
                         )}
                       </div>
 
-                      {/* Name + index */}
-                      <div className="min-w-0 flex-1">
+                      {/* Name + index — clickable to switch to that student */}
+                      <button
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => {
+                          setCurrentStudentIdx(idx);
+                          setDrawerOpen(false);
+                        }}
+                      >
                         <p
                           className={`text-sm font-medium truncate ${
                             isCurrent ? "text-primary" : ""
@@ -256,15 +294,31 @@ export default function ClassPresenterShell({
                             {student.indexNumber}
                           </p>
                         )}
-                      </div>
+                      </button>
 
-                      {/* Status tag */}
-                      {isCurrent && (
+                      {/* Status / manual mark button */}
+                      {isCurrent ? (
                         <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
                           NOW
                         </span>
+                      ) : (
+                        <button
+                          className={`shrink-0 p-1 rounded transition-colors ${
+                            isPresented
+                              ? "text-green-600 hover:text-red-500 hover:bg-red-50"
+                              : "text-muted-foreground hover:text-green-600 hover:bg-green-50"
+                          }`}
+                          title={isPresented ? "Unmark as presented" : "Mark as presented"}
+                          onClick={() => togglePresented(idx)}
+                        >
+                          {isPresented ? (
+                            <CheckCircle2 className="size-4" />
+                          ) : (
+                            <Clock className="size-4" />
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -272,7 +326,7 @@ export default function ClassPresenterShell({
               {/* Footer */}
               <div className="border-t px-4 py-3 shrink-0 bg-muted/20">
                 <p className="text-xs text-muted-foreground text-center">
-                  {currentStudentIdx + 1} of {students.length} presented
+                  {presentedCount} of {students.length} presented
                 </p>
               </div>
             </motion.div>

@@ -18,9 +18,11 @@ interface SlideRendererProps {
   data: PreviewData;
   /** Called when the user advances past the final slide (e.g. to auto-load next student). */
   onLastSlide?: () => void;
+  /** Called when the user goes back before the first slide (e.g. to load previous student). */
+  onFirstSlide?: () => void;
 }
 
-export default function SlideRenderer({ data, onLastSlide }: SlideRendererProps) {
+export default function SlideRenderer({ data, onLastSlide, onFirstSlide }: SlideRendererProps) {
   const [slideIndex, setSlideIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "A4">("16:9");
@@ -37,8 +39,12 @@ export default function SlideRenderer({ data, onLastSlide }: SlideRendererProps)
   }, [slideIndex, onLastSlide]);
 
   const goPrev = useCallback(() => {
+    if (slideIndex <= 0) {
+      onFirstSlide?.();
+      return;
+    }
     setSlideIndex((i) => Math.max(i - 1, 0));
-  }, []);
+  }, [slideIndex, onFirstSlide]);
 
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === "light" ? "dark" : "light"));

@@ -12,11 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Presentation, ExternalLink, Users, Loader2 } from "lucide-react";
+import { Presentation, ExternalLink, Users, Loader2, CalendarX } from "lucide-react";
 
 const GRADES = [10, 11];
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 interface ClassGroup {
   id: string;
@@ -31,12 +30,15 @@ export default function PresentationPreviewPage() {
   const [classGroups, setClassGroups] = useState<ClassGroup[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [loadingYears, setLoadingYears] = useState(false);
 
   // Fetch class groups whenever grade changes
   useEffect(() => {
     setLoadingClasses(true);
     setSelectedClassId("");
     setClassGroups([]);
+    setAvailableYears([]);
 
     fetch(`/api/class-groups?grade=${grade}`)
       .then((r) => r.json())
@@ -48,10 +50,34 @@ export default function PresentationPreviewPage() {
       .finally(() => setLoadingClasses(false));
   }, [grade]);
 
+  // Fetch available years whenever the selected class changes
+  useEffect(() => {
+    if (!selectedClassId) {
+      setAvailableYears([]);
+      return;
+    }
+
+    setLoadingYears(true);
+    setAvailableYears([]);
+
+    fetch(`/api/preview/available-years?classId=${encodeURIComponent(selectedClassId)}`)
+      .then((r) => r.json())
+      .then((data: { years: number[] }) => {
+        const years = data.years ?? [];
+        setAvailableYears(years);
+        if (years.length > 0) {
+          setYear(years[0]); // default to most recent year with data
+        }
+      })
+      .catch(() => {/* ignore */})
+      .finally(() => setLoadingYears(false));
+  }, [selectedClassId]);
+
   const selectedClass = classGroups.find((c) => c.id === selectedClassId);
+  const hasYearData = availableYears.length > 0;
 
   function launchPresenter() {
-    if (!selectedClassId) return;
+    if (!selectedClassId || !hasYearData) return;
     window.open(
       `/preview/session?classId=${encodeURIComponent(selectedClassId)}&year=${year}`,
       "_blank",
@@ -74,26 +100,9 @@ export default function PresentationPreviewPage() {
             <Presentation className="size-4" />
             Configure Presenter
           </CardTitle>
-          <CardDescription>Choose the year, grade and section to begin</CardDescription>
+          <CardDescription>Choose the grade, section and year to begin</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Academic Year */}
-          <div className="flex items-center gap-4">
-            <Label className="w-24 shrink-0 text-sm">Academic Year</Label>
-            <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="flex-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {YEARS.map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Grade */}
           <div className="flex items-center gap-4">
             <Label className="w-24 shrink-0 text-sm">Grade</Label>
@@ -142,8 +151,39 @@ export default function PresentationPreviewPage() {
             )}
           </div>
 
+          {/* Academic Year — only years with data */}
+          <div className="flex items-center gap-4">
+            <Label className="w-24 shrink-0 text-sm">Academic Year</Label>
+            {loadingYears ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Loading years…
+              </div>
+            ) : !selectedClassId ? (
+              <p className="text-sm text-muted-foreground">Select a class first</p>
+            ) : !hasYearData ? (
+              <div className="flex items-center gap-2 text-sm text-amber-600">
+                <CalendarX className="size-4 shrink-0" />
+                No mark data for this class
+              </div>
+            ) : (
+              <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           {/* Preview of selection */}
-          {selectedClass && (
+          {selectedClass && hasYearData && (
             <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-4 py-3">
               <Users className="size-4 text-muted-foreground shrink-0" />
               <div className="flex-1 min-w-0">
@@ -160,7 +200,7 @@ export default function PresentationPreviewPage() {
 
           <Button
             className="w-full gap-2"
-            disabled={!selectedClassId || loadingClasses}
+            disabled={!selectedClassId || loadingClasses || loadingYears || !hasYearData}
             onClick={launchPresenter}
           >
             <ExternalLink className="size-4" />
