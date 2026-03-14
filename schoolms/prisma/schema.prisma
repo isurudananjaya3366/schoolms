@@ -217,6 +217,34 @@ model MarksRelease {
   @@map("marksReleases")
 }
 
+// ─── Password Reset Requests ──────────────────────────────
+// When a non-SUPERADMIN user forgets their password, they submit a pre-hashed
+// new password for admin review. Admins approve/reject from the dashboard.
+// The passwordHash is NEVER exposed to admins via any API response.
+
+enum PasswordRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PasswordResetRequest {
+  id             String                @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String                @db.ObjectId
+  userName       String
+  userEmail      String
+  userRole       String                // to exclude SUPERADMIN from admin view
+  passwordHash   String                // bcrypt hash — never returned to clients
+  status         PasswordRequestStatus @default(PENDING)
+  requestedAt    DateTime              @default(now())
+  reviewedAt     DateTime?
+  reviewedById   String?               @db.ObjectId
+  reviewedByName String?
+
+  @@index([status, requestedAt(sort: Desc)])
+  @@map("passwordResetRequests")
+}
+
 // ─── Notice Board ─────────────────────────────────────────
 // Public notices created by admins; published notices appear on the public
 // notice board and push an in-app notification to the target roles.

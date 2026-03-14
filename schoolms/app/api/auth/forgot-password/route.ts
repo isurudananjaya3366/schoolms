@@ -1,33 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { sendEmail } from "@/lib/email";
 
-const forgotPasswordSchema = z.object({
+const schema = z.object({
   email: z.string().email(),
+  newPassword: z.string().min(8),
 });
 
-// In-memory rate limiting: 3 requests per IP per hour
+// In-memory rate limiting: 5 requests per IP per hour
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
-
   if (!entry || now > entry.resetTime) {
     rateLimitMap.set(ip, { count: 1, resetTime: now + 60 * 60 * 1000 });
     return true;
   }
-
-  if (entry.count >= 3) {
-    return false;
-  }
-
+  if (entry.count >= 5) return false;
   entry.count++;
   return true;
 }
+
+// Always returns { ok: true } to prevent user enumeration
+const OK = NextResponse.json({ ok: true });
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,63 +41,50 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const parsed = forgotPasswordSchema.safeParse(body);
+    const parsed = schema.safeParse(body);
 
-    if (!parsed.success) {
-      // Return 200 to prevent enumeration
-      return NextResponse.json({ message: "If an account exists, a reset link has been sent." });
-    }
+    // Always succeed on invalid input to prevent enumeration
+    if (!parsed.success) return OK;
 
-    const { email } = parsed.data;
+    const { email, newPassword } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, name: true, passwordResetExpiry: true },
+      select: { id: true, name: true, email: true, role: true },
     });
 
-    if (!user) {
-      // Return 200 to prevent user enumeration
-      return NextResponse.json({ message: "If an account exists, a reset link has been sent." });
+    // Don't process if not found, or if user is SUPERADMIN (SUPERADMIN must change in-app)
+    if (!user || user.role === "SUPERADMIN") return OK;
+
+    // Hash the new password server-side — admins never see it
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    // Upsert: one pending request per user at a time
+    const existing = await prisma.passwordResetRequest.findFirst({
+      where: { userId: user.id, status: "PENDING" },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await prisma.passwordResetRequest.update({
+        where: { id: existing.id },
+        data: { passwordHash, requestedAt: new Date() },
+      });
+    } else {
+      await prisma.passwordResetRequest.create({
+        data: {
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+          userRole: user.role,
+          passwordHash,
+        },
+      });
     }
 
-    // Generate token
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = await bcrypt.hash(rawToken, 10);
-
-    // Store hashed token with 1-hour expiry
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordResetToken: hashedToken,
-        passwordResetExpiry: new Date(Date.now() + 60 * 60 * 1000),
-      },
-    });
-
-    // Build reset URL
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const resetUrl = `${baseUrl}/reset-password?mode=reset&token=${encodeURIComponent(rawToken)}&email=${encodeURIComponent(email)}`;
-
-    // Send email
-    await sendEmail({
-      to: user.email,
-      subject: "SchoolMS — Password Reset",
-      html: `
-        <h2>Password Reset Request</h2>
-        <p>Hi ${user.name},</p>
-        <p>You requested a password reset for your SchoolMS account.</p>
-        <p><a href="${resetUrl}">Click here to reset your password</a></p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you did not request this, please ignore this email.</p>
-      `,
-      text: `Hi ${user.name},\n\nYou requested a password reset for your SchoolMS account.\n\nReset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,
-    });
-
-    return NextResponse.json({ message: "If an account exists, a reset link has been sent." });
+    return OK;
   } catch (error) {
     console.error("[forgot-password] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

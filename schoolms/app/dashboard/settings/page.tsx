@@ -9,6 +9,7 @@ import ClassGroupsSection from "./ClassGroupsSection";
 import SignatureManagementSection from "./SignatureManagementSection";
 import ApiKeysSection from "./ApiKeysSection";
 import PermissionsSettings from "./PermissionsSettings";
+import ChangePasswordSection from "@/components/settings/ChangePasswordSection";
 
 export const metadata = { title: "Settings | SchoolMS" };
 
@@ -102,6 +103,7 @@ export default async function SettingsPage() {
       <SignatureManagementSection />
       {role === Role.SUPERADMIN && <PermissionsSettings />}
       {role === Role.SUPERADMIN && <ApiKeysSection />}
+      <ChangePasswordSection />
     </div>
   );
 }
