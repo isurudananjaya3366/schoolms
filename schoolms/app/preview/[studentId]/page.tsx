@@ -163,6 +163,28 @@ export default async function PreviewStudentPage({
   // Chart data
   const chartData = buildChartData(JSON.parse(JSON.stringify(student.markRecords)));
 
+  // Focus term: latest term that has data
+  const focusTerm =
+    [...enrichedTerms].reverse().find((t) => t.hasData)?.termKey ?? "TERM_1";
+
+  // Annual stats: only when all 3 terms have data
+  const termsWithData = enrichedTerms.filter((t) => t.hasData);
+  const annualStats: PreviewData["annualStats"] =
+    termsWithData.length === 3
+      ? {
+          overallAverage,
+          descriptor,
+          descriptorColor,
+          totalSubjectsRecorded,
+          subjectAverages: SUBJECT_KEYS.filter((key) => subjectStats[key].count > 0).map((key) => ({
+            name: getSubjectDisplayName(key, electiveLabels),
+            average: subjectStats[key].total / subjectStats[key].count,
+            color: getSubjectColor(key),
+            wCount: subjectStats[key].wCount,
+          })),
+        }
+      : null;
+
   // Build preview data
   const previewData: PreviewData = {
     student: {
@@ -192,6 +214,9 @@ export default async function PreviewStudentPage({
       descriptorColor,
       totalSubjectsRecorded,
     },
+    focusTerm,
+    annualStats,
+    ranking: null,
   };
 
   // Serialize to avoid ObjectId issues

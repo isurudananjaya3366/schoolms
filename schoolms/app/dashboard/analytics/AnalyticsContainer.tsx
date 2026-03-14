@@ -35,7 +35,6 @@ import SubjectAverageBar from "@/components/charts/SubjectAverageBar";
 import WRateTracker from "@/components/charts/WRateTracker";
 import ClassComparisonRadar from "@/components/charts/ClassComparisonRadar";
 import TopBottomPerformers from "@/components/charts/TopBottomPerformers";
-import RankingsTable from "@/components/charts/RankingsTable";
 import RankingsTrendLine from "@/components/charts/RankingsTrendLine";
 import StudentRankingsTable from "@/components/charts/StudentRankingsTable";
 import GradeDistributionHeatmap from "@/components/infographics/GradeDistributionHeatmap";

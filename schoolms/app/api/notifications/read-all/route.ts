@@ -17,7 +17,7 @@ export async function POST(_request: Request) {
     const unread = await prisma.notification.findMany({
       where: {
         targetRoles: { has: role },
-        readBy: { not: { has: userId } },
+        NOT: { readBy: { has: userId } },
       },
       select: { id: true },
     });
