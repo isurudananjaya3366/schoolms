@@ -115,7 +115,7 @@ export default function ReportPreviewPanel({
 
           {selectedStudent && (
             <span className="text-sm text-muted-foreground">
-              {selectedStudent.name} — {selectedYear}
+              {selectedStudent.name} - {selectedYear}
             </span>
           )}
         </div>

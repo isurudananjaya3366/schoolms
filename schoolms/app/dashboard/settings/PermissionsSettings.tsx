@@ -151,7 +151,7 @@ export default function PermissionsSettings() {
                           <Switch
                             checked={permissions[role][key]}
                             onCheckedChange={() => toggle(role, key)}
-                            aria-label={`${ROLE_LABELS[role]} — ${label}`}
+                            aria-label={`${ROLE_LABELS[role]} - ${label}`}
                           />
                         </td>
                       ))}

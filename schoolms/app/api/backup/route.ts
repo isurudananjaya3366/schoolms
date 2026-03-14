@@ -8,7 +8,7 @@ import { BACKUP_TRIGGERED, BACKUP_COMPLETED, BACKUP_FAILED } from "@/lib/audit-a
 import { createNotification, NOTIF } from "@/lib/notifications";
 import { getSecureSetting } from "@/lib/secure-settings";
 
-// GET — Cron-triggered backup
+// GET - Cron-triggered backup
 export async function GET(request: NextRequest) {
   // Authenticate via CRON_SECRET
   const authHeader = request.headers.get("authorization") || "";
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST — Manual backup by SUPERADMIN
+// POST - Manual backup by SUPERADMIN
 export async function POST(request: NextRequest) {
   const authResult = await requireAuth(Role.SUPERADMIN);
   if (authResult instanceof NextResponse) return authResult;
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     const provider = await getActiveProvider();
 
     if (provider === "none") {
-      // Local mode — return the file directly for browser download
+      // Local mode - return the file directly for browser download
       const { buffer, filename, sizeBytes, timestamp } = await createLocalBackup();
 
       await prisma.auditLog.create({

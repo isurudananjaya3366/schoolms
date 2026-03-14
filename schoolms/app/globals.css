@@ -48,11 +48,11 @@
 :root {
   /*
    * SchoolMS Color Palette
-   * #88BDBC — Light Teal   (accents, ring, highlights)
-   * #254E58 — Dark Teal    (primary buttons, actions)
-   * #112D32 — Darkest Teal (text, sidebar background)
-   * #4F4A41 — Warm Brown   (secondary text)
-   * #6E6658 — Warm Taupe   (muted foreground)
+   * #88BDBC - Light Teal   (accents, ring, highlights)
+   * #254E58 - Dark Teal    (primary buttons, actions)
+   * #112D32 - Darkest Teal (text, sidebar background)
+   * #4F4A41 - Warm Brown   (secondary text)
+   * #6E6658 - Warm Taupe   (muted foreground)
    */
 
   --background: #FFFFFF;

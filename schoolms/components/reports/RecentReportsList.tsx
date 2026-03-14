@@ -86,7 +86,7 @@ export default function RecentReportsList({
         try {
           parsed = JSON.parse(entry.details);
         } catch {
-          // details is not JSON — skip parsing
+          // details is not JSON - skip parsing
         }
 
         const handleClick = () => {
@@ -117,7 +117,7 @@ export default function RecentReportsList({
               <div className="flex items-center justify-between">
                 <span className="font-medium">
                   {parsed.indexNumber || "Unknown"}{" "}
-                  {parsed.studentName ? `— ${parsed.studentName}` : ""}
+                  {parsed.studentName ? `- ${parsed.studentName}` : ""}
                 </span>
                 {parsed.year && (
                   <span className="text-xs text-muted-foreground">

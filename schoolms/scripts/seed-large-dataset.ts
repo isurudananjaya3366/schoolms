@@ -159,7 +159,7 @@ function generateMarks(profile: "high" | "average" | "low") {
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════╗");
-  console.log("║        SchoolMS — Large Dataset Seeder                  ║");
+  console.log("║        SchoolMS - Large Dataset Seeder                  ║");
   console.log("╚══════════════════════════════════════════════════════════╝\n");
 
   // ── Step 1: Pre-flight ──────────────────────────────────────────
@@ -214,7 +214,7 @@ async function main() {
     const studentCount = randInt(MIN_STUDENTS_PER_CLASS, MAX_STUDENTS_PER_CLASS);
 
     console.log(
-      `\n  ┌─ ${classLabel} — creating ${studentCount} students ─────────────`
+      `\n  ┌─ ${classLabel} - creating ${studentCount} students ─────────────`
     );
 
     // Shuffle names for variety per class

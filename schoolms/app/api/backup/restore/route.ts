@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
       if (!backupData.meta || !backupData.students) {
         return NextResponse.json(
-          { error: "Invalid backup file — missing required data sections" },
+          { error: "Invalid backup file - missing required data sections" },
           { status: 400 }
         );
       }

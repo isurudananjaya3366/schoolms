@@ -7,7 +7,7 @@ export async function GET() {
   if (authResult instanceof NextResponse) return authResult;
 
   return NextResponse.json({
-    message: "Analytics API — Not yet implemented (Phase 4)",
+    message: "Analytics API - Not yet implemented (Phase 4)",
     route: "/api/analytics",
   });
 }

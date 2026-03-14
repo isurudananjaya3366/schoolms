@@ -1,4 +1,4 @@
-// Stub for @upstash/redis — used in vitest tests only
+// Stub for @upstash/redis - used in vitest tests only
 export class Redis {
   constructor(_opts: { url: string; token: string }) {}
   pipeline() {

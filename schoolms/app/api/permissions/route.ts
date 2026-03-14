@@ -10,7 +10,7 @@ import {
   type PermissionKey,
 } from "@/lib/permissions";
 
-// GET — return current permissions (SUPERADMIN only)
+// GET - return current permissions (SUPERADMIN only)
 export async function GET() {
   const session = await auth();
   if (!session?.user || session.user.role !== "SUPERADMIN") {
@@ -20,7 +20,7 @@ export async function GET() {
   return NextResponse.json({ permissions });
 }
 
-// PUT — save permissions (SUPERADMIN only)
+// PUT - save permissions (SUPERADMIN only)
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session?.user || session.user.role !== "SUPERADMIN") {
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  // Validate and sanitise — only accept known roles and permission keys
+  // Validate and sanitise - only accept known roles and permission keys
   const validKeys = new Set(Object.keys(PERMISSION_FEATURES) as PermissionKey[]);
   const sanitised: AllRolePermissions = { ...DEFAULT_PERMISSIONS };
 

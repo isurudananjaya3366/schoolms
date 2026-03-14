@@ -84,10 +84,10 @@ export default function StudentRankingsTable({
 
                   {/* Index number */}
                   <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
-                    {entry.indexNumber || "—"}
+                    {entry.indexNumber || "-"}
                   </td>
 
-                  {/* Name — links to profile if available */}
+                  {/* Name - links to profile if available */}
                   <td className="px-3 py-2 font-medium">
                     {entry.profileUrl ? (
                       <Link

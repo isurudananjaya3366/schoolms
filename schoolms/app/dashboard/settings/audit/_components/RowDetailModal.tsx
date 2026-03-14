@@ -81,17 +81,17 @@ export default function RowDetailModal({ entry, onClose }: RowDetailModalProps) 
             <span className="font-medium text-muted-foreground">
               Target Type
             </span>
-            <span>{entry.targetType ?? "—"}</span>
+            <span>{entry.targetType ?? "-"}</span>
 
             <span className="font-medium text-muted-foreground">Target ID</span>
             <span className="font-mono text-xs break-all">
-              {entry.targetId ?? "—"}
+              {entry.targetId ?? "-"}
             </span>
 
             <span className="font-medium text-muted-foreground">
               IP Address
             </span>
-            <span>{entry.ipAddress ?? "—"}</span>
+            <span>{entry.ipAddress ?? "-"}</span>
           </div>
 
           <Separator />

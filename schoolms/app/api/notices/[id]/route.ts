@@ -21,7 +21,7 @@ const ALL_NOTIFIABLE_ROLES: NotifiableRole[] = [
   "TEACHER",
 ];
 
-/** GET /api/notices/[id] — get a single notice (auth required) */
+/** GET /api/notices/[id] - get a single notice (auth required) */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -39,7 +39,7 @@ export async function GET(
   return NextResponse.json(notice);
 }
 
-/** PUT /api/notices/[id] — update a notice (ADMIN+)
+/** PUT /api/notices/[id] - update a notice (ADMIN+)
  *  When status changes to PUBLISHED, an in-app notification is emitted.
  */
 export async function PUT(
@@ -118,7 +118,7 @@ export async function PUT(
   return NextResponse.json(updated);
 }
 
-/** DELETE /api/notices/[id] — delete a notice (ADMIN+) */
+/** DELETE /api/notices/[id] - delete a notice (ADMIN+) */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

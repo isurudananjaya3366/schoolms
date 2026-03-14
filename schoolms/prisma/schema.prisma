@@ -1,5 +1,5 @@
 // SchoolMS Prisma Schema
-// Phase 1, Task 2 — Complete database layer
+// Phase 1, Task 2 - Complete database layer
 
 generator client {
   provider = "prisma-client-js"
@@ -234,7 +234,7 @@ model PasswordResetRequest {
   userName       String
   userEmail      String
   userRole       String                // to exclude SUPERADMIN from admin view
-  passwordHash   String                // bcrypt hash — never returned to clients
+  passwordHash   String                // bcrypt hash - never returned to clients
   status         PasswordRequestStatus @default(PENDING)
   requestedAt    DateTime              @default(now())
   reviewedAt     DateTime?

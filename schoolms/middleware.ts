@@ -5,12 +5,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
-  // /api/config/health — always public
+  // /api/config/health - always public
   if (pathname === "/api/config/health") {
     return NextResponse.next();
   }
 
-  // /api/auth/* — pass through (NextAuth handles these)
+  // /api/auth/* - pass through (NextAuth handles these)
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
@@ -37,12 +37,12 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // /student/view/* and /student (root) — public student portal, no auth required
+  // /student/view/* and /student (root) - public student portal, no auth required
   if (pathname === "/student" || pathname.startsWith("/student/view")) {
     return NextResponse.next();
   }
 
-  // /student/* — require authentication; only STUDENT role allowed
+  // /student/* - require authentication; only STUDENT role allowed
   if (pathname.startsWith("/student")) {
     if (!session) {
       const loginUrl = new URL("/login", req.url);
@@ -59,7 +59,7 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // /dashboard/* — require authentication
+  // /dashboard/* - require authentication
   if (pathname.startsWith("/dashboard")) {
     if (!session) {
       const loginUrl = new URL("/login", req.url);
@@ -69,14 +69,14 @@ export default auth((req) => {
       );
       return NextResponse.redirect(loginUrl);
     }
-    // STUDENT role is not allowed in the dashboard — redirect to student portal
+    // STUDENT role is not allowed in the dashboard - redirect to student portal
     if (session.user.role === "STUDENT") {
       return NextResponse.redirect(new URL("/student/profile", req.url));
     }
     return NextResponse.next();
   }
 
-  // /api/* (excluding already handled paths) — require auth, return 401 JSON
+  // /api/* (excluding already handled paths) - require auth, return 401 JSON
   // Public exceptions: /api/student/lookup and /api/student/[indexNumber]
   if (
     pathname.startsWith("/api") &&

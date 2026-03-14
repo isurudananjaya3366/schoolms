@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { uploadBlob, deleteBlob } from "@/lib/blob-storage";
 
 /**
- * GET /api/uploads/signature — List all stored signatures
+ * GET /api/uploads/signature - List all stored signatures
  * Returns signatures from systemConfig keys matching "signature_*"
  */
 export async function GET() {
@@ -41,7 +41,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/uploads/signature — Upload a new signature image
+ * POST /api/uploads/signature - Upload a new signature image
  * FormData: file (image), type ("class_teacher" | "principal" | "vice_principal"), classLabel (e.g. "11B")
  */
 export async function POST(request: Request) {
@@ -170,7 +170,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * DELETE /api/uploads/signature — Delete a signature
+ * DELETE /api/uploads/signature - Delete a signature
  * Body: { key: "signature_class_11B" }
  */
 export async function DELETE(request: Request) {

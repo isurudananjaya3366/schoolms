@@ -84,11 +84,11 @@ export default function AuditLogTable({ data, onRowClick }: AuditLogTableProps) 
                     )}
                   </>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {entry.ipAddress ?? "—"}
+                {entry.ipAddress ?? "-"}
               </TableCell>
               <TableCell>
                 {entry.details && entry.details !== "{}" && (

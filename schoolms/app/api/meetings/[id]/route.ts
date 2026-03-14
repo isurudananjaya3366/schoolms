@@ -14,7 +14,7 @@ const UpdateSchema = z.object({
   description: z.string().max(1000).optional().nullable(),
 });
 
-/** PUT /api/meetings/[id] — update meeting (ADMIN+) */
+/** PUT /api/meetings/[id] - update meeting (ADMIN+) */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -98,7 +98,7 @@ export async function PUT(
   return NextResponse.json(updated);
 }
 
-/** DELETE /api/meetings/[id] — delete meeting (ADMIN+) */
+/** DELETE /api/meetings/[id] - delete meeting (ADMIN+) */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

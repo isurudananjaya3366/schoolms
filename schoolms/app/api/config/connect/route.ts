@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   let tempClient: PrismaClient | null = null;
 
   try {
-    // Step 1 — Parse and validate
+    // Step 1 - Parse and validate
     const body = await request.json();
     const parsed = connectSchema.safeParse(body);
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const { connectionString } = parsed.data;
 
-    // Step 2 — Rate limiting
+    // Step 2 - Rate limiting
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded?.split(",")[0]?.trim() || "unknown";
     const rateLimit = checkRateLimit(ip);
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3 — Test connection with temporary PrismaClient
+    // Step 3 - Test connection with temporary PrismaClient
     tempClient = new PrismaClient({
       datasources: { db: { url: connectionString } },
     });
@@ -68,17 +68,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 4 — Schema push: skipped at runtime (build step)
+    // Step 4 - Schema push: skipped at runtime (build step)
     // Prisma schema is pushed via `npx prisma db push` during deployment
 
-    // Step 5 — Check for existing SUPERADMIN
+    // Step 5 - Check for existing SUPERADMIN
     const existingSuperadmin = await tempClient.user.findFirst({
       where: { role: "SUPERADMIN" },
     });
 
     const needsSuperadmin = !existingSuperadmin;
 
-    // Step 6 — Write env vars
+    // Step 6 - Write env vars
     const dbUrlResult = await writeVercelEnvVar("DATABASE_URL", connectionString);
     const dbConfigResult = await writeVercelEnvVar(
       "NEXT_PUBLIC_DB_CONFIGURED",
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         dbUrlResult.warning || dbConfigResult.warning || undefined;
     }
 
-    // Step 7 — SystemConfig upserts
+    // Step 7 - SystemConfig upserts
     const currentYear = new Date().getFullYear().toString();
 
     await tempClient.systemConfig.upsert({
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Step 8 — Return response
+    // Step 8 - Return response
     return NextResponse.json({
       connected: true,
       needsSuperadmin,

@@ -38,7 +38,7 @@ const mockMarkRecordCount = prisma.markRecord.count as ReturnType<
   typeof vi.fn
 >;
 
-// We need systemConfig.count too — patch it onto the mock
+// We need systemConfig.count too - patch it onto the mock
 const mockSystemConfigCount = vi.fn();
 (prisma.systemConfig as unknown as Record<string, unknown>).count =
   mockSystemConfigCount;

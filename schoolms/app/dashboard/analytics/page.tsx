@@ -56,7 +56,7 @@ export default async function AnalyticsPage({
       initialData = await res.json();
     }
   } catch {
-    // Server-side fetch failed — container will retry client-side
+    // Server-side fetch failed - container will retry client-side
   }
 
   return (

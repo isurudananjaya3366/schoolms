@@ -283,7 +283,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
           createElement(
             Text,
             null,
-            `Grade ${data.student.grade} — ${data.student.className}`
+            `Grade ${data.student.grade} - ${data.student.className}`
           )
         ),
         createElement(
@@ -321,7 +321,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
                   ...(cell?.isW ? { color: "#dc2626", fontWeight: "bold" as const } : {}),
                 },
               },
-              cell?.display ?? "—"
+              cell?.display ?? "-"
             );
           })
         )
@@ -491,7 +491,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
                 createElement(
                   Text,
                   { style: styles.cellSubject },
-                  `${entry.termLabel} — ${entry.subject}`
+                  `${entry.termLabel} - ${entry.subject}`
                 ),
                 createElement(
                   Text,
@@ -604,7 +604,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
               style: styles.page,
             },
             makeHeader(),
-            createElement(Text, { style: styles.slideTitle }, `Annual Summary — ${data.academicYear}`),
+            createElement(Text, { style: styles.slideTitle }, `Annual Summary - ${data.academicYear}`),
             createElement(
               Text,
               {

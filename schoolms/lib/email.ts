@@ -80,7 +80,7 @@ export async function sendEmail({
     return;
   }
 
-  // Strategy 3: Dev fallback — console output
+  // Strategy 3: Dev fallback - console output
   console.warn(
     "[sendEmail] No email provider configured (RESEND_API_KEY or SMTP_HOST). Logging email to console."
   );

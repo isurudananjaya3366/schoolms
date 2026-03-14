@@ -14,7 +14,7 @@ const MeetingSchema = z.object({
   description: z.string().max(1000).optional().nullable(),
 });
 
-/** GET /api/meetings?month=YYYY-MM  — returns all meetings in given month */
+/** GET /api/meetings?month=YYYY-MM  - returns all meetings in given month */
 export async function GET(request: NextRequest) {
   const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(meetings);
 }
 
-/** POST /api/meetings — create a meeting (ADMIN+) */
+/** POST /api/meetings - create a meeting (ADMIN+) */
 export async function POST(request: NextRequest) {
   const authResult = await requireAuth(Role.ADMIN);
   if (authResult instanceof NextResponse) return authResult;

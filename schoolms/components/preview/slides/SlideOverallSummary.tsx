@@ -83,7 +83,7 @@ export default function SlideOverallSummary({
             Focus Term
           </span>
           <span className="text-3xl font-bold">
-            {focusTermLabel ?? "—"}
+            {focusTermLabel ?? "-"}
           </span>
         </motion.div>
       </div>

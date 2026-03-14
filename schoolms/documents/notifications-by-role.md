@@ -19,9 +19,9 @@ All notifications are stored in the `notifications` MongoDB collection and surfa
 | Notification Type | SUPERADMIN | ADMIN | STAFF | TEACHER |
 |---|:---:|:---:|:---:|:---:|
 | **Student Events** |  |  |  |  |
-| New student added (`STUDENT_CREATED`) | ✅ | ✅ | ✅ | — |
-| Student profile updated (`STUDENT_UPDATED`) | ✅ | ✅ | — | — |
-| Student removed (`STUDENT_DELETED`) | ✅ | ✅ | ✅ | — |
+| New student added (`STUDENT_CREATED`) | ✅ | ✅ | ✅ | - |
+| Student profile updated (`STUDENT_UPDATED`) | ✅ | ✅ | - | - |
+| Student removed (`STUDENT_DELETED`) | ✅ | ✅ | ✅ | - |
 | **Mark Events** |  |  |  |  |
 | Marks updated (`MARK_UPDATED`) | ✅ | ✅ | ✅ | ✅ |
 | **Meeting Events** |  |  |  |  |
@@ -29,28 +29,28 @@ All notifications are stored in the `notifications` MongoDB collection and surfa
 | Meeting updated (`MEETING_UPDATED`) | ✅ | ✅ | ✅ | ✅ |
 | Meeting cancelled (`MEETING_CANCELLED`) | ✅ | ✅ | ✅ | ✅ |
 | **User Management Events** |  |  |  |  |
-| New user created (`USER_CREATED`) | ✅ | ✅ | — | — |
-| User account updated (`USER_UPDATED`) | ✅ | ✅ | — | — |
-| User deactivated (`USER_DEACTIVATED`) | ✅ | ✅ | — | — |
-| User reactivated (`USER_REACTIVATED`) | ✅ | ✅ | — | — |
-| User deleted (`USER_DELETED`) | ✅ | ✅ | — | — |
+| New user created (`USER_CREATED`) | ✅ | ✅ | - | - |
+| User account updated (`USER_UPDATED`) | ✅ | ✅ | - | - |
+| User deactivated (`USER_DEACTIVATED`) | ✅ | ✅ | - | - |
+| User reactivated (`USER_REACTIVATED`) | ✅ | ✅ | - | - |
+| User deleted (`USER_DELETED`) | ✅ | ✅ | - | - |
 | **Backup & Restore Events** |  |  |  |  |
-| Backup triggered (`BACKUP_TRIGGERED`) | ✅ | — | — | — |
-| Backup completed (`BACKUP_COMPLETED`) | ✅ | — | — | — |
-| Backup failed (`BACKUP_FAILED`) | ✅ | — | — | — |
-| Backup file deleted (`BACKUP_DELETED`) | ✅ | — | — | — |
-| Restore triggered (`RESTORE_TRIGGERED`) | ✅ | — | — | — |
-| Restore completed (`RESTORE_COMPLETED`) | ✅ | — | — | — |
-| Restore failed (`RESTORE_FAILED`) | ✅ | — | — | — |
+| Backup triggered (`BACKUP_TRIGGERED`) | ✅ | - | - | - |
+| Backup completed (`BACKUP_COMPLETED`) | ✅ | - | - | - |
+| Backup failed (`BACKUP_FAILED`) | ✅ | - | - | - |
+| Backup file deleted (`BACKUP_DELETED`) | ✅ | - | - | - |
+| Restore triggered (`RESTORE_TRIGGERED`) | ✅ | - | - | - |
+| Restore completed (`RESTORE_COMPLETED`) | ✅ | - | - | - |
+| Restore failed (`RESTORE_FAILED`) | ✅ | - | - | - |
 | **System Events** |  |  |  |  |
-| Settings updated (`SETTINGS_UPDATED`) | ✅ | ✅ | — | — |
+| Settings updated (`SETTINGS_UPDATED`) | ✅ | ✅ | - | - |
 
 ---
 
 ## Role Summaries
 
 ### SUPERADMIN
-Receives **all** notifications — every student, mark, meeting, user, backup/restore, and settings event. This role has full system visibility.
+Receives **all** notifications - every student, mark, meeting, user, backup/restore, and settings event. This role has full system visibility.
 
 ### ADMIN
 Receives notifications for day-to-day school operations:
@@ -108,7 +108,7 @@ Returns paginated notifications for the current user's role.
 **Query params:**
 - `page` (default: 1)
 - `limit` (default: 20, max: 50)
-- `unread=true` — show only unread notifications
+- `unread=true` - show only unread notifications
 
 **Response:**
 ```json
@@ -145,9 +145,9 @@ Marks all notifications for the current user's role as read. Returns `{ "markedR
 |---|---|
 | `prisma/schema.prisma` | `Notification` model definition |
 | `lib/notifications.ts` | `createNotification()` helper + `NOTIF_TARGETS` mapping |
-| `app/api/notifications/route.ts` | GET — list + unread count |
-| `app/api/notifications/[id]/read/route.ts` | POST — mark single as read |
-| `app/api/notifications/read-all/route.ts` | POST — mark all as read |
+| `app/api/notifications/route.ts` | GET - list + unread count |
+| `app/api/notifications/[id]/read/route.ts` | POST - mark single as read |
+| `app/api/notifications/read-all/route.ts` | POST - mark all as read |
 | `app/dashboard/notifications/page.tsx` | Server page wrapper |
 | `components/dashboard/notifications/NotificationsClient.tsx` | Full-page notifications UI |
 | `components/dashboard/Topbar.tsx` | Bell icon with unread badge |

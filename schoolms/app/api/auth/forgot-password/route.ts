@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Don't process if not found, or if user is SUPERADMIN (SUPERADMIN must change in-app)
     if (!user || user.role === "SUPERADMIN") return OK;
 
-    // Hash the new password server-side — admins never see it
+    // Hash the new password server-side - admins never see it
     const passwordHash = await bcrypt.hash(newPassword, 12);
 
     // Upsert: one pending request per user at a time

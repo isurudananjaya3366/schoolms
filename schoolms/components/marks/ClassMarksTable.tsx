@@ -72,7 +72,7 @@ function WMarkCell({
       title={isW ? "Click to reveal actual mark" : undefined}
       aria-label={
         display === "W"
-          ? "Warning — below passing threshold"
+          ? "Warning - below passing threshold"
           : display === "\u2014"
             ? "Not entered"
             : undefined

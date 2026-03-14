@@ -12,7 +12,7 @@ import { SETTINGS_UPDATED } from "@/lib/audit-actions";
 import prisma from "@/lib/prisma";
 
 // ---------------------------------------------------------------------------
-// GET  — returns key metadata + whether each key has a stored / env value
+// GET  - returns key metadata + whether each key has a stored / env value
 //        NEVER returns actual secret values
 // ---------------------------------------------------------------------------
 export async function GET() {
@@ -39,7 +39,7 @@ export async function GET() {
 }
 
 // ---------------------------------------------------------------------------
-// PATCH — upsert one or more secure keys (values are encrypted in DB)
+// PATCH - upsert one or more secure keys (values are encrypted in DB)
 // ---------------------------------------------------------------------------
 
 const patchSchema = z.record(

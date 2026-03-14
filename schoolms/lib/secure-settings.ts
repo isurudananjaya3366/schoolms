@@ -1,5 +1,5 @@
 /**
- * Secure settings storage — encrypted key-value pairs in MongoDB.
+ * Secure settings storage - encrypted key-value pairs in MongoDB.
  * Falls back to process.env when a DB value isn't set.
  *
  * All values are encrypted at rest using AES-256-GCM (see lib/encryption.ts).
@@ -20,7 +20,7 @@ export interface SecureKeyMeta {
 }
 
 export const SECURE_KEYS: SecureKeyMeta[] = [
-  // Email — Resend
+  // Email - Resend
   {
     key: "RESEND_API_KEY",
     label: "Resend API Key",
@@ -29,7 +29,7 @@ export const SECURE_KEYS: SecureKeyMeta[] = [
     isSensitive: true,
   },
 
-  // Email — SMTP
+  // Email - SMTP
   {
     key: "SMTP_HOST",
     label: "SMTP Host",
@@ -105,7 +105,7 @@ export function clearSecureSettingsCache() {
 /**
  * Get a secure setting value. Checks in order:
  * 1. In-memory cache
- * 2. Database (SecureSetting table) — decrypted
+ * 2. Database (SecureSetting table) - decrypted
  * 3. Falls back to process.env[key]
  *
  * Returns empty string if not found anywhere.
@@ -156,7 +156,7 @@ export async function setSecureSetting(
     await prisma.secureSetting
       .delete({ where: { key } })
       .catch(() => {
-        /* not found — fine */
+        /* not found - fine */
       });
     cache.delete(key);
     return;

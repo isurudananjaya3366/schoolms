@@ -4,7 +4,7 @@
  * Usage:
  *   npx tsx scripts/seed-mock-data.ts
  *
- * This script is idempotent — safe to run multiple times.
+ * This script is idempotent - safe to run multiple times.
  * It populates the database with realistic Sri Lankan student
  * data and mark records for testing/demo purposes.
  *
@@ -178,14 +178,14 @@ function generateMarks(profile: "high" | "average" | "low") {
 async function seedMockStudents() {
   console.log("\n━━━ 1. PRE-FLIGHT CHECKS ━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  // Check idempotency — if STU003 already exists, skip everything
+  // Check idempotency - if STU003 already exists, skip everything
   const sentinel = await prisma.student.findFirst({
     where: { indexNumber: formatIndex(FIRST_INDEX) },
   });
 
   if (sentinel) {
     console.log(
-      `  ⏭️  Mock students already seeded (found ${formatIndex(FIRST_INDEX)}) — skipping`
+      `  ⏭️  Mock students already seeded (found ${formatIndex(FIRST_INDEX)}) - skipping`
     );
     return;
   }
@@ -260,7 +260,7 @@ async function seedMockStudents() {
     const profileLabel =
       profile === "high" ? "🟢" : profile === "low" ? "🔴" : "🟡";
     console.log(
-      `  ✅ ${indexNumber} — ${name.padEnd(30)} Grade ${grade}${section}  ${profileLabel} ${profile}`
+      `  ✅ ${indexNumber} - ${name.padEnd(30)} Grade ${grade}${section}  ${profileLabel} ${profile}`
     );
   }
 
@@ -313,7 +313,7 @@ async function seedMockStudents() {
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════╗");
-  console.log("║       SchoolMS — Mock Data Seeder               ║");
+  console.log("║       SchoolMS - Mock Data Seeder               ║");
   console.log("╚══════════════════════════════════════════════════╝");
 
   await seedMockStudents();

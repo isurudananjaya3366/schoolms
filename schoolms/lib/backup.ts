@@ -348,7 +348,7 @@ export type RestoreProgressFn = (
 
 /**
  * Restore from a decompressed backup JSON object.
- * This is a FULL REPLACEMENT — all existing data is deleted first.
+ * This is a FULL REPLACEMENT - all existing data is deleted first.
  * Users are preserved to avoid lockout.
  *
  * Each operation is wrapped in try-catch for corruption resilience.

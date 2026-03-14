@@ -30,12 +30,12 @@ function middlewareLogic(
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
-  // /api/config/health — always public
+  // /api/config/health - always public
   if (pathname === "/api/config/health") {
     return NextResponse.next();
   }
 
-  // /api/auth/* — pass through
+  // /api/auth/* - pass through
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
@@ -60,7 +60,7 @@ function middlewareLogic(
     return NextResponse.next();
   }
 
-  // /dashboard/* — require authentication
+  // /dashboard/* - require authentication
   if (pathname.startsWith("/dashboard")) {
     if (!session) {
       const loginUrl = new URL("/login", req.url);
@@ -73,7 +73,7 @@ function middlewareLogic(
     return NextResponse.next();
   }
 
-  // /api/* (other) — require auth, return 401 JSON
+  // /api/* (other) - require auth, return 401 JSON
   if (pathname.startsWith("/api")) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -91,7 +91,7 @@ vi.mock("@/lib/auth", () => ({ auth: (...args: unknown[]) => mockAuth(...args) }
 
 // ---------- suites ----------
 
-describe("Middleware route logic — /dashboard/ path protection", () => {
+describe("Middleware route logic - /dashboard/ path protection", () => {
   it("Case 1: /dashboard with no session → redirect to /login with callbackUrl", () => {
     const req = buildReq("/dashboard");
     const res = middlewareLogic(req);
@@ -127,7 +127,7 @@ describe("Middleware route logic — /dashboard/ path protection", () => {
   });
 });
 
-describe("Middleware route logic — /api/ path protection", () => {
+describe("Middleware route logic - /api/ path protection", () => {
   it("Case 4: /api/students with no session → 401 JSON", async () => {
     const req = buildReq("/api/students");
     const res = middlewareLogic(req);
@@ -162,7 +162,7 @@ describe("Middleware route logic — /api/ path protection", () => {
   });
 });
 
-describe("Middleware route logic — /config path protection", () => {
+describe("Middleware route logic - /config path protection", () => {
   const originalEnv = process.env.NEXT_PUBLIC_DB_CONFIGURED;
 
   beforeEach(() => {

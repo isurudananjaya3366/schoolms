@@ -106,7 +106,7 @@ export default function StudentMarksTable({
                     className={`px-4 py-2 text-center ${cellClass(display)}`}
                     aria-label={
                       display === "W"
-                        ? "Warning — below passing threshold"
+                        ? "Warning - below passing threshold"
                         : display === "\u2014"
                           ? "Not entered"
                           : undefined

@@ -96,7 +96,7 @@ function writeViaLocalFile(key: string, value: string): VercelEnvWriteResult {
     try {
       content = fs.readFileSync(envPath, "utf-8");
     } catch {
-      // File doesn't exist yet — will create it
+      // File doesn't exist yet - will create it
     }
 
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

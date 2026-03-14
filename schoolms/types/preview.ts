@@ -61,7 +61,7 @@ export interface EnrichedSubject {
   key: string;
   displayName: string;
   mark: number | null;
-  display: string; // "85" or "W" or "—"
+  display: string; // "85" or "W" or "-"
   isW: boolean;
 }
 
@@ -112,7 +112,7 @@ export interface PreviewData {
   };
   /** The term key that overallStats and highlights are calculated from (e.g. "TERM_2") */
   focusTerm: string;
-  /** Populated only when all 3 terms have data — shows year-level averages */
+  /** Populated only when all 3 terms have data - shows year-level averages */
   annualStats: {
     overallAverage: number;
     descriptor: string;

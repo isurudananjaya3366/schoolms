@@ -479,7 +479,7 @@ export default function AnalyticsContainer({
           setRankingsData(json);
         }
       } catch {
-        /* ignore — stale data will remain */
+        /* ignore - stale data will remain */
       } finally {
         setIsRankingsLoading(false);
       }
@@ -509,7 +509,7 @@ export default function AnalyticsContainer({
           setData(json);
         }
       } catch {
-        /* ignore — will show stale or empty data */
+        /* ignore - will show stale or empty data */
       }
       setIsLoading(false);
     },
@@ -524,7 +524,7 @@ export default function AnalyticsContainer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Rankings fetch is driven by its own useEffect above — no separate mount call needed.
+  // Rankings fetch is driven by its own useEffect above - no separate mount call needed.
 
   // ── Fetch W-rate data for all terms ────────────────────
   useEffect(() => {
@@ -721,7 +721,7 @@ export default function AnalyticsContainer({
           schoolLogoUrl: settings?.school_logo_url || "",
           reportTitle: `${gradeStr} Analytics Report`,
           generatedDate: new Date().toISOString(),
-          filterScope: `${gradeStr} — ${termStr} — ${year}`,
+          filterScope: `${gradeStr} - ${termStr} - ${year}`,
           principalField: includeSignatures && sigPrincipalField,
           principalSignUrl,
           vicePrincipalField: includeSignatures && sigVPField,
@@ -951,7 +951,7 @@ export default function AnalyticsContainer({
         </div>
       </div>
 
-      {/* Row 1: Full width — Heatmap */}
+      {/* Row 1: Full width - Heatmap */}
       <div ref={heatmapRef} id="chart-heatmap">
         <ChartCard
           title="Grade Distribution Heatmap"
@@ -1017,7 +1017,7 @@ export default function AnalyticsContainer({
         </div>
       </div>
 
-      {/* Row 3: Full width — Scatter Plot */}
+      {/* Row 3: Full width - Scatter Plot */}
       <div ref={scatterRef} id="chart-scatter">
         <ChartCard
           title="Student Scatter Plot"
@@ -1039,7 +1039,7 @@ export default function AnalyticsContainer({
         </ChartCard>
       </div>
 
-      {/* Row 4: Full width — Top / Bottom Performers */}
+      {/* Row 4: Full width - Top / Bottom Performers */}
       <div ref={performersRef} id="chart-performers">
         <ChartCard
           title="Top / Bottom Performers"
@@ -1062,7 +1062,7 @@ export default function AnalyticsContainer({
         </ChartCard>
       </div>
 
-      {/* Row 5: Full width — Class Comparison Radar */}
+      {/* Row 5: Full width - Class Comparison Radar */}
       <div ref={radarRef} id="chart-radar" className="scroll-mt-4">
         <ChartCard
           title="Class Comparison Radar"
@@ -1242,9 +1242,9 @@ export default function AnalyticsContainer({
         <ChartCard
           title={
             rankingsGrade && rankingsSection
-              ? `Rankings — Class ${rankingsGrade}${rankingsSection}`
+              ? `Rankings - Class ${rankingsGrade}${rankingsSection}`
               : rankingsGrade
-              ? `Rankings — Grade ${rankingsGrade}`
+              ? `Rankings - Grade ${rankingsGrade}`
               : "Class & Section Rankings"
           }
           description={
@@ -1265,17 +1265,17 @@ export default function AnalyticsContainer({
               <Skeleton className="h-[400px] w-full" />
             </div>
           ) : !rankingsGrade ? (
-            /* No grade selected — prompt user */
+            /* No grade selected - prompt user */
             <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-muted-foreground">
               <Trophy className="h-8 w-8 opacity-30" />
               <p className="text-sm">Select a Grade and Class above to see rankings.</p>
             </div>
           ) : rankingsData ? (
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Left — Class Ranking: top 10 students in the selected class */}
+              {/* Left - Class Ranking: top 10 students in the selected class */}
               {rankingsGrade && rankingsSection ? (
                 <StudentRankingsTable
-                  title={`Class Ranking — Class ${rankingsGrade}${rankingsSection}`}
+                  title={`Class Ranking - Class ${rankingsGrade}${rankingsSection}`}
                   rankings={rankingsData.classStudentRankings.map((s) => ({
                     rank: s.rank,
                     studentId: s.studentId,
@@ -1293,9 +1293,9 @@ export default function AnalyticsContainer({
                   <p className="text-sm">Select a specific Class for class-level ranking.</p>
                 </div>
               )}
-              {/* Right — Section Ranking: top 10 students across all sections in the grade */}
+              {/* Right - Section Ranking: top 10 students across all sections in the grade */}
               <StudentRankingsTable
-                title={`Section Ranking — Grade ${rankingsGrade} (All Sections)`}
+                title={`Section Ranking - Grade ${rankingsGrade} (All Sections)`}
                 rankings={rankingsData.gradeStudentRankings.map((s) => ({
                   rank: s.rank,
                   studentId: s.studentId,
@@ -1318,7 +1318,7 @@ export default function AnalyticsContainer({
       <div className="grid gap-6 lg:grid-cols-2">
         <div ref={rankingsTrendRef} id="chart-rankings-trend">
           <ChartCard
-            title="Top Classes — Performance Trend"
+            title="Top Classes - Performance Trend"
             description={
               rankingsGrade
                 ? `Average mark per subject for the top classes in Grade ${rankingsGrade} across all terms.`
@@ -1348,7 +1348,7 @@ export default function AnalyticsContainer({
         </div>
         <div id="chart-rankings-trend-sections">
           <ChartCard
-            title="Top Sections — Performance Trend"
+            title="Top Sections - Performance Trend"
             description={
               rankingsGrade
                 ? `Average mark per subject for sections in Grade ${rankingsGrade} across all terms.`

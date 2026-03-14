@@ -27,7 +27,7 @@ export default function ManualBackupButton({
       const contentType = res.headers.get("content-type") || "";
 
       if (contentType.includes("application/gzip")) {
-        // Local mode — trigger browser download
+        // Local mode - trigger browser download
         const blob = await res.blob();
         const filename =
           res.headers
@@ -45,7 +45,7 @@ export default function ManualBackupButton({
           `Backup downloaded (${(blob.size / 1024).toFixed(1)} KB)`
         );
       } else {
-        // Cloud mode — JSON response
+        // Cloud mode - JSON response
         const data = await res.json();
         toast.success(
           `Backup created successfully (${(data.sizeBytes / 1024).toFixed(1)} KB)`
@@ -54,7 +54,7 @@ export default function ManualBackupButton({
 
       onComplete();
     } catch {
-      toast.error("Network error — could not create backup");
+      toast.error("Network error - could not create backup");
     } finally {
       setLoading(false);
     }

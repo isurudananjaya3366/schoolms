@@ -6,10 +6,10 @@
  *
  * Skips SUPERADMIN (already exists).
  * Creates:
- *   ADMIN    — admin@schoolms.com     / Admin@123
- *   STAFF    — staff@schoolms.com     / Staff@123
- *   TEACHER  — teacher@schoolms.com   / Teacher@123  (assigned to class 10A)
- *   STUDENT  — (demo, linked to first student in DB)
+ *   ADMIN    - admin@schoolms.com     / Admin@123
+ *   STAFF    - staff@schoolms.com     / Staff@123
+ *   TEACHER  - teacher@schoolms.com   / Teacher@123  (assigned to class 10A)
+ *   STUDENT  - (demo, linked to first student in DB)
  *              demo.student@schoolms.com / Student@123
  */
 
@@ -64,7 +64,7 @@ async function main() {
     role: "STAFF",
   });
 
-  // ── TEACHER — assign to class 10A ──────────────────────────────
+  // ── TEACHER - assign to class 10A ──────────────────────────────
   const class10A = await prisma.classGroup.findFirst({
     where: { grade: 10, section: "A" },
   });
@@ -80,7 +80,7 @@ async function main() {
     assignedClassId: class10A.id,
   });
 
-  // ── STUDENT — link to first student in DB ──────────────────────
+  // ── STUDENT - link to first student in DB ──────────────────────
   const firstStudent = await prisma.student.findFirst({
     where: { isDeleted: false },
     orderBy: { createdAt: "asc" },

@@ -149,7 +149,7 @@ function markDisplay(v: number | null | undefined): {
   isW: boolean;
   isEmpty: boolean;
 } {
-  if (v === null || v === undefined) return { text: "—", isW: false, isEmpty: true };
+  if (v === null || v === undefined) return { text: "-", isW: false, isEmpty: true };
   if (v < 35) return { text: "W", isW: true, isEmpty: false };
   return { text: String(v), isW: false, isEmpty: false };
 }
@@ -257,9 +257,9 @@ export async function POST(request: Request) {
     const gradeStr = gradeNum ? `Grade ${gradeNum}` : "All Grades";
     const sectionStr = section ? ` ${section}` : "";
     const termStr = termValue
-      ? ` — ${termValue.replace("TERM_", "Term ")}`
-      : " — All Terms";
-    const filterScopeStr = `${gradeStr}${sectionStr}${termStr} — ${year}`;
+      ? ` - ${termValue.replace("TERM_", "Term ")}`
+      : " - All Terms";
+    const filterScopeStr = `${gradeStr}${sectionStr}${termStr} - ${year}`;
     const reportTitleStr = `Student Marks Report`;
 
     // ── Build PDF ─────────────────────────────────────────
@@ -285,14 +285,14 @@ export async function POST(request: Request) {
       ),
     );
 
-    // Footer (fixed — appears on every page)
+    // Footer (fixed - appears on every page)
     const footerEl = createElement(
       View,
       { style: s.footer, fixed: true },
       createElement(
         Text,
         { style: s.footerText },
-        `${schoolName} — ${reportTitleStr}`,
+        `${schoolName} - ${reportTitleStr}`,
       ),
       createElement(
         Text,
@@ -347,7 +347,7 @@ export async function POST(request: Request) {
           const subjectName = (student.electives as Record<string, string>)[fieldName] || "";
           const { text, isW, isEmpty } = markDisplay(marks[key]);
           const abbrev = abbreviateSubject(subjectName);
-          const cellText = isEmpty ? "—" : `${text}${abbrev ? `\n(${abbrev})` : ""}`;
+          const cellText = isEmpty ? "-" : `${text}${abbrev ? `\n(${abbrev})` : ""}`;
           return createElement(
             Text,
             {
@@ -371,7 +371,7 @@ export async function POST(request: Request) {
             { key: `${student.id}-${record.term}`, style: rowStyle },
             createElement(Text, { style: [s.cellBase, s.colNum] }, String(rowIdx + 1)),
             createElement(Text, { style: [s.cellBase, s.colName] }, student.name),
-            createElement(Text, { style: [s.cellBase, s.colIndex] }, student.indexNumber || "—"),
+            createElement(Text, { style: [s.cellBase, s.colIndex] }, student.indexNumber || "-"),
             createElement(
               Text,
               { style: [s.cellBase, s.colClass] },

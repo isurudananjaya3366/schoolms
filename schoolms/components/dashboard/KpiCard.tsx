@@ -35,12 +35,12 @@ export default function KpiCard({
           </div>
         ) : isError ? (
           <div className="mt-2">
-            <p className="text-3xl font-bold">—</p>
+            <p className="text-3xl font-bold">-</p>
             <p className="text-sm text-muted-foreground">Data unavailable</p>
           </div>
         ) : (
           <div className="mt-2">
-            <p className="text-3xl font-bold">{value ?? "—"}</p>
+            <p className="text-3xl font-bold">{value ?? "-"}</p>
             {subtitle && (
               <p className="text-sm text-muted-foreground">{subtitle}</p>
             )}

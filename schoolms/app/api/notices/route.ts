@@ -21,7 +21,7 @@ const ROLE_PRIORITY: Record<string, number> = {
   SUPERADMIN: 3,
 };
 
-/** GET /api/notices — list notices
+/** GET /api/notices - list notices
  *  Admin+: all notices with optional ?status filter
  *  Others: only PUBLISHED non-expired notices
  */
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(notices);
 }
 
-/** POST /api/notices — create a new notice (ADMIN+) */
+/** POST /api/notices - create a new notice (ADMIN+) */
 export async function POST(request: NextRequest) {
   const authResult = await requireAuth(Role.ADMIN);
   if (authResult instanceof NextResponse) return authResult;

@@ -49,12 +49,12 @@ export function StudentLoginForm() {
       }
 
       if (students.length === 1 && students[0].indexNumber) {
-        // Unique match — go straight to profile
+        // Unique match - go straight to profile
         router.push(`/student/view/${encodeURIComponent(students[0].indexNumber)}`);
         return;
       }
 
-      // Multiple matches — show picker
+      // Multiple matches - show picker
       setMatches(students);
       setSearched(true);
     } catch {

@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Account Registration — SchoolMS",
+  title: "Account Registration - SchoolMS",
 };
 
 export default function RegisterPage() {

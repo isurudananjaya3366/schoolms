@@ -52,8 +52,8 @@ function computeStudentAvg(markRecords: { marks: unknown }[]): number {
 
 /**
  * Builds a full PreviewData object for a student.
- * @param year       — filter mark records to this year (optional, uses all if omitted)
- * @param focusTerm  — term key to focus highlights/overallStats on (defaults to latest available)
+ * @param year       - filter mark records to this year (optional, uses all if omitted)
+ * @param focusTerm  - term key to focus highlights/overallStats on (defaults to latest available)
  */
 export async function buildPreviewData(
   studentId: string,
@@ -88,7 +88,7 @@ export async function buildPreviewData(
   for (const s of settingsRecords) settingsMap[s.key] = s.value;
 
   const schoolName = settingsMap["school_name"] || "SchoolMS";
-  // If a specific year is selected for the presentation, show it — not the system "current year"
+  // If a specific year is selected for the presentation, show it - not the system "current year"
   const academicYear = year
     ? String(year)
     : settingsMap["academic_year"] || new Date().getFullYear().toString();
@@ -229,7 +229,7 @@ export async function buildPreviewData(
     activeSubjectKeys,
   );
 
-  // Annual stats (only if every term has data — means a full academic year)
+  // Annual stats (only if every term has data - means a full academic year)
   const hasAllTerms = enrichedTerms.every((t) => t.hasData);
   const annualSubjectAverages: AnnualSubjectAverage[] = hasAllTerms
     ? (activeSubjectKeys

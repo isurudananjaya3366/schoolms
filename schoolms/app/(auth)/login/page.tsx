@@ -17,7 +17,7 @@ import { GraduationCap, Megaphone } from "lucide-react";
 import prisma from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Sign In — SchoolMS",
+  title: "Sign In - SchoolMS",
 };
 
 export default async function LoginPage({
@@ -33,7 +33,7 @@ export default async function LoginPage({
   const params = await searchParams;
   const passwordResetSuccess = params.passwordReset === "success";
 
-  // Load school branding (graceful — if DB is unreachable, fallback to defaults)
+  // Load school branding (graceful - if DB is unreachable, fallback to defaults)
   let schoolName = "SchoolMS";
   let schoolLogoUrl: string | null = null;
   try {

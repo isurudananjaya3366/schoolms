@@ -88,7 +88,7 @@ export default function EmailReportDialog({
         onClose();
       }, 1500);
     } catch {
-      setError("Network error — could not reach server");
+      setError("Network error - could not reach server");
     } finally {
       setSending(false);
     }
@@ -108,7 +108,7 @@ export default function EmailReportDialog({
               <div>
                 <h2 className="text-lg font-semibold">Email Progress Report</h2>
                 <p className="text-sm text-muted-foreground">
-                  {studentName} — {year}
+                  {studentName} - {year}
                 </p>
               </div>
             </div>

@@ -15,7 +15,7 @@ import { PALETTE } from "@/lib/chartPalette";
 interface RankingsTrendLineProps {
   /** Recharts-style data: [{ term: "Term 1", "6A": 72.5, "7B": 68.0, ... }] */
   trendData: Record<string, string | number>[];
-  /** Data keys (line names) to render — must match keys in trendData */
+  /** Data keys (line names) to render - must match keys in trendData */
   keys: string[];
   /** Label shown on the Y-axis */
   yAxisLabel?: string;

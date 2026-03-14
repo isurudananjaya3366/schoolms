@@ -65,7 +65,7 @@ export default async function DashboardLayout({
       const itemPriority = ROLE_PRIORITY[item.minRole] ?? 999;
       if (userPriority < itemPriority) return false;
     }
-    // Permission key check (skip if no permKey — always show those nav items)
+    // Permission key check (skip if no permKey - always show those nav items)
     if (item.permKey) {
       return perms[item.permKey as keyof typeof perms] === true;
     }

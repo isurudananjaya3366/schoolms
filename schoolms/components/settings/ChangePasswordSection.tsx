@@ -76,7 +76,7 @@ export default function ChangePasswordSection() {
         return;
       }
 
-      // Password changed — sign out so user re-authenticates with new password
+      // Password changed - sign out so user re-authenticates with new password
       await signOut({ callbackUrl: "/login" });
     } catch {
       setError("An unexpected error occurred. Please try again.");

@@ -9,11 +9,11 @@ import { MOCK_STUDENTS } from "@/lib/preview-mock-data";
 import type { SlideLabels, SlideLabelKey, PreviewData } from "@/types/preview";
 
 const MOCK_DESCRIPTIONS = [
-  "Mock 1 — All slides (3 terms, top class & section, W grades)",
-  "Mock 2 — No ranking slides (3 terms, low rank, no W)",
-  "Mock 3 — Class rank only (2 terms, W grades)",
-  "Mock 4 — Section rank only (2 terms, top section)",
-  "Mock 5 — Minimal (1 term, no rankings)",
+  "Mock 1 - All slides (3 terms, top class & section, W grades)",
+  "Mock 2 - No ranking slides (3 terms, low rank, no W)",
+  "Mock 3 - Class rank only (2 terms, W grades)",
+  "Mock 4 - Section rank only (2 terms, top section)",
+  "Mock 5 - Minimal (1 term, no rankings)",
 ];
 
 export default function ConfigurePresenter() {

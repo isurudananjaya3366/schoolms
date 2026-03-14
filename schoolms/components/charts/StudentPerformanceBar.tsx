@@ -61,7 +61,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             />
             <span>{entry.name}:</span>
             <span className={isW ? "font-bold text-red-600" : ""}>
-              {val === null ? "—" : val}
+              {val === null ? "-" : val}
             </span>
             <span className="text-muted-foreground">
               {val === null ? "" : isW ? "W" : "Pass"}

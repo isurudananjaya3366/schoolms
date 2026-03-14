@@ -78,7 +78,7 @@ export default function RestoreDialog({
       const contentType = res.headers.get("content-type") || "";
 
       if (contentType.includes("application/x-ndjson") && res.body) {
-        // Streaming NDJSON — read progress updates
+        // Streaming NDJSON - read progress updates
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
@@ -108,7 +108,7 @@ export default function RestoreDialog({
                       .join(", ")
                   : "";
                 toast.success(
-                  `Restore complete${countSummary ? ` — ${countSummary}` : ""}`
+                  `Restore complete${countSummary ? ` - ${countSummary}` : ""}`
                 );
                 // Small delay to show 100% before closing
                 await new Promise((r) => setTimeout(r, 800));
@@ -131,7 +131,7 @@ export default function RestoreDialog({
                 .join(", ")
             : "";
           toast.success(
-            `Restore complete${countSummary ? ` — ${countSummary}` : ""}`
+            `Restore complete${countSummary ? ` - ${countSummary}` : ""}`
           );
           onComplete();
         } else {
@@ -139,7 +139,7 @@ export default function RestoreDialog({
         }
       }
     } catch {
-      toast.error("Network error — could not restore backup");
+      toast.error("Network error - could not restore backup");
     } finally {
       setLoading(false);
       setConfirmation("");

@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import ManageNoticesClient from "@/components/notices/ManageNoticesClient";
 
 export const metadata = {
-  title: "Manage Notices — SchoolMS",
+  title: "Manage Notices - SchoolMS",
 };
 
 const ROLE_PRIORITY: Record<string, number> = {

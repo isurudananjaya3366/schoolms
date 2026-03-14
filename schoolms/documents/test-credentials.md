@@ -1,4 +1,4 @@
-# SchoolMS — Test Credentials
+# SchoolMS - Test Credentials
 
 > **Date seeded:** see script `scripts/seed-role-users.ts`
 > All accounts are active and ready for testing.
@@ -23,7 +23,7 @@ Students **do not need an account**. They access their profile via the public po
 
 | URL                          | Description                              |
 |------------------------------|------------------------------------------|
-| `/student`                   | Search page — enter name or index number |
+| `/student`                   | Search page - enter name or index number |
 | `/student/view/STU0001`      | Direct profile view by index number      |
 
 ### How to test student lookup:
@@ -53,8 +53,8 @@ Students **do not need an account**. They access their profile via the public po
 ## Student Index Numbers (sample for testing lookup)
 
 ```
-STU0001  — Sahan Silva         (Class 10A)
-STU0002  — ...                 (Class 10A)
+STU0001  - Sahan Silva         (Class 10A)
+STU0002  - ...                 (Class 10A)
 ...
 ```
 

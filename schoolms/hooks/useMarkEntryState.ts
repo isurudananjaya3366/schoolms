@@ -102,7 +102,7 @@ export function useMarkEntryState() {
   const abortRef = useRef<AbortController | null>(null);
 
   // ========================================================================
-  // Fetch settings on mount — also auto-default year + term
+  // Fetch settings on mount - also auto-default year + term
   // ========================================================================
   useEffect(() => {
     let cancelled = false;
@@ -326,7 +326,7 @@ export function useMarkEntryState() {
   }, [dirtyMap.size]);
 
   // ========================================================================
-  // Year options — fetched from DB + current academic year
+  // Year options - fetched from DB + current academic year
   // ========================================================================
   const [yearOptions, setYearOptions] = useState<number[]>([]);
   const [yearOptionsLoading, setYearOptionsLoading] = useState(true);
@@ -362,7 +362,7 @@ export function useMarkEntryState() {
   const filtersReady = !!classId && !!term && !!year && !!settings;
 
   // ========================================================================
-  // Filtered rows — search by studentName or indexNumber
+  // Filtered rows - search by studentName or indexNumber
   // ========================================================================
   const filteredRows = useMemo<RowData[]>(() => {
     if (!searchQuery.trim()) return rows;
@@ -496,7 +496,7 @@ export function useMarkEntryState() {
   );
 
   // ========================================================================
-  // Core save logic — shared by saveDraft and publish
+  // Core save logic - shared by saveDraft and publish
   // ========================================================================
   const saveToDB = useCallback(async () => {
     if (dirtyMap.size === 0 || !classId || !term || !year || !settings) return null;

@@ -137,7 +137,7 @@ export default function SlideAnnualSummary({
                     {s.wCount > 0 ? (
                       <span className="text-red-500 font-bold">{s.wCount}</span>
                     ) : (
-                      "—"
+                      "-"
                     )}
                   </td>
                 </motion.tr>

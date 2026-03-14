@@ -64,7 +64,7 @@ export default function SlideOverview({
         transition={{ delay: 0.45 }}
       >
         <Badge variant="secondary" className="text-base px-4 py-1.5">
-          Grade {student.grade} — {student.className}
+          Grade {student.grade} - {student.className}
         </Badge>
       </motion.div>
 

@@ -104,7 +104,7 @@ export default function ReportsClient({ role }: ReportsClientProps) {
           !!(resend?.hasDbValue || resend?.hasEnvFallback || smtp?.hasDbValue || smtp?.hasEnvFallback)
         );
       } catch {
-        // silently fail — email button stays disabled
+        // silently fail - email button stays disabled
       }
     }
     checkEmailConfig();
@@ -121,7 +121,7 @@ export default function ReportsClient({ role }: ReportsClientProps) {
         const data = await res.json();
         const sigs: { type: string; classLabel: string | null }[] = data.signatures || [];
 
-        // Extract className from student — fetch if not available
+        // Extract className from student - fetch if not available
         let className = selectedStudent?.className;
         if (!className && selectedStudent) {
           try {
@@ -203,7 +203,7 @@ export default function ReportsClient({ role }: ReportsClientProps) {
       const url = URL.createObjectURL(blob);
       setPdfBlobUrl(url);
     } catch {
-      setError("Network error — could not reach server");
+      setError("Network error - could not reach server");
     } finally {
       setLoading(false);
     }

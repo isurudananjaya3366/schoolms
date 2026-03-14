@@ -215,7 +215,7 @@ export default function StudentProfileClient({
     return Array.from(yearMap.entries()).sort((a, b) => b[0] - a[0]);
   }, [markRecords, showFullRecords]);
 
-  /** Public-mode analytics — recompute whenever the filtered records change */
+  /** Public-mode analytics - recompute whenever the filtered records change */
   const subjectAverages = useMemo(
     () => (publicMode ? buildSubjectAverages(filteredMarkRecords, student.electives) : []),
     [publicMode, filteredMarkRecords, student.electives],
@@ -286,7 +286,7 @@ export default function StudentProfileClient({
             <div key={year} className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Academic Records — {year}</CardTitle>
+                  <CardTitle>Academic Records - {year}</CardTitle>
                   <CardDescription>
                     Mark records for all terms in {year}
                   </CardDescription>
@@ -310,7 +310,7 @@ export default function StudentProfileClient({
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Academic Records — {selectedYear}</CardTitle>
+              <CardTitle>Academic Records - {selectedYear}</CardTitle>
               <CardDescription>
                 Mark records across all terms for {selectedYear}
               </CardDescription>
@@ -338,7 +338,7 @@ export default function StudentProfileClient({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="size-5" />
-                  Performance Chart — {chartYear}
+                  Performance Chart - {chartYear}
                 </CardTitle>
                 <CardDescription className="mt-1">
                   Visual representation of marks across terms

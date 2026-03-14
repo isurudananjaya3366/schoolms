@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const { name, email, password, role, assignedClassId, linkedStudentId } = parsed.data;
 
     // Role elevation guard:
-    // ADMIN can only create STAFF, TEACHER, or STUDENT — not ADMIN or above
+    // ADMIN can only create STAFF, TEACHER, or STUDENT - not ADMIN or above
     if (authResult.role === Role.ADMIN && (role === "ADMIN" || role === "SUPERADMIN" as string)) {
       return NextResponse.json(
         { error: "Insufficient permissions to create an account with this role." },

@@ -1,5 +1,5 @@
 /**
- * Notification helper — call this from any API route to emit an in-app
+ * Notification helper - call this from any API route to emit an in-app
  * notification to the appropriate roles.
  *
  * Failures are silently swallowed via .catch(console.error) so that the
@@ -51,7 +51,7 @@ export const NOTIF = {
 
 export type NotifType = (typeof NOTIF)[keyof typeof NOTIF];
 
-/** Role-to-notification-type mapping — defines which roles receive each type. */
+/** Role-to-notification-type mapping - defines which roles receive each type. */
 export const NOTIF_TARGETS: Record<NotifType, NotifiableRole[]> = {
   // Student events
   STUDENT_CREATED: ["SUPERADMIN", "ADMIN", "STAFF"],
@@ -61,19 +61,19 @@ export const NOTIF_TARGETS: Record<NotifType, NotifiableRole[]> = {
   // Mark events
   MARK_UPDATED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
 
-  // Meeting events — all staff roles
+  // Meeting events - all staff roles
   MEETING_SCHEDULED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
   MEETING_UPDATED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
   MEETING_CANCELLED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
 
-  // User management — admin-tier only
+  // User management - admin-tier only
   USER_CREATED: ["SUPERADMIN", "ADMIN"],
   USER_UPDATED: ["SUPERADMIN", "ADMIN"],
   USER_DELETED: ["SUPERADMIN", "ADMIN"],
   USER_DEACTIVATED: ["SUPERADMIN", "ADMIN"],
   USER_REACTIVATED: ["SUPERADMIN", "ADMIN"],
 
-  // Backup & restore — SUPERADMIN only (critical system events)
+  // Backup & restore - SUPERADMIN only (critical system events)
   BACKUP_TRIGGERED: ["SUPERADMIN"],
   BACKUP_COMPLETED: ["SUPERADMIN"],
   BACKUP_FAILED: ["SUPERADMIN"],
@@ -82,10 +82,10 @@ export const NOTIF_TARGETS: Record<NotifType, NotifiableRole[]> = {
   RESTORE_COMPLETED: ["SUPERADMIN"],
   RESTORE_FAILED: ["SUPERADMIN"],
 
-  // Settings — admin-tier
+  // Settings - admin-tier
   SETTINGS_UPDATED: ["SUPERADMIN", "ADMIN"],
 
-  // Notice board — default to all notifiable roles; overridden per notice
+  // Notice board - default to all notifiable roles; overridden per notice
   NOTICE_PUBLISHED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
 };
 
@@ -102,7 +102,7 @@ export interface CreateNotificationOptions {
 }
 
 /**
- * Emit an in-app notification. This is fire-and-forget — failures are logged
+ * Emit an in-app notification. This is fire-and-forget - failures are logged
  * to console but never propagate to the calling API route.
  */
 export function createNotification(opts: CreateNotificationOptions): void {

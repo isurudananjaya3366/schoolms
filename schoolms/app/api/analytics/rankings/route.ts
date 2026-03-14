@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     const { grade, term, year, section } = parsed.data;
     const yearNum = year ? parseInt(year) : new Date().getFullYear();
 
-    // Build where clause — always query at GRADE level only.
+    // Build where clause - always query at GRADE level only.
     // Section filter is applied IN MEMORY so we can build both
     // class-specific and grade-wide student rankings from a single query.
     const whereClause: Record<string, unknown> = { year: yearNum };
@@ -203,7 +203,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // Populate trend aggregations (always all terms — no term filter here)
+    // Populate trend aggregations (always all terms - no term filter here)
     for (const r of records) {
       const classLabel = `${r.student.class.grade}${r.student.class.section}`;
       const sec = r.student.class.section;

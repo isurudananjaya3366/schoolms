@@ -5,9 +5,9 @@
  *
  * Implements the three-tier client-side auth storage strategy:
  *
- *   1. Secure HttpOnly cookies  — access token (managed by NextAuth, unchanged here)
- *   2. sessionStorage           — role + sessionId (cleared when tab/browser closes)
- *   3. localStorage             — user profile (name, email, role) for UI display
+ *   1. Secure HttpOnly cookies  - access token (managed by NextAuth, unchanged here)
+ *   2. sessionStorage           - role + sessionId (cleared when tab/browser closes)
+ *   3. localStorage             - user profile (name, email, role) for UI display
  *
  * Mount this once in the root layout inside a <SessionProvider>.
  * It syncs automatically on session changes and clears storage on logout.
@@ -121,6 +121,6 @@ export default function AuthSyncProvider() {
     writeLocalStorage(profileData);
   }, [session, status]);
 
-  // Renders nothing — purely side-effect driven
+  // Renders nothing - purely side-effect driven
   return null;
 }

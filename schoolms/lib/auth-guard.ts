@@ -4,7 +4,7 @@ import { Role } from "@prisma/client";
 
 /**
  * Roles that participate in the administrative hierarchy.
- * TEACHER and STUDENT are outside this hierarchy — they have
+ * TEACHER and STUDENT are outside this hierarchy - they have
  * dedicated role-specific endpoints accessed via requireRole().
  */
 const ROLE_HIERARCHY: Role[] = [Role.STAFF, Role.ADMIN, Role.SUPERADMIN];
@@ -39,7 +39,7 @@ export async function requireAuth(minimumRole?: Role) {
 /**
  * requireRole(allowedRoles)
  *
- * Explicit allow-list check — use this for endpoints that should be
+ * Explicit allow-list check - use this for endpoints that should be
  * accessible by specific roles (e.g., [TEACHER, ADMIN, SUPERADMIN]).
  */
 export async function requireRole(allowedRoles: Role[]) {

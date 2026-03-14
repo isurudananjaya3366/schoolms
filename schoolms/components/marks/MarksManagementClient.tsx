@@ -125,7 +125,7 @@ export default function MarksManagementClient({
           setClassOptions([cls]);
         }
       } catch {
-        // ignore — teacher can still use filters manually
+        // ignore - teacher can still use filters manually
       }
     }
     loadAssignedClass();
@@ -220,7 +220,7 @@ export default function MarksManagementClient({
       setReleases((prev) => ({ ...prev, [term]: updated }));
       toast.success(
         newStatus === "PUBLISHED"
-          ? `${termLabel(term)} marks published — now visible to students.`
+          ? `${termLabel(term)} marks published - now visible to students.`
           : `${termLabel(term)} marks held as draft.`
       );
     } catch {
@@ -284,7 +284,7 @@ export default function MarksManagementClient({
           </Select>
         </div>
 
-        {/* Grade — hidden for teacher (their class is fixed) */}
+        {/* Grade - hidden for teacher (their class is fixed) */}
         {!isTeacher && (
           <div className="w-32">
             <label className="mb-1 block text-sm font-medium">Grade</label>

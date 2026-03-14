@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import prisma from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Notice Board — SchoolMS",
+  title: "Notice Board - SchoolMS",
   description: "Latest notices and announcements from our school.",
 };
 

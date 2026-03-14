@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { uploadBlob, deleteBlob } from "@/lib/blob-storage";
 
 /**
- * POST /api/uploads/logo — Upload school logo to Vercel Blob
+ * POST /api/uploads/logo - Upload school logo to Vercel Blob
  * Stores the blob URL in systemConfig.school_logo_url
  * Falls back to manually-entered URL if blob not configured
  */

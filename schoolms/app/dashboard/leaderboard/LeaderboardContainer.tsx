@@ -414,7 +414,7 @@ export default function LeaderboardContainer() {
                 <CardHeader className="flex flex-row items-start justify-between space-y-0">
                   <div className="space-y-1">
                     <CardTitle>
-                      Class Rankings — {grade}
+                      Class Rankings - {grade}
                       {section}
                     </CardTitle>
                     <CardDescription>
@@ -451,7 +451,7 @@ export default function LeaderboardContainer() {
                       {/* Table + chart side by side */}
                       <div className="grid gap-6 lg:grid-cols-2">
                         <StudentRankingsTable
-                          title={`Top 10 — Class ${grade}${section}`}
+                          title={`Top 10 - Class ${grade}${section}`}
                           rankings={classRankings.map(toTableEntry)}
                         />
                         <div>
@@ -476,7 +476,7 @@ export default function LeaderboardContainer() {
             <Card>
               <CardHeader className="flex flex-row items-start justify-between space-y-0">
                 <div className="space-y-1">
-                  <CardTitle>Section Rankings — Grade {grade}</CardTitle>
+                  <CardTitle>Section Rankings - Grade {grade}</CardTitle>
                   <CardDescription>
                     Top 10 students across all sections of Grade {grade} for{" "}
                     {TERM_LABELS[term] ?? "all terms"} {year}. Sorted by total marks.
@@ -509,7 +509,7 @@ export default function LeaderboardContainer() {
                     {/* Table + chart side by side */}
                     <div className="grid gap-6 lg:grid-cols-2">
                       <StudentRankingsTable
-                        title={`Top 10 — Grade ${grade} (All Sections)`}
+                        title={`Top 10 - Grade ${grade} (All Sections)`}
                         rankings={gradeRankings.map(toTableEntry)}
                       />
                       <div>
@@ -533,7 +533,7 @@ export default function LeaderboardContainer() {
             {/* Class trend */}
             <div ref={classTrendRef}>
               <SectionCard
-                title="Top Classes — Performance Trend"
+                title="Top Classes - Performance Trend"
                 description={`Average mark per subject for the top classes in Grade ${grade} across all terms (${year}).`}
                 cardRef={classTrendRef}
                 onDownload={() => downloadPNG(classTrendRef, `trend-classes-grade${grade}`)}
@@ -557,7 +557,7 @@ export default function LeaderboardContainer() {
             {/* Section trend */}
             <div ref={sectionTrendRef}>
               <SectionCard
-                title="Top Sections — Performance Trend"
+                title="Top Sections - Performance Trend"
                 description={`Average mark per subject for the top sections in Grade ${grade} across all terms (${year}).`}
                 cardRef={sectionTrendRef}
                 onDownload={() =>

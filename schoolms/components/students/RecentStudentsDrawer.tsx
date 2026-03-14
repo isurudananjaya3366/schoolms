@@ -109,7 +109,7 @@ export default function RecentStudentsDrawer({
                     )}
                   </div>
                   <span className="ml-2 shrink-0 font-mono text-xs text-muted-foreground">
-                    {s.indexNumber ?? "—"}
+                    {s.indexNumber ?? "-"}
                   </span>
                 </li>
               ))}

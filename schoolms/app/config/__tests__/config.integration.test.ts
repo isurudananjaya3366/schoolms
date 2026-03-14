@@ -73,7 +73,7 @@ vi.mock("bcryptjs", () => ({
   hash: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
-// Rate limiter — inline re-implementation for test isolation
+// Rate limiter - inline re-implementation for test isolation
 vi.mock("@/lib/rate-limiter", () => {
   const store = new Map<string, { count: number; windowStart: number }>();
   return {
@@ -162,8 +162,8 @@ describe("Config API Integration Tests", () => {
     mockPrismaUserCreate.mockResolvedValue({ id: "mock-id" });
   });
 
-  // Test 1 — Valid connection, no existing superadmin
-  it("POST /api/config/connect — valid connection, no superadmin → 200 { connected, needsSuperadmin }", async () => {
+  // Test 1 - Valid connection, no existing superadmin
+  it("POST /api/config/connect - valid connection, no superadmin → 200 { connected, needsSuperadmin }", async () => {
     const req = buildRequest("/api/config/connect", {
       method: "POST",
       body: { connectionString: "mongodb+srv://user:pass@cluster0.abc.mongodb.net/schoolms" },
@@ -177,8 +177,8 @@ describe("Config API Integration Tests", () => {
     expect(data.needsSuperadmin).toBe(true);
   });
 
-  // Test 2 — Invalid connection string format
-  it("POST /api/config/connect — invalid connection string → 400", async () => {
+  // Test 2 - Invalid connection string format
+  it("POST /api/config/connect - invalid connection string → 400", async () => {
     const req = buildRequest("/api/config/connect", {
       method: "POST",
       body: { connectionString: "not-a-valid-string" },
@@ -191,8 +191,8 @@ describe("Config API Integration Tests", () => {
     expect(data.error).toBeDefined();
   });
 
-  // Test 3 — Rate limit exceeded
-  it("POST /api/config/connect — rate limit exceeded on 6th call → 429", async () => {
+  // Test 3 - Rate limit exceeded
+  it("POST /api/config/connect - rate limit exceeded on 6th call → 429", async () => {
     const validBody = {
       connectionString: "mongodb+srv://user:pass@cluster0.abc.mongodb.net/db",
     };
@@ -218,8 +218,8 @@ describe("Config API Integration Tests", () => {
     expect(res.status).toBe(429);
   });
 
-  // Test 4 — PrismaClient $connect() throws with credentials in error
-  it("POST /api/config/connect — connection error, no credentials in response", async () => {
+  // Test 4 - PrismaClient $connect() throws with credentials in error
+  it("POST /api/config/connect - connection error, no credentials in response", async () => {
     mockConnect.mockRejectedValueOnce(
       new Error(
         "Connection failed: mongodb+srv://secretuser:secretpass@cluster0.abc.mongodb.net/db"
@@ -240,8 +240,8 @@ describe("Config API Integration Tests", () => {
     expect(data.error).toContain("[credentials-redacted]");
   });
 
-  // Test 5 — Valid superadmin creation
-  it("POST /api/config/superadmin — valid data → 200 { success }", async () => {
+  // Test 5 - Valid superadmin creation
+  it("POST /api/config/superadmin - valid data → 200 { success }", async () => {
     const req = buildRequest("/api/config/superadmin", {
       method: "POST",
       body: {
@@ -259,8 +259,8 @@ describe("Config API Integration Tests", () => {
     expect(data.success).toBe(true);
   });
 
-  // Test 6 — Passwords don't match
-  it("POST /api/config/superadmin — passwords don't match → 400", async () => {
+  // Test 6 - Passwords don't match
+  it("POST /api/config/superadmin - passwords don't match → 400", async () => {
     const req = buildRequest("/api/config/superadmin", {
       method: "POST",
       body: {
@@ -278,8 +278,8 @@ describe("Config API Integration Tests", () => {
     expect(data.error).toContain("match");
   });
 
-  // Test 7 — Email already exists
-  it("POST /api/config/superadmin — email already exists → 400", async () => {
+  // Test 7 - Email already exists
+  it("POST /api/config/superadmin - email already exists → 400", async () => {
     mockPrismaUserFindUnique.mockResolvedValueOnce({
       id: "existing-id",
       email: "admin@school.com",
@@ -302,8 +302,8 @@ describe("Config API Integration Tests", () => {
     expect(data.error).toContain("email");
   });
 
-  // Test 8 — GET /api/config/health, DB healthy
-  it("GET /api/config/health — healthy → correct shape, no DATABASE_URL", async () => {
+  // Test 8 - GET /api/config/health, DB healthy
+  it("GET /api/config/health - healthy → correct shape, no DATABASE_URL", async () => {
     mockCheckDatabaseHealth.mockResolvedValueOnce({
       status: "healthy",
       latencyMs: 42,
@@ -330,8 +330,8 @@ describe("Config API Integration Tests", () => {
     expect(res.headers.get("Cache-Control")).toBe("no-store");
   });
 
-  // Test 9 — GET /api/config/health, DB unreachable, credentials stripped
-  it("GET /api/config/health — unreachable → credentials stripped from error", async () => {
+  // Test 9 - GET /api/config/health, DB unreachable, credentials stripped
+  it("GET /api/config/health - unreachable → credentials stripped from error", async () => {
     mockCheckDatabaseHealth.mockResolvedValueOnce({
       status: "unreachable",
       latencyMs: null,

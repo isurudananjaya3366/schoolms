@@ -15,10 +15,10 @@ describe("Date Formatting Utilities", () => {
       try {
         return format(null as unknown as Date, "yyyy-MM-dd");
       } catch {
-        return "—";
+        return "-";
       }
     })();
-    expect(result).toBe("—");
+    expect(result).toBe("-");
   });
 
   it("returns relative time string for past date", () => {

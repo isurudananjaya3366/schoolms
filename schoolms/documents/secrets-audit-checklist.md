@@ -12,7 +12,7 @@
 
 - [ ] 3. `.gitignore` excludes `.env`, `.env.local`, `.env.production`, `.env.development`, and all dot-env variants.
 
-- [ ] 4. `prisma/schema.prisma` references `env("DATABASE_URL")` only — no hardcoded connection strings.
+- [ ] 4. `prisma/schema.prisma` references `env("DATABASE_URL")` only - no hardcoded connection strings.
 
 - [ ] 5. No environment variable values appear in static build output (`.next/static/`).
 

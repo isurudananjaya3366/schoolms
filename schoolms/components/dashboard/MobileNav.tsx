@@ -20,7 +20,7 @@ export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps)
   const mainItems = navItems.filter((item) => item.group === "main");
   const adminItems = navItems.filter((item) => item.group === "admin");
 
-  // Most-specific match wins — prevents parent routes from lighting up
+  // Most-specific match wins - prevents parent routes from lighting up
   const activeHref = navItems.reduce((best, item) => {
     const { href } = item;
     if (href === "/dashboard") {

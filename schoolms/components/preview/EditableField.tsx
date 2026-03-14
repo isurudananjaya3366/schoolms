@@ -29,7 +29,7 @@ function hasVariables(template: string): boolean {
 interface EditableFieldProps {
   /** The slide label key for this title */
   labelKey: SlideLabelKey;
-  /** Optional suffix appended after the editable label (e.g. " — Class 10A") */
+  /** Optional suffix appended after the editable label (e.g. " - Class 10A") */
   suffix?: string;
   /** Additional classes applied to the outer element */
   className?: string;
@@ -40,7 +40,7 @@ interface EditableFieldProps {
 /**
  * Renders a slide label. In editable mode (provided by EditLabelsContext),
  * clicking opens an inline input. Segments wrapped in {braces} are treated
- * as runtime variables — protected from editing and substituted in view mode.
+ * as runtime variables - protected from editing and substituted in view mode.
  */
 export default function EditableField({
   labelKey,
@@ -145,7 +145,7 @@ export default function EditableField({
               <span
                 key={i}
                 className="inline-flex items-center px-1.5 rounded bg-violet-600 text-white text-[0.7em] font-mono select-none cursor-not-allowed"
-                title={`Runtime variable — replaced with actual ${seg.name} at presentation time`}
+                title={`Runtime variable - replaced with actual ${seg.name} at presentation time`}
               >
                 {`{${seg.name}}`}
               </span>

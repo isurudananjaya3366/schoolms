@@ -96,7 +96,7 @@ export async function GET(
     const labelIII = configMap.get("elective_label_III") || "Category III";
     const schoolLogoUrl = configMap.get("school_logo_url") || null;
 
-    // Parse elective labels — may be JSON arrays, take first element as default
+    // Parse elective labels - may be JSON arrays, take first element as default
     function parseElectiveLabel(raw: string): string {
       try {
         const parsed = JSON.parse(raw);

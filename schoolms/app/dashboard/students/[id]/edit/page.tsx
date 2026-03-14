@@ -40,7 +40,7 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
   if (classGroups.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Edit Student — {student.name}</h1>
+        <h1 className="text-2xl font-bold">Edit Student - {student.name}</h1>
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
@@ -54,7 +54,7 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Edit Student — {student.name}</h1>
+      <h1 className="text-2xl font-bold">Edit Student - {student.name}</h1>
       <StudentForm
         mode="edit"
         student={{

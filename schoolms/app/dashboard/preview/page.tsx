@@ -201,7 +201,7 @@ export default function PresentationPreviewPage() {
             )}
           </div>
 
-          {/* Academic Year — only years with data */}
+          {/* Academic Year - only years with data */}
           <div className="flex items-center gap-4">
             <Label className="w-24 shrink-0 text-sm">Academic Year</Label>
             {loadingYears ? (
@@ -302,7 +302,7 @@ export default function PresentationPreviewPage() {
               <Users className="size-4 text-muted-foreground shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">
-                  Grade {selectedClass.grade}{selectedClass.section} — {year}
+                  Grade {selectedClass.grade}{selectedClass.section} - {year}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {selectedClass._count.students} students in queue

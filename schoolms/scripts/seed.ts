@@ -4,7 +4,7 @@
  * Usage:
  *   npx tsx scripts/seed.ts
  *
- * This script is idempotent — safe to run multiple times.
+ * This script is idempotent - safe to run multiple times.
  * It performs the following:
  *   1. Creates SUPERADMIN user if none exists
  *   2. Seeds default SystemConfig (school name, academic year, core subjects, elective subjects)
@@ -127,11 +127,11 @@ async function seedSystemConfig() {
     });
 
     if (existing) {
-      console.log(`  ⏭️  ${key} — already set`);
+      console.log(`  ⏭️  ${key} - already set`);
       skipped++;
     } else {
       await prisma.systemConfig.create({ data: { key, value } });
-      console.log(`  ✅ ${key} — created`);
+      console.log(`  ✅ ${key} - created`);
       created++;
     }
   }
@@ -147,7 +147,7 @@ async function seedClassGroups() {
   const existing = await prisma.classGroup.count();
 
   if (existing > 0) {
-    console.log(`  ⏭️  ${existing} class groups already exist — skipping`);
+    console.log(`  ⏭️  ${existing} class groups already exist - skipping`);
     return;
   }
 
@@ -166,7 +166,7 @@ async function seedClassGroups() {
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════╗");
-  console.log("║           SchoolMS — Database Seeder             ║");
+  console.log("║           SchoolMS - Database Seeder             ║");
   console.log("╚══════════════════════════════════════════════════╝");
 
   await seedSuperAdmin();

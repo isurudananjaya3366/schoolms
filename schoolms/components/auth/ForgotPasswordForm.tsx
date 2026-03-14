@@ -39,7 +39,7 @@ export function ForgotPasswordForm() {
         body: JSON.stringify({ email, newPassword }),
       });
     } catch {
-      // Silently handle — always show success to prevent enumeration
+      // Silently handle - always show success to prevent enumeration
     } finally {
       setIsLoading(false);
       setSubmitted(true);

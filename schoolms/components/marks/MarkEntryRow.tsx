@@ -53,7 +53,7 @@ function MarkEntryRowInner({
     >
       {/* Index Number */}
       <td className="sticky left-0 z-10 bg-white px-3 py-2 text-xs text-muted-foreground">
-        {row.indexNumber ?? "—"}
+        {row.indexNumber ?? "-"}
       </td>
 
       {/* Student Name */}
@@ -118,7 +118,7 @@ function MarkEntryRowInner({
                       ? "border-amber-400"
                       : ""
                 } ${showLow ? "text-amber-600" : ""}`}
-                aria-label={`Mark for ${row.studentName} — ${subject}`}
+                aria-label={`Mark for ${row.studentName} - ${subject}`}
               />
 
               {/* Error indicator */}

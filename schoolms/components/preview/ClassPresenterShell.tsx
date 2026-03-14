@@ -53,7 +53,7 @@ export default function ClassPresenterShell({
       .then((data: { labels: SlideLabels }) => {
         if (data.labels) setConfigLabels(data.labels);
       })
-      .catch(() => {/* silently ignore — falls back to defaults */});
+      .catch(() => {/* silently ignore - falls back to defaults */});
   }, [medium]);
 
   // Fetch preview data whenever the current student changes
@@ -76,7 +76,7 @@ export default function ClassPresenterShell({
       .then((data: PreviewData) => {
         if (!cancelled) setPreviewData(data);
       })
-      .catch(() => {/* silently ignore — user sees empty state */})
+      .catch(() => {/* silently ignore - user sees empty state */})
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -293,7 +293,7 @@ export default function ClassPresenterShell({
                         )}
                       </div>
 
-                      {/* Name + index — clickable to switch to that student */}
+                      {/* Name + index - clickable to switch to that student */}
                       <button
                         className="min-w-0 flex-1 text-left"
                         onClick={() => {

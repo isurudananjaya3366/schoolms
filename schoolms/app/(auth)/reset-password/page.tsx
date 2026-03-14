@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Forgot Password — SchoolMS",
+  title: "Forgot Password - SchoolMS",
 };
 
 export default function ResetPasswordPage() {

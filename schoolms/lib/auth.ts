@@ -120,7 +120,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               dbUser.sessionInvalidatedAt.getTime() / 1000
             );
             if (invalidatedAt > iat) {
-              // Session was invalidated — return empty token to force re-auth
+              // Session was invalidated - return empty token to force re-auth
               return {} as typeof token;
             }
           }

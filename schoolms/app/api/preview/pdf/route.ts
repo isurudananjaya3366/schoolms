@@ -146,7 +146,7 @@ export async function POST(request: Request) {
           createElement(
             Text,
             null,
-            `${schoolName} — Analytics Report — Page ${i + 2}`,
+            `${schoolName} - Analytics Report - Page ${i + 2}`,
           ),
         ),
       ),

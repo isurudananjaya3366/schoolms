@@ -32,7 +32,7 @@ export interface RankingDisplayProps {
 function getOrdinal(n: number): string {
   const suffixes = ["th", "st", "nd", "rd"] as const;
   const mod100 = n % 100;
-  // 11, 12, 13 are special — always "th"
+  // 11, 12, 13 are special - always "th"
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
   return `${n}${suffixes[n % 10] ?? "th"}`;
 }
@@ -277,7 +277,7 @@ export default function RankingDisplay({
   // Loading
   if (loading) return <RankingSkeleton />;
 
-  // Error — gracefully hidden
+  // Error - gracefully hidden
   if (error) return null;
 
   // No data (student has no marks for this year)
@@ -292,7 +292,7 @@ export default function RankingDisplay({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="size-4 text-primary" />
-          Rankings — {year}
+          Rankings - {year}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">

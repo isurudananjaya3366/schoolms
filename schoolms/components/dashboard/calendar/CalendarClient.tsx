@@ -266,7 +266,7 @@ export default function CalendarClient({ role }: CalendarClientProps) {
                   key={m.id}
                   onClick={(e) => { e.stopPropagation(); openEdit(m); }}
                   className={`w-full text-left px-1.5 py-0.5 rounded text-[11px] leading-tight font-medium text-white truncate ${getClassColor(m.classGroup)}`}
-                  title={`${m.title} — ${m.classGroup} @ ${m.startTime}`}
+                  title={`${m.title} - ${m.classGroup} @ ${m.startTime}`}
                 >
                   <span className="opacity-80 mr-1">{m.startTime}</span>
                   {m.title}

@@ -2,11 +2,11 @@
  * Mock PreviewData objects for the slide editor/configure page.
  * Each student is designed to trigger a different set of conditional slides:
  *
- * Mock 1 — ALL slides: 3 terms, classRank 2, sectionRank 4, W grades, annual stats
- * Mock 2 — No ranking slides: 3 terms, classRank 15, sectionRank 12, no W, annual stats
- * Mock 3 — Only class slide: 2 terms, classRank 3, sectionRank 16, W grades
- * Mock 4 — Only section slide: 2 terms, classRank 18, sectionRank 2, no W
- * Mock 5 — Minimal: 1 term, no rankings, no W
+ * Mock 1 - ALL slides: 3 terms, classRank 2, sectionRank 4, W grades, annual stats
+ * Mock 2 - No ranking slides: 3 terms, classRank 15, sectionRank 12, no W, annual stats
+ * Mock 3 - Only class slide: 2 terms, classRank 3, sectionRank 16, W grades
+ * Mock 4 - Only section slide: 2 terms, classRank 18, sectionRank 2, no W
+ * Mock 5 - Minimal: 1 term, no rankings, no W
  */
 
 import type { PreviewData } from "@/types/preview";
@@ -30,7 +30,7 @@ function subject(
   isW: boolean;
 } {
   const isW = mark !== null && mark < 35;
-  const display = mark === null ? "—" : isW ? "W" : String(mark);
+  const display = mark === null ? "-" : isW ? "W" : String(mark);
   return { key, displayName, mark, display, isW };
 }
 
@@ -68,7 +68,7 @@ function makeChartEntry(
   };
 }
 
-// ─── Mock Student 1 — ALL slides ─────────────────────────────────────────────
+// ─── Mock Student 1 - ALL slides ─────────────────────────────────────────────
 // 3 terms, classRank 2, sectionRank 4, W grades, annual stats
 
 const MOCK1_T1 = { sinhala: 78, buddhism: 85, maths: 92, science: 88, english: 30, history: 71, categoryI: 80, categoryII: 75, categoryIII: 82 };
@@ -167,7 +167,7 @@ export const mockStudent1: PreviewData = {
   },
 };
 
-// ─── Mock Student 2 — No ranking slides ──────────────────────────────────────
+// ─── Mock Student 2 - No ranking slides ──────────────────────────────────────
 // 3 terms, classRank 15, sectionRank 12, no W, annual stats
 
 const MOCK2_T1 = { sinhala: 60, buddhism: 65, maths: 58, science: 62, english: 55, history: 63, categoryI: 59, categoryII: 61, categoryIII: 57 };
@@ -237,7 +237,7 @@ export const mockStudent2: PreviewData = {
   },
 };
 
-// ─── Mock Student 3 — Only class slide ───────────────────────────────────────
+// ─── Mock Student 3 - Only class slide ───────────────────────────────────────
 // 2 terms, classRank 3, sectionRank 16, W grades (no annual since only 2 terms)
 
 const MOCK3_T1 = { sinhala: 88, buddhism: 90, maths: 95, science: 92, english: 72, history: 80, categoryI: 85, categoryII: 30, categoryIII: 87 };
@@ -307,7 +307,7 @@ export const mockStudent3: PreviewData = {
   },
 };
 
-// ─── Mock Student 4 — Only section slide ─────────────────────────────────────
+// ─── Mock Student 4 - Only section slide ─────────────────────────────────────
 // 2 terms, classRank 18, sectionRank 2, no W (no annual since only 2 terms)
 
 const MOCK4_T1 = { sinhala: 95, buddhism: 97, maths: 98, science: 96, english: 94, history: 93, categoryI: 95, categoryII: 96, categoryIII: 97 };
@@ -370,7 +370,7 @@ export const mockStudent4: PreviewData = {
   },
 };
 
-// ─── Mock Student 5 — Minimal slides ─────────────────────────────────────────
+// ─── Mock Student 5 - Minimal slides ─────────────────────────────────────────
 // 1 term, no rankings, no W
 
 const MOCK5_T1 = { sinhala: 55, buddhism: 60, maths: 50, science: 58, english: 52, history: 56, categoryI: 54, categoryII: 57, categoryIII: 53 };

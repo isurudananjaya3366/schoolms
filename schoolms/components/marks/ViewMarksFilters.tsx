@@ -278,7 +278,7 @@ export default function ViewMarksFilters({
                       setSearchOpen(false);
                     }}
                   >
-                    <span className="font-medium">{s.indexNumber}</span> —{" "}
+                    <span className="font-medium">{s.indexNumber}</span> -{" "}
                     {s.name}
                   </li>
                 ))}

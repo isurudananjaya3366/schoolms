@@ -68,7 +68,7 @@ export default function StudentSearchPanel({
           }
         }
       } catch {
-        // Silently fail — years will be empty
+        // Silently fail - years will be empty
       }
     }
     fetchYears();
@@ -123,7 +123,7 @@ export default function StudentSearchPanel({
         ? `${student.class.grade}${student.class.section}`
         : undefined,
     });
-    setQuery(`${student.indexNumber} — ${student.name}`);
+    setQuery(`${student.indexNumber} - ${student.name}`);
     setShowDropdown(false);
   };
 

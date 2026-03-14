@@ -21,17 +21,17 @@ export const CORE_SUBJECT_NAMES: Record<string, string> = {
   history: "History",
 };
 
-// Fixed palette — 12 distinct colours, subjects assigned by index
+// Fixed palette - 12 distinct colours, subjects assigned by index
 export const PALETTE: string[] = [
-  "#2563eb", // blue — Sinhala
-  "#7c3aed", // violet — Buddhism
-  "#059669", // emerald — Maths
-  "#d97706", // amber — Science
-  "#dc2626", // red — English
-  "#0891b2", // cyan — History
-  "#c026d3", // fuchsia — Category I
-  "#ea580c", // orange — Category II
-  "#4f46e5", // indigo — Category III
+  "#2563eb", // blue - Sinhala
+  "#7c3aed", // violet - Buddhism
+  "#059669", // emerald - Maths
+  "#d97706", // amber - Science
+  "#dc2626", // red - English
+  "#0891b2", // cyan - History
+  "#c026d3", // fuchsia - Category I
+  "#ea580c", // orange - Category II
+  "#4f46e5", // indigo - Category III
   "#16a34a", // green (spare)
   "#9333ea", // purple (spare)
   "#0d9488", // teal (spare)
@@ -42,9 +42,9 @@ export const W_BAR_COLOR = "#ef4444"; // red-500
 
 // Performance threshold colours (for analytics charts)
 export const THRESHOLD_COLORS = {
-  fail: "#dc2626",    // red — below 35
-  atRisk: "#d97706",  // amber — 35-49
-  pass: "#16a34a",    // green — 50+
+  fail: "#dc2626",    // red - below 35
+  atRisk: "#d97706",  // amber - 35-49
+  pass: "#16a34a",    // green - 50+
 } as const;
 
 // Reverse lookup: display name → palette index for core subjects

@@ -191,8 +191,8 @@ export default function ConfigClient({
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {step === 1
-                ? "Step 1 of 2 — Connect Database"
-                : "Step 2 of 2 — Create Superadmin"}
+                ? "Step 1 of 2 - Connect Database"
+                : "Step 2 of 2 - Create Superadmin"}
             </p>
             <div className="flex justify-center pt-2">
               <Badge variant="destructive">No Database Configured</Badge>

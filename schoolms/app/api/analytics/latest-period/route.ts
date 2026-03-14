@@ -49,7 +49,7 @@ export async function GET() {
     console.error("/api/analytics/latest-period error:", err);
     return NextResponse.json(
       { latestYear: new Date().getFullYear(), latestTerm: "TERM_3" },
-      { status: 200 }, // Non-critical — return fallback rather than 500
+      { status: 200 }, // Non-critical - return fallback rather than 500
     );
   }
 }

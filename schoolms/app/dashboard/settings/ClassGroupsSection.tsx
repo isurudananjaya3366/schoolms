@@ -187,7 +187,7 @@ export default function ClassGroupsSection() {
                           </TooltipTrigger>
                           <TooltipContent>
                             {existing
-                              ? `Section ${section} — ${studentCount} student${studentCount !== 1 ? "s" : ""}. Click to remove.`
+                              ? `Section ${section} - ${studentCount} student${studentCount !== 1 ? "s" : ""}. Click to remove.`
                               : `Add Section ${section}`}
                           </TooltipContent>
                         </Tooltip>

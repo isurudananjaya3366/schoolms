@@ -41,7 +41,7 @@ function parseSubjects(value: string): string[] {
       return parsed;
     }
   } catch {
-    // Not JSON — treat as a single-element array
+    // Not JSON - treat as a single-element array
   }
   return value ? [value] : [];
 }

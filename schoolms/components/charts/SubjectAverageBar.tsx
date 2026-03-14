@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <p className="text-xs">
         Average:{" "}
         <span className="font-semibold">
-          {average === null ? "—" : average.toFixed(1)}
+          {average === null ? "-" : average.toFixed(1)}
         </span>
       </p>
       <p className="text-xs text-muted-foreground">Students: {count}</p>

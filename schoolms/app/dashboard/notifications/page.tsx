@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import NotificationsClient from "@/components/dashboard/notifications/NotificationsClient";
 
-export const metadata = { title: "Notifications — SchoolMS" };
+export const metadata = { title: "Notifications - SchoolMS" };
 
 export default async function NotificationsPage() {
   const session = await auth();

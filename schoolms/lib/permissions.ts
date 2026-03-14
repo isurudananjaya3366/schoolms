@@ -92,7 +92,7 @@ export const PERMISSION_FEATURES = {
 
 export type PermissionKey = keyof typeof PERMISSION_FEATURES;
 
-// Configurable roles — SUPERADMIN is always full-access, STUDENT has no dash access
+// Configurable roles - SUPERADMIN is always full-access, STUDENT has no dash access
 export const CONFIGURABLE_ROLES = ["ADMIN", "STAFF", "TEACHER"] as const;
 export type ConfigurableRole = (typeof CONFIGURABLE_ROLES)[number];
 
@@ -159,7 +159,7 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
 
 /**
  * Load the stored permissions from SystemConfig, merged with defaults.
- * Fetches from DB every call — wrap in React `cache()` at call site if needed.
+ * Fetches from DB every call - wrap in React `cache()` at call site if needed.
  */
 export async function loadPermissions(): Promise<AllRolePermissions> {
   try {
@@ -178,7 +178,7 @@ export async function loadPermissions(): Promise<AllRolePermissions> {
       return merged;
     }
   } catch {
-    // Parse error or DB error — fall back to defaults
+    // Parse error or DB error - fall back to defaults
   }
   return DEFAULT_PERMISSIONS;
 }
