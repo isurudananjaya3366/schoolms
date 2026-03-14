@@ -711,6 +711,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
               chartData={desc.chartData}
               electiveLabels={data.electiveLabels}
               title={`${desc.chartData[0]?.term ?? "Latest Term"} Performance`}
+              labelKey="focusChart"
             />
           </div>
         );
@@ -721,6 +722,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
               chartData={desc.chartData}
               electiveLabels={data.electiveLabels}
               title="Performance Overview"
+              labelKey="chart"
             />
           </div>
         );

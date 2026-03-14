@@ -2,18 +2,24 @@
 
 import { motion } from "framer-motion";
 import { StudentPerformanceBar } from "@/components/charts";
+import EditableField from "@/components/preview/EditableField";
 import type { TermMarkData, ElectiveLabels } from "@/types/charts";
+import type { SlideLabelKey } from "@/types/preview";
 
 interface SlidePerformanceChartProps {
   chartData: TermMarkData[];
   electiveLabels: ElectiveLabels;
+  /** Fallback title (shown when no label override exists) */
   title?: string;
+  /** Label key used for EditableField (determines which label override to use) */
+  labelKey?: SlideLabelKey;
 }
 
 export default function SlidePerformanceChart({
   chartData,
   electiveLabels,
   title = "Performance Overview",
+  labelKey,
 }: SlidePerformanceChartProps) {
   return (
     <div className="flex flex-col h-full px-10 py-8">
@@ -23,7 +29,11 @@ export default function SlidePerformanceChart({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        {title}
+        {labelKey ? (
+          <EditableField labelKey={labelKey} />
+        ) : (
+          title
+        )}
       </motion.h2>
 
       <motion.div

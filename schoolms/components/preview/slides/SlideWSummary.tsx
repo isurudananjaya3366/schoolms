@@ -109,9 +109,8 @@ export default function SlideWSummary({ wSummary }: SlideWSummaryProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <strong>Note:</strong> Marks below 35 are classified as &ldquo;W&rdquo;
-        (Weak) under the W-Rule. These subjects require additional focus and
-        improvement.
+        <strong>Note:</strong>{" "}
+        <EditableField labelKey="wNote" />
       </motion.p>
     </div>
   );

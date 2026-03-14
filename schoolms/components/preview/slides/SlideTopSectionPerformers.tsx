@@ -32,8 +32,8 @@ export default function SlideTopSectionPerformers({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        Across all Grade {grade} classes &middot;{" "}
-        {ranking.sectionTotal} student{ranking.sectionTotal !== 1 ? "s" : ""}
+        <EditableField labelKey="topSectionDesc" variables={{ grade: String(grade) }} />{" "}
+        &middot; {ranking.sectionTotal} student{ranking.sectionTotal !== 1 ? "s" : ""}
       </motion.p>
 
       <div className="flex gap-8 flex-1 min-h-0">

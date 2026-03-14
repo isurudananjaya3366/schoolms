@@ -39,7 +39,7 @@ export default function SlideAnnualSummary({
           <EditableField labelKey="annualSummary" />
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Overall performance across all 3 terms &middot; {academicYear}
+          <EditableField labelKey="annualDesc" />{" "}&middot; {academicYear}
         </p>
       </motion.div>
 
@@ -101,7 +101,7 @@ export default function SlideAnnualSummary({
           transition={{ delay: 0.35 }}
         >
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
-            Subject Averages (across all 3 terms)
+            <EditableField labelKey="annualSubjectHeader" />
           </p>
           <table className="w-full text-left">
             <thead>

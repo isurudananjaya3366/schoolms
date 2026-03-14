@@ -5,12 +5,18 @@ export type SlideLabelKey =
   | "overview"
   | "allTermsMarks"
   | "topClass"
+  | "topClassDesc"
   | "topSection"
+  | "topSectionDesc"
   | "focusChart"
   | "chart"
   | "annualSummary"
+  | "annualDesc"
+  | "annualSubjectHeader"
   | "highlights"
+  | "highlightsDesc"
   | "wSummary"
+  | "wNote"
   | "overallSummary";
 
 /** Overrideable labels per slide type */
@@ -21,12 +27,18 @@ export const DEFAULT_SLIDE_LABELS: Record<SlideLabelKey, string> = {
   overview: "Academic Performance",
   allTermsMarks: "Term Marks",
   topClass: "Top Performers",
+  topClassDesc: "Based on overall average across all recorded terms",
   topSection: "Top Performers",
+  topSectionDesc: "Across all Grade {grade} classes",
   focusChart: "Focus Term Performance",
   chart: "Performance Overview",
   annualSummary: "Annual Summary",
+  annualDesc: "Overall performance across all 3 terms",
+  annualSubjectHeader: "Subject Averages (across all 3 terms)",
   highlights: "Subject Highlights",
+  highlightsDesc: "Based on {focusTerm} results",
   wSummary: "W-Grade Summary",
+  wNote: "Marks below 35 are classified as \"W\" (Weak) under the W-Rule. These subjects require additional focus and improvement.",
   overallSummary: "Overall Summary",
 };
 
