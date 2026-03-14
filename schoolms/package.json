@@ -2,6 +2,8 @@
   "name": "schoolms",
   "version": "0.1.0",
   "private": true,
+  "author": "Isuru Dananjaya",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

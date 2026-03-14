@@ -9,9 +9,11 @@ import { resolveIcon } from "@/lib/icon-map";
 
 interface SidebarNavProps {
   items: NavItem[];
+  schoolName?: string;
+  schoolLogoUrl?: string;
 }
 
-export default function SidebarNav({ items }: SidebarNavProps) {
+export default function SidebarNav({ items, schoolName, schoolLogoUrl }: SidebarNavProps) {
   const pathname = usePathname();
 
   const mainItems = items.filter((item) => item.group === "main");
@@ -37,9 +39,20 @@ export default function SidebarNav({ items }: SidebarNavProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-4 py-4">
-        <GraduationCap className="h-6 w-6 text-primary" />
-        <span className="text-lg font-bold">SchoolMS</span>
+      <div
+        className="flex h-14 items-center justify-center px-4"
+        title={schoolName || "SchoolMS"}
+      >
+        {schoolLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={schoolLogoUrl}
+            alt="School logo"
+            className="h-9 w-9 rounded-lg object-contain"
+          />
+        ) : (
+          <GraduationCap className="h-8 w-8 text-primary" />
+        )}
       </div>
       <Separator />
       <nav className="flex-1 space-y-1 px-2 py-3">

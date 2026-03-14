@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Megaphone } from "lucide-react";
+import prisma from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Sign In — SchoolMS",
@@ -32,14 +33,41 @@ export default async function LoginPage({
   const params = await searchParams;
   const passwordResetSuccess = params.passwordReset === "success";
 
+  // Load school branding (graceful — if DB is unreachable, fallback to defaults)
+  let schoolName = "SchoolMS";
+  let schoolLogoUrl: string | null = null;
+  try {
+    const configs = await prisma.systemConfig.findMany({
+      where: { key: { in: ["school_name", "school_logo_url"] } },
+      select: { key: true, value: true },
+    });
+    const map = Object.fromEntries(configs.map(c => [c.key, c.value]));
+    if (map.school_name) schoolName = map.school_name;
+    if (map.school_logo_url) schoolLogoUrl = map.school_logo_url;
+  } catch {
+    // Silently use defaults if DB is unavailable (e.g. during initial setup)
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign In</CardTitle>
-          <CardDescription>
-            Sign in to SchoolMS
-          </CardDescription>
+        <CardHeader className="pb-2">
+          <div className="flex justify-center mb-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+              {schoolLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={schoolLogoUrl}
+                  alt={`${schoolName} logo`}
+                  className="h-10 w-10 rounded-lg object-contain"
+                />
+              ) : (
+                <GraduationCap className="h-8 w-8 text-primary" />
+              )}
+            </div>
+          </div>
+          <CardTitle className="text-center text-2xl">{schoolName}</CardTitle>
+          <CardDescription className="text-center">Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
           {passwordResetSuccess && (

@@ -4,6 +4,7 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { NavItem } from "@/types/navigation";
 import { getRolePermissions } from "@/lib/permissions";
+import prisma from "@/lib/prisma";
 
 const ALL_NAV_ITEMS: (NavItem & { permKey?: string })[] = [
   { label: "Overview", href: "/dashboard", icon: "LayoutDashboard", minRole: "ALL", group: "main" },
@@ -43,8 +44,19 @@ export default async function DashboardLayout({
 
   const { role, name } = session.user;
 
-  // Load permissions once for the layout
-  const perms = await getRolePermissions(role);
+  // Load permissions + school settings in parallel
+  const [perms, schoolConfigs] = await Promise.all([
+    getRolePermissions(role),
+    prisma.systemConfig.findMany({
+      where: { key: { in: ["school_name", "school_logo_url"] } },
+      select: { key: true, value: true },
+    }),
+  ]);
+
+  const schoolSettings = Object.fromEntries(schoolConfigs.map(c => [c.key, c.value]));
+  const schoolName = schoolSettings.school_name || "SchoolMS";
+  const schoolLogoUrl = schoolSettings.school_logo_url || undefined;
+
   const userPriority = ROLE_PRIORITY[role] ?? 0;
 
   const filteredItems: NavItem[] = ALL_NAV_ITEMS.filter((item) => {
@@ -61,8 +73,8 @@ export default async function DashboardLayout({
   });
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar items={filteredItems} />
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar items={filteredItems} schoolName={schoolName} schoolLogoUrl={schoolLogoUrl} />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardShell
           role={role}

@@ -1,4 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SchoolMS
+
+A full-featured school management system built with Next.js, Prisma, and NextAuth.
+
+**Author:** Isuru Dananjaya  
+**License:** MIT
+
+## Features
+
+- Student management (add, edit, delete, profiles)
+- Mark entry and progress reports (PDF generation)
+- Analytics dashboard and leaderboard
+- Role-based access control (SUPERADMIN, ADMIN, STAFF, TEACHER)
+- Backup system, audit log, and user management
+- Classroom presentation / preview mode
+- Meeting calendar and notice board
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Database:** PostgreSQL via Prisma ORM
+- **Auth:** NextAuth v5
+- **UI:** shadcn/ui + Tailwind CSS v4
+- **PDF:** @react-pdf/renderer
+- **Storage:** Vercel Blob
+
+## License
+
+MIT © 2024 Isuru Dananjaya
+
 
 ## Getting Started
 
