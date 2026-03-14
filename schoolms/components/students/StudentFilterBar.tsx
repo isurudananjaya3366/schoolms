@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Search } from "lucide-react";
 
-const GRADES = [10, 11];
+const GRADES = [6, 7, 8, 9, 10, 11];
 const SECTIONS = ["A", "B", "C", "D", "E", "F"];
 
 export default function StudentFilterBar() {

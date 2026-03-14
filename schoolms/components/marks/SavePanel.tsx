@@ -21,7 +21,7 @@ export default function SavePanel({
   const disabled = dirtyCount === 0 || saving || hasInvalidRows;
 
   return (
-    <div className="flex items-center gap-4 flex-wrap">
+    <div className="flex items-center gap-3 flex-wrap">
       <Button
         variant="outline"
         onClick={onSaveDraft}

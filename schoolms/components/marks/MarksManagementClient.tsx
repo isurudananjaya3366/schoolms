@@ -61,6 +61,8 @@ export default function MarksManagementClient({
     isTeacher ? (assignedClassId ?? null) : null
   );
   const [year, setYear] = useState<number | null>(null);
+  const [yearOptions, setYearOptions] = useState<number[]>([]);
+  const [yearOptionsLoading, setYearOptionsLoading] = useState(true);
 
   // Class options
   const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
@@ -78,20 +80,35 @@ export default function MarksManagementClient({
   // Saving state per term
   const [savingTerm, setSavingTerm] = useState<string | null>(null);
 
-  // ── Fetch current academic year from settings ──
+  // ── Fetch current academic year from settings + available years ──
   useEffect(() => {
-    async function fetchYear() {
+    async function fetchYearData() {
       try {
-        const res = await fetch("/api/settings");
-        if (!res.ok) return;
-        const data = await res.json();
-        const y = parseInt(data.academic_year, 10);
-        if (!Number.isNaN(y)) setYear(y);
+        const [settingsRes, yearsRes] = await Promise.all([
+          fetch("/api/settings"),
+          fetch("/api/marks/years"),
+        ]);
+        let base: number | null = null;
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
+          const y = parseInt(data.academic_year, 10);
+          if (!Number.isNaN(y)) {
+            base = y;
+            setYear(y);
+          }
+        }
+        const availableYears: number[] = yearsRes.ok ? await yearsRes.json() : [];
+        const merged = Array.from(
+          new Set([...availableYears, ...(base !== null ? [base] : [])])
+        ).sort((a, b) => b - a);
+        setYearOptions(merged.length > 0 ? merged : base !== null ? [base - 1, base, base + 1] : []);
       } catch {
         // ignore
+      } finally {
+        setYearOptionsLoading(false);
       }
     }
-    fetchYear();
+    void fetchYearData();
   }, []);
 
   // ── For TEACHER: auto-load their class info ──
@@ -246,12 +263,19 @@ export default function MarksManagementClient({
           <Select
             value={year?.toString() ?? ""}
             onValueChange={(v) => setYear(parseInt(v, 10))}
+            disabled={yearOptionsLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Year" />
+              {yearOptionsLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : (
+                <SelectValue placeholder="Year" />
+              )}
             </SelectTrigger>
             <SelectContent>
-              {year && [year - 1, year, year + 1].map((y) => (
+              {yearOptions.map((y) => (
                 <SelectItem key={y} value={y.toString()}>
                   {y}
                 </SelectItem>

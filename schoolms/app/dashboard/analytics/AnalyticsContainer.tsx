@@ -423,9 +423,30 @@ export default function AnalyticsContainer({
     }
   };
 
-  // Year options: current year and two prior
+  // Year options: fetched from DB + current calendar year as fallback
   const currentYear = new Date().getFullYear();
-  const yearOptions = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
+  const [yearOptions, setYearOptions] = useState<number[]>([
+    currentYear,
+    currentYear - 1,
+    currentYear - 2,
+    currentYear - 3,
+  ]);
+  const [yearOptionsLoading, setYearOptionsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/marks/years")
+      .then((r) => r.json())
+      .then((years: number[]) => {
+        const merged = Array.from(new Set([...years, currentYear])).sort(
+          (a, b) => b - a
+        );
+        if (merged.length > 0) setYearOptions(merged);
+      })
+      .catch(() => {})
+      .finally(() => setYearOptionsLoading(false));
+  // currentYear is stable (computed once), no need to re-run
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── URL sync ───────────────────────────────────────────
   const syncUrl = useCallback(
@@ -807,8 +828,8 @@ export default function AnalyticsContainer({
     <>
     <div className="space-y-6">
       {/* Filters row */}
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex items-end gap-3">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div className="flex items-end gap-3 flex-wrap">
           {/* Grade */}
           <div className="w-40">
             <label className="mb-1 block text-sm font-medium">Grade</label>
@@ -868,9 +889,15 @@ export default function AnalyticsContainer({
           {/* Year */}
           <div className="w-36">
             <label className="mb-1 block text-sm font-medium">Year</label>
-            <Select value={year} onValueChange={handleYearChange}>
+            <Select value={year} onValueChange={handleYearChange} disabled={yearOptionsLoading}>
               <SelectTrigger>
-                <SelectValue />
+                {yearOptionsLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  </div>
+                ) : (
+                  <SelectValue />
+                )}
               </SelectTrigger>
               <SelectContent>
                 {yearOptions.map((y) => (
@@ -893,33 +920,35 @@ export default function AnalyticsContainer({
           </Button>
         </div>
 
-        {/* Download Report */}
-        <Button
-          variant="outline"
-          onClick={() => setShowReportModal(true)}
-          disabled={isLoading || isCapturing || !data}
-        >
-          {isCapturing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {captureProgress}
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Download Full Analytics Report
-            </>
-          )}
-        </Button>
-        {/* Download Student Reports */}
-        <Button
-          variant="outline"
-          onClick={() => setShowStudentReportsModal(true)}
-          disabled={isLoading || isCapturing}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Download Student Reports
-        </Button>
+        {/* Download buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowReportModal(true)}
+            disabled={isLoading || isCapturing || !data}
+          >
+            {isCapturing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {captureProgress}
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Download Full Analytics Report
+              </>
+            )}
+          </Button>
+          {/* Download Student Reports */}
+          <Button
+            variant="outline"
+            onClick={() => setShowStudentReportsModal(true)}
+            disabled={isLoading || isCapturing}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Student Reports
+          </Button>
+        </div>
       </div>
 
       {/* Row 1: Full width — Heatmap */}

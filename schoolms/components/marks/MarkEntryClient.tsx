@@ -108,6 +108,7 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
         term={state.term}
         year={state.year}
         yearOptions={state.yearOptions}
+        yearOptionsLoading={state.yearOptionsLoading}
         classOptions={state.classOptions}
         classLoading={state.classLoading}
         searchQuery={state.searchQuery}

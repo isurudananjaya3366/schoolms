@@ -25,6 +25,7 @@ interface Props {
   term: string | null;
   year: string;
   yearOptions: number[];
+  yearOptionsLoading?: boolean;
   classOptions: { id: string; grade: number; section: string }[];
   classLoading: boolean;
   viewMode: "class" | "student";
@@ -45,6 +46,7 @@ export default function ViewMarksFilters({
   term,
   year,
   yearOptions,
+  yearOptionsLoading,
   classOptions,
   classLoading,
   viewMode,
@@ -127,150 +129,161 @@ export default function ViewMarksFilters({
         </Button>
       )}
 
-      <div className="flex flex-wrap items-end gap-4">
-        {/* Year */}
-        <div className="w-32">
-          <label className="mb-1 block text-sm font-medium">Year</label>
-          <Select value={year} onValueChange={onYearChange}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((y) => (
-                <SelectItem key={y} value={String(y)}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        {/* Left group: Year + class-view filters */}
+        <div className="flex flex-wrap items-end gap-3">
+          {/* Year */}
+          <div className="w-32">
+            <label className="mb-1 block text-sm font-medium">Year</label>
+            <Select value={year} onValueChange={onYearChange} disabled={yearOptionsLoading}>
+              <SelectTrigger>
+                {yearOptionsLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : (
+                  <SelectValue />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {viewMode === "class" && (
+            <>
+              {/* Grade */}
+              <div className="w-36">
+                <label className="mb-1 block text-sm font-medium">Grade</label>
+                <Select
+                  value={grade?.toString() ?? ""}
+                  onValueChange={(v) => onGradeChange(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GRADES.map((g) => (
+                      <SelectItem key={g} value={g.toString()}>
+                        Grade {g}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Class */}
+              <div className="w-36">
+                <label className="mb-1 block text-sm font-medium">Class</label>
+                <Select
+                  value={classId ?? ""}
+                  onValueChange={onClassChange}
+                  disabled={!grade || classLoading}
+                >
+                  <SelectTrigger>
+                    {classLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select class" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classOptions.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.grade}
+                        {c.section}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Term */}
+              <div className="w-36">
+                <label className="mb-1 block text-sm font-medium">Term</label>
+                <Select value={term ?? ""} onValueChange={onTermChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select term" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TERM_1">Term 1</SelectItem>
+                    <SelectItem value="TERM_2">Term 2</SelectItem>
+                    <SelectItem value="TERM_3">Term 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          {viewMode === "student" && selectedStudentName && (
+            <div className="flex items-end">
+              <p className="text-sm font-medium text-muted-foreground">
+                Student: {selectedStudentName}
+              </p>
+            </div>
+          )}
         </div>
 
+        {/* Right group: Student Search (class view only) */}
         {viewMode === "class" && (
-          <>
-            {/* Grade */}
-            <div className="w-36">
-              <label className="mb-1 block text-sm font-medium">Grade</label>
-              <Select
-                value={grade?.toString() ?? ""}
-                onValueChange={(v) => onGradeChange(parseInt(v))}
+          <div className="relative w-64" ref={searchRef}>
+            <label className="mb-1 block text-sm font-medium">
+              Student Search
+            </label>
+            <div className="relative">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name or index…"
+                role="combobox"
+                aria-expanded={searchOpen}
+              />
+              {searchQuery && (
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                    setSearchOpen(false);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              {searchLoading && (
+                <Loader2 className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+              )}
+            </div>
+            {searchOpen && searchResults.length > 0 && (
+              <ul
+                role="listbox"
+                className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GRADES.map((g) => (
-                    <SelectItem key={g} value={g.toString()}>
-                      Grade {g}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Class */}
-            <div className="w-36">
-              <label className="mb-1 block text-sm font-medium">Class</label>
-              <Select
-                value={classId ?? ""}
-                onValueChange={onClassChange}
-                disabled={!grade || classLoading}
-              >
-                <SelectTrigger>
-                  {classLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-                    </div>
-                  ) : (
-                    <SelectValue placeholder="Select class" />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {classOptions.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.grade}
-                      {c.section}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Term */}
-            <div className="w-36">
-              <label className="mb-1 block text-sm font-medium">Term</label>
-              <Select value={term ?? ""} onValueChange={onTermChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select term" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TERM_1">Term 1</SelectItem>
-                  <SelectItem value="TERM_2">Term 2</SelectItem>
-                  <SelectItem value="TERM_3">Term 3</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Student Search */}
-            <div className="relative w-64" ref={searchRef}>
-              <label className="mb-1 block text-sm font-medium">
-                Student Search
-              </label>
-              <div className="relative">
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name or index…"
-                  role="combobox"
-                  aria-expanded={searchOpen}
-                />
-                {searchQuery && (
-                  <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                {searchResults.map((s) => (
+                  <li
+                    key={s.id}
+                    role="option"
+                    aria-selected={false}
+                    className="cursor-pointer rounded-sm px-3 py-2 text-sm hover:bg-accent"
                     onClick={() => {
-                      setSearchQuery("");
-                      setSearchResults([]);
+                      onStudentSelect(s);
+                      setSearchQuery(s.name);
                       setSearchOpen(false);
                     }}
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-                {searchLoading && (
-                  <Loader2 className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                )}
-              </div>
-              {searchOpen && searchResults.length > 0 && (
-                <ul
-                  role="listbox"
-                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
-                >
-                  {searchResults.map((s) => (
-                    <li
-                      key={s.id}
-                      role="option"
-                      aria-selected={false}
-                      className="cursor-pointer rounded-sm px-3 py-2 text-sm hover:bg-accent"
-                      onClick={() => {
-                        onStudentSelect(s);
-                        setSearchQuery(s.name);
-                        setSearchOpen(false);
-                      }}
-                    >
-                      <span className="font-medium">{s.indexNumber}</span> —{" "}
-                      {s.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </>
-        )}
-
-        {viewMode === "student" && selectedStudentName && (
-          <div className="flex items-end">
-            <p className="text-sm font-medium text-muted-foreground">
-              Student: {selectedStudentName}
-            </p>
+                    <span className="font-medium">{s.indexNumber}</span> —{" "}
+                    {s.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>

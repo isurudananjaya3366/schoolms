@@ -16,6 +16,7 @@ interface FilterPanelProps {
   term: string | null;
   year: number | null;
   yearOptions: number[];
+  yearOptionsLoading?: boolean;
   classOptions: { id: string; grade: number; section: string }[];
   classLoading: boolean;
   searchQuery: string;
@@ -34,6 +35,7 @@ export default function FilterPanel({
   term,
   year,
   yearOptions,
+  yearOptionsLoading,
   classOptions,
   classLoading,
   searchQuery,
@@ -44,18 +46,25 @@ export default function FilterPanel({
   onSearchChange,
 }: FilterPanelProps) {
   return (
-    <div className="flex items-end justify-between gap-6">
+    <div className="flex items-end justify-between">
       {/* Left: Filters */}
-      <div className="flex items-end gap-3">
+      <div className="flex">
         {/* Year */}
         <div className="w-28">
           <label className="mb-1 block text-sm font-medium">Year</label>
           <Select
             value={year?.toString() ?? ""}
             onValueChange={(v) => onYearChange(parseInt(v))}
+            disabled={yearOptionsLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Year" />
+              {yearOptionsLoading ? (
+                <div className="flex items-center gap-02">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : (
+                <SelectValue placeholder="Year" />
+              )}
             </SelectTrigger>
             <SelectContent>
               {yearOptions.map((y) => (

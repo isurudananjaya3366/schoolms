@@ -326,13 +326,34 @@ export function useMarkEntryState() {
   }, [dirtyMap.size]);
 
   // ========================================================================
-  // Year options — [year-1, year, year+1]
+  // Year options — fetched from DB + current academic year
   // ========================================================================
-  const yearOptions = useMemo<number[]>(() => {
-    if (!settings) return [];
+  const [yearOptions, setYearOptions] = useState<number[]>([]);
+  const [yearOptionsLoading, setYearOptionsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!settings) return;
     const base = parseInt(settings.academic_year, 10);
-    if (Number.isNaN(base)) return [];
-    return [base - 1, base, base + 1];
+    async function fetchYears() {
+      setYearOptionsLoading(true);
+      try {
+        const res = await fetch("/api/marks/years");
+        if (res.ok) {
+          const data: number[] = await res.json();
+          const merged = Array.from(
+            new Set([...data, ...(Number.isNaN(base) ? [] : [base])])
+          ).sort((a, b) => b - a);
+          setYearOptions(merged.length > 0 ? merged : Number.isNaN(base) ? [] : [base]);
+        } else {
+          setYearOptions(Number.isNaN(base) ? [] : [base - 1, base, base + 1]);
+        }
+      } catch {
+        setYearOptions(Number.isNaN(base) ? [] : [base - 1, base, base + 1]);
+      } finally {
+        setYearOptionsLoading(false);
+      }
+    }
+    void fetchYears();
   }, [settings]);
 
   // ========================================================================
@@ -726,6 +747,7 @@ export function useMarkEntryState() {
     dirtyCount,
     filtersReady,
     yearOptions,
+    yearOptionsLoading,
     studentCount: rows.length,
   };
 }

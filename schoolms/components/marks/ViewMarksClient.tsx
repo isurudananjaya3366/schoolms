@@ -75,6 +75,7 @@ export default function ViewMarksClient({ role, initialParams }: Props) {
   >([]);
   const [classLoading, setClassLoading] = useState(false);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [yearOptionsLoading, setYearOptionsLoading] = useState(true);
 
   // Class view data
   const [students, setStudents] = useState<StudentDoc[]>([]);
@@ -109,6 +110,7 @@ export default function ViewMarksClient({ role, initialParams }: Props) {
         /* ignore */
       }
       setSettingsLoading(false);
+      setYearOptionsLoading(false);
     }
     init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -324,6 +326,7 @@ export default function ViewMarksClient({ role, initialParams }: Props) {
         term={term}
         year={year || String(currentYear)}
         yearOptions={yearOptions}
+        yearOptionsLoading={yearOptionsLoading}
         classOptions={classOptions}
         classLoading={classLoading}
         viewMode={viewMode}
