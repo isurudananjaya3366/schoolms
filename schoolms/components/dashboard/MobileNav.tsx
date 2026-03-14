@@ -12,9 +12,11 @@ interface MobileNavProps {
   navItems: NavItem[];
   isOpen: boolean;
   onClose: () => void;
+  schoolName?: string;
+  schoolLogoUrl?: string;
 }
 
-export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps) {
+export default function MobileNav({ navItems, isOpen, onClose, schoolName, schoolLogoUrl }: MobileNavProps) {
   const pathname = usePathname();
 
   const mainItems = navItems.filter((item) => item.group === "main");
@@ -40,12 +42,21 @@ export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps)
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-        <div className="flex items-center gap-2 px-4 py-4">
-          <GraduationCap className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">SchoolMS</span>
-        </div>
-        <Separator />
-        <nav className="space-y-1 px-2 py-3">
+        <div className="flex h-full flex-col">
+          <div className="flex h-14 items-center justify-center px-4" title={schoolName || "SchoolMS"}>
+            {schoolLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={schoolLogoUrl}
+                alt="School logo"
+                className="h-9 w-9 rounded-lg object-contain"
+              />
+            ) : (
+              <GraduationCap className="h-8 w-8 text-primary" />
+            )}
+          </div>
+          <Separator />
+          <nav className="flex-1 overflow-y-auto space-y-1 px-2 py-3">
           {mainItems.map((item) => {
             const Icon = resolveIcon(item.icon);
             const active = isActive(item.href);
@@ -93,6 +104,7 @@ export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps)
             </>
           )}
         </nav>
+        </div>
       </SheetContent>
     </Sheet>
   );

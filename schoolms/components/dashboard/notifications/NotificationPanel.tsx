@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   X,
@@ -82,9 +83,12 @@ export default function NotificationPanel({ role }: NotificationPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [mounted, setMounted] = useState(false);
 
   // Students don't get notifications
   const enabled = role !== "STUDENT";
+
+  useEffect(() => { setMounted(true); }, []);
 
   const fetchNotifications = useCallback(
     async (pg: number, showUnreadOnly: boolean) => {
@@ -184,20 +188,22 @@ export default function NotificationPanel({ role }: NotificationPanelProps) {
         )}
       </Button>
 
-      {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {/* Backdrop + slide-in panel rendered via portal to escape CSS transform containment */}
+      {mounted && createPortal(
+        <>
+          {open && (
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpen(false)}
+            />
+          )}
 
-      {/* Slide-in panel */}
-      <div
-        className={`fixed right-0 top-0 z-50 h-full w-full max-w-sm border-l bg-background shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
+          {/* Slide-in panel */}
+          <div
+            className={`fixed right-0 top-0 z-50 h-screen w-full max-w-sm border-l bg-background shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+              open ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
         {/* Panel header */}
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
@@ -353,7 +359,10 @@ export default function NotificationPanel({ role }: NotificationPanelProps) {
             </Button>
           </div>
         )}
-      </div>
+          </div>
+        </>,
+        document.body
+      )}
     </>
   );
 }

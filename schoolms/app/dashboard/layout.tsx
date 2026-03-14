@@ -80,6 +80,8 @@ export default async function DashboardLayout({
           role={role}
           displayName={name}
           filteredNavItems={filteredItems}
+          schoolName={schoolName}
+          schoolLogoUrl={schoolLogoUrl}
         >
           {children}
         </DashboardShell>

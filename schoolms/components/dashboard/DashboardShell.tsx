@@ -10,9 +10,11 @@ interface DashboardShellProps {
   displayName: string;
   filteredNavItems: NavItem[];
   children: ReactNode;
+  schoolName?: string;
+  schoolLogoUrl?: string;
 }
 
-export default function DashboardShell({ role, displayName, filteredNavItems, children }: DashboardShellProps) {
+export default function DashboardShell({ role, displayName, filteredNavItems, children, schoolName, schoolLogoUrl }: DashboardShellProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -43,6 +45,8 @@ export default function DashboardShell({ role, displayName, filteredNavItems, ch
         navItems={filteredNavItems}
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
+        schoolName={schoolName}
+        schoolLogoUrl={schoolLogoUrl}
       />
       <main
         className="flex-1 overflow-y-auto p-4 pt-[calc(3.5rem+1rem)] lg:p-6"
