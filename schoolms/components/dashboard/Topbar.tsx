@@ -22,6 +22,7 @@ const breadcrumbLabels: Record<string, string> = {
   new: "New",
   edit: "Edit",
   preview: "Preview",
+  calendar: "Meeting Calendar",
 };
 
 interface TopbarProps {
