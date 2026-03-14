@@ -10,11 +10,18 @@ export async function GET() {
     const records = await prisma.markRecord.findMany({
       select: { year: true },
       distinct: ["year"],
-      orderBy: { year: "desc" },
     });
 
-    const years = records.map(r => r.year);
-    return NextResponse.json(years);
+    const currentYear = new Date().getFullYear();
+    const dbYears = records.map(r => r.year);
+    const minYear = dbYears.length > 0 ? Math.min(...dbYears) : currentYear;
+
+    const allYears: number[] = [];
+    for (let y = currentYear; y >= minYear; y--) {
+      allYears.push(y);
+    }
+
+    return NextResponse.json(allYears);
   } catch (error) {
     console.error("GET /api/marks/years error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

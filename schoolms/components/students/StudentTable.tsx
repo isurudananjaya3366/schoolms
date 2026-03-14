@@ -220,9 +220,21 @@ export default function StudentTable({
                   />
                 </TableCell>
                 <TableCell className="font-mono text-xs">
-                  {student.indexNumber}
+                  <Link
+                    href={`/dashboard/students/${student.id}`}
+                    className="hover:underline hover:text-primary transition-colors"
+                  >
+                    {student.indexNumber}
+                  </Link>
                 </TableCell>
-                <TableCell className="font-medium">{student.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/dashboard/students/${student.id}`}
+                    className="hover:underline hover:text-primary transition-colors"
+                  >
+                    {student.name}
+                  </Link>
+                </TableCell>
                 <TableCell>{student.class.grade}</TableCell>
                 <TableCell>{student.class.section}</TableCell>
                 <TableCell>

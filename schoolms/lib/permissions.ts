@@ -58,6 +58,36 @@ export const PERMISSION_FEATURES = {
     description: "View and manage database backups",
     group: "Administration",
   },
+  view_audit_log: {
+    label: "Audit Log",
+    description: "View the system-wide audit trail",
+    group: "Administration",
+  },
+  manage_users: {
+    label: "Manage Users",
+    description: "Create, edit, and deactivate user accounts",
+    group: "Administration",
+  },
+  view_notices: {
+    label: "Manage Notices",
+    description: "Create, edit, and delete school notices",
+    group: "Content & Communication",
+  },
+  view_notifications: {
+    label: "Notifications",
+    description: "View system notifications",
+    group: "Content & Communication",
+  },
+  view_calendar: {
+    label: "Calendar",
+    description: "Access the school calendar",
+    group: "General",
+  },
+  view_preview: {
+    label: "Preview Mode",
+    description: "Use the classroom presentation / preview mode",
+    group: "General",
+  },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSION_FEATURES;
@@ -82,6 +112,12 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_analytics: true,
     view_leaderboard: true,
     view_backup: false,
+    view_audit_log: true,
+    manage_users: true,
+    view_notices: true,
+    view_notifications: true,
+    view_calendar: true,
+    view_preview: true,
   },
   STAFF: {
     view_students: true,
@@ -93,6 +129,12 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_analytics: false,
     view_leaderboard: false,
     view_backup: false,
+    view_audit_log: false,
+    manage_users: false,
+    view_notices: true,
+    view_notifications: true,
+    view_calendar: true,
+    view_preview: true,
   },
   TEACHER: {
     view_students: true,
@@ -104,6 +146,12 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_analytics: false,
     view_leaderboard: false,
     view_backup: false,
+    view_audit_log: false,
+    manage_users: false,
+    view_notices: true,
+    view_notifications: true,
+    view_calendar: true,
+    view_preview: false,
   },
 };
 

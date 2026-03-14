@@ -29,7 +29,7 @@ const schema = z
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
-    role: z.enum(["STAFF", "ADMIN", "TEACHER", "STUDENT"]),
+    role: z.enum(["STAFF", "ADMIN", "TEACHER"]),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
@@ -59,7 +59,7 @@ export default function CreateUserModal({
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const roles = currentUserRole === "SUPERADMIN" ? ["STAFF", "ADMIN", "TEACHER", "STUDENT"] : ["STAFF", "TEACHER", "STUDENT"];
+  const roles = currentUserRole === "SUPERADMIN" ? ["STAFF", "ADMIN", "TEACHER"] : ["STAFF", "TEACHER"];
 
   const resetForm = () => {
     setForm({

@@ -179,12 +179,12 @@ function Podium({ entries }: { entries: StudentRankRow[] }) {
 
 export default function LeaderboardContainer() {
   const currentYear = new Date().getFullYear();
-  const yearOptions = [
+  const [yearOptions, setYearOptions] = useState<number[]>([
     currentYear,
     currentYear - 1,
     currentYear - 2,
     currentYear - 3,
-  ];
+  ]);
 
   const [grade, setGrade] = useState("");
   const [section, setSection] = useState("");
@@ -198,6 +198,16 @@ export default function LeaderboardContainer() {
   const sectionRankRef = useRef<HTMLDivElement>(null);
   const classTrendRef = useRef<HTMLDivElement>(null);
   const sectionTrendRef = useRef<HTMLDivElement>(null);
+
+  // ── Fetch available years from DB ───────────────────────
+  useEffect(() => {
+    fetch("/api/marks/years")
+      .then(r => r.json())
+      .then((years: number[]) => {
+        if (Array.isArray(years) && years.length > 0) setYearOptions(years);
+      })
+      .catch(() => {});
+  }, []);
 
   // ── Fetch latest period defaults on mount ────────────────
   useEffect(() => {
