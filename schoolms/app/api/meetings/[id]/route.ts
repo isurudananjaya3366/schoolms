@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 const UpdateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -86,6 +87,14 @@ export async function PUT(
     },
   });
 
+  createNotification({
+    type: NOTIF.MEETING_UPDATED,
+    title: "Meeting Updated",
+    message: `${authResult.name ?? "Admin"} updated meeting "${updated.title}" (${updated.date} at ${updated.startTime}, Class: ${updated.classGroup}).`,
+    createdBy: authResult.name ?? authResult.email,
+    data: { meetingId: id, title: updated.title, classGroup: updated.classGroup, date: updated.date },
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -105,6 +114,15 @@ export async function DELETE(
   }
 
   await prisma.meeting.delete({ where: { id } });
+
+  createNotification({
+    type: NOTIF.MEETING_CANCELLED,
+    title: "Meeting Cancelled",
+    message: `${authResult.name ?? "Admin"} cancelled meeting "${existing.title}" (${existing.date} at ${existing.startTime}, Class: ${existing.classGroup}).`,
+    createdBy: authResult.name ?? authResult.email,
+    data: { meetingId: id, title: existing.title, classGroup: existing.classGroup, date: existing.date },
+  });
+
   return NextResponse.json({ success: true });
 }
 

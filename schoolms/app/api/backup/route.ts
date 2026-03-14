@@ -5,6 +5,7 @@ import { timingSafeEqual } from "crypto";
 import prisma from "@/lib/prisma";
 import { runBackupPipeline, sendFailureAlert, getActiveProvider, createLocalBackup } from "@/lib/backup";
 import { BACKUP_TRIGGERED, BACKUP_COMPLETED, BACKUP_FAILED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 import { getSecureSetting } from "@/lib/secure-settings";
 
 // GET — Cron-triggered backup
@@ -39,6 +40,13 @@ export async function GET(request: NextRequest) {
       data: { userDisplayName: "System (Cron)", action: BACKUP_COMPLETED, details: JSON.stringify(result) },
     });
 
+    createNotification({
+      type: NOTIF.BACKUP_COMPLETED,
+      title: "Scheduled Backup Completed",
+      message: `Automated backup completed successfully.`,
+      createdBy: "System (Cron)",
+    });
+
     return NextResponse.json(result);
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -47,6 +55,13 @@ export async function GET(request: NextRequest) {
     }).catch(() => {});
 
     await sendFailureAlert(errorMessage);
+
+    createNotification({
+      type: NOTIF.BACKUP_FAILED,
+      title: "Backup Failed",
+      message: `Automated backup failed: ${errorMessage}`,
+      createdBy: "System (Cron)",
+    });
 
     return NextResponse.json({ error: "Backup failed" }, { status: 500 });
   }
@@ -85,6 +100,13 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      createNotification({
+        type: NOTIF.BACKUP_COMPLETED,
+        title: "Manual Backup Completed",
+        message: `${user.name ?? "Admin"} triggered a manual backup. File: ${filename} (${Math.round(sizeBytes / 1024)} KB).`,
+        createdBy: user.name ?? "Admin",
+      });
+
       return new Response(new Uint8Array(buffer), {
         status: 200,
         headers: {
@@ -108,6 +130,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    createNotification({
+      type: NOTIF.BACKUP_COMPLETED,
+      title: "Manual Backup Completed",
+      message: `${user.name ?? "Admin"} triggered a manual cloud backup successfully.`,
+      createdBy: user.name ?? "Admin",
+    });
+
     return NextResponse.json(result);
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -122,6 +151,13 @@ export async function POST(request: NextRequest) {
     }).catch(() => {});
 
     await sendFailureAlert(errorMessage);
+
+    createNotification({
+      type: NOTIF.BACKUP_FAILED,
+      title: "Manual Backup Failed",
+      message: `${user.name ?? "Admin"}'s manual backup failed: ${errorMessage}`,
+      createdBy: user.name ?? "Admin",
+    });
 
     return NextResponse.json({ error: "Backup failed" }, { status: 500 });
   }

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 const MeetingSchema = z.object({
   title: z.string().min(1).max(200),
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest) {
       description: description ?? null,
       createdBy: authResult.name ?? authResult.email,
     },
+  });
+
+  createNotification({
+    type: NOTIF.MEETING_SCHEDULED,
+    title: "Meeting Scheduled",
+    message: `${authResult.name ?? "Admin"} scheduled "${title}" for ${date} at ${startTime} (Class: ${classGroup}).`,
+    createdBy: authResult.name ?? authResult.email,
+    data: { meetingId: meeting.id, title, classGroup, date, startTime },
   });
 
   return NextResponse.json(meeting, { status: 201 });

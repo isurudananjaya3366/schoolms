@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { STUDENT_CREATED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -197,6 +198,14 @@ export async function POST(request: Request) {
         },
       })
       .catch(console.error);
+
+    createNotification({
+      type: NOTIF.STUDENT_CREATED,
+      title: "New Student Added",
+      message: `${authResult.name ?? "Admin"} added ${newStudent.name} to Grade ${classGroup.grade}${classGroup.section}.`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { studentId: newStudent.id, studentName: newStudent.name, grade: classGroup.grade, section: classGroup.section },
+    });
 
     return NextResponse.json(newStudent, { status: 201 });
   } catch (err) {

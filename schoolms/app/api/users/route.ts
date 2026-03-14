@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { USER_CREATED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 const userSelect = {
   id: true,
@@ -127,6 +128,14 @@ export async function POST(request: Request) {
         details: JSON.stringify({ name: newUser.name, email: newUser.email, role: newUser.role, targetName: newUser.name }),
       },
     }).catch(console.error);
+
+    createNotification({
+      type: NOTIF.USER_CREATED,
+      title: "New User Account Created",
+      message: `${authResult.name ?? "Admin"} created a new ${newUser.role} account for ${newUser.name}.`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { userId: newUser.id, userName: newUser.name, role: newUser.role },
+    });
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {

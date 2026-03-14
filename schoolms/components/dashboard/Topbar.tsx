@@ -5,7 +5,8 @@ import { signOut } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Menu, LogOut, Bell } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
+import NotificationPanel from "@/components/dashboard/notifications/NotificationPanel";
 
 const breadcrumbLabels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -23,6 +24,7 @@ const breadcrumbLabels: Record<string, string> = {
   edit: "Edit",
   preview: "Preview",
   calendar: "Meeting Calendar",
+  notifications: "Notifications",
 };
 
 interface TopbarProps {
@@ -74,9 +76,7 @@ export default function Topbar({ role, displayName, onMenuClick }: TopbarProps) 
         </nav>
       </div>
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" title="Notifications — coming soon">
-          <Bell className="h-4 w-4" />
-        </Button>
+        <NotificationPanel role={role} />
         <Separator orientation="vertical" className="h-6" />
         <span className="hidden text-sm sm:inline">{displayName}</span>
         <Badge variant={roleBadgeVariant}>{role}</Badge>

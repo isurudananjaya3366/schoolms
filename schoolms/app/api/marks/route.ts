@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { requireAuth } from "@/lib/auth-guard";
 import prisma from "@/lib/prisma";
 import { MARK_UPDATED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 import { queryParamsSchema, singleMarkBodySchema } from "@/lib/validators/marks";
 import { Term } from "@prisma/client";
 
@@ -144,6 +145,14 @@ export async function POST(request: Request) {
         },
       })
       .catch(console.error);
+
+    createNotification({
+      type: NOTIF.MARK_UPDATED,
+      title: "Marks Updated",
+      message: `${authResult.name ?? "Staff"} updated marks for a student (${term}, ${year}).`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { studentId, term, year },
+    });
 
     return NextResponse.json(record, { status: oldRecord ? 200 : 201 });
   } catch (error) {

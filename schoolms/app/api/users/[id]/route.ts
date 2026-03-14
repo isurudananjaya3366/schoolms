@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { USER_UPDATED, USER_DEACTIVATED, USER_REACTIVATED, USER_DELETED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 const userSelect = {
   id: true,
@@ -127,6 +128,27 @@ export async function PATCH(
       },
     }).catch(console.error);
 
+    // Determine notification type matching audit action
+    const notifType = isActive === false ? NOTIF.USER_DEACTIVATED
+      : isActive === true ? NOTIF.USER_REACTIVATED
+      : NOTIF.USER_UPDATED;
+    const notifTitle = isActive === false ? `User Deactivated`
+      : isActive === true ? `User Reactivated`
+      : `User Updated`;
+    const notifMsg = isActive === false
+      ? `${authResult.name ?? "Admin"} deactivated ${target.name}'s account.`
+      : isActive === true
+      ? `${authResult.name ?? "Admin"} reactivated ${target.name}'s account.`
+      : `${authResult.name ?? "Admin"} updated ${target.name}'s account (${changedFields.join(", ")}).`;
+
+    createNotification({
+      type: notifType,
+      title: notifTitle,
+      message: notifMsg,
+      createdBy: authResult.name ?? authResult.email,
+      data: { userId: id, userName: target.name, changedFields },
+    });
+
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("PATCH /api/users/[id] error:", error);
@@ -168,6 +190,14 @@ export async function DELETE(
     }).catch(console.error);
 
     await prisma.user.delete({ where: { id } });
+
+    createNotification({
+      type: NOTIF.USER_DELETED,
+      title: "User Account Deleted",
+      message: `${authResult.name ?? "Admin"} permanently deleted ${target.name}'s account.`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { userId: id, userName: target.name, role: target.role },
+    });
 
     return NextResponse.json({ success: true, message: "User deleted successfully" });
   } catch (error) {

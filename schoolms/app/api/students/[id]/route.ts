@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { STUDENT_DELETED, STUDENT_UPDATED } from "@/lib/audit-actions";
+import { createNotification, NOTIF } from "@/lib/notifications";
 
 export async function GET(
   _request: Request,
@@ -64,6 +65,14 @@ export async function DELETE(
     await prisma.student.update({
       where: { id },
       data: { isDeleted: true },
+    });
+
+    createNotification({
+      type: NOTIF.STUDENT_DELETED,
+      title: "Student Removed",
+      message: `${authResult.name ?? "Admin"} removed ${student.name} from the system.`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { studentId: student.id, studentName: student.name },
     });
 
     await prisma.auditLog.create({
@@ -257,6 +266,14 @@ export async function PATCH(
         },
       })
       .catch(console.error);
+
+    createNotification({
+      type: NOTIF.STUDENT_UPDATED,
+      title: "Student Profile Updated",
+      message: `${authResult.name ?? "Admin"} updated ${updatedStudent.name}'s profile.`,
+      createdBy: authResult.name ?? authResult.email,
+      data: { studentId: updatedStudent.id, studentName: updatedStudent.name, changedFields },
+    });
 
     return NextResponse.json(updatedStudent);
   } catch (error) {
