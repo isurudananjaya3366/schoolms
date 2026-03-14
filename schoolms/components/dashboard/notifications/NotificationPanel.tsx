@@ -13,6 +13,7 @@ import {
   Calendar,
   HardDrive,
   Settings,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,8 @@ function getTypeStyle(type: string): { icon: React.ReactNode; color: string } {
   }
   if (type === "SETTINGS_UPDATED")
     return { icon: <Settings className="size-3.5" />, color: "text-slate-500 bg-slate-100 dark:bg-slate-800/50" };
+  if (type.startsWith("NOTICE_"))
+    return { icon: <Megaphone className="size-3.5" />, color: "text-indigo-500 bg-indigo-100 dark:bg-indigo-950/50" };
   return { icon: <Bell className="size-3.5" />, color: "text-slate-500 bg-slate-100 dark:bg-slate-800/50" };
 }
 

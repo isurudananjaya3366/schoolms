@@ -44,6 +44,9 @@ export const NOTIF = {
 
   // Settings events
   SETTINGS_UPDATED: "SETTINGS_UPDATED",
+
+  // Notice board events
+  NOTICE_PUBLISHED: "NOTICE_PUBLISHED",
 } as const;
 
 export type NotifType = (typeof NOTIF)[keyof typeof NOTIF];
@@ -81,6 +84,9 @@ export const NOTIF_TARGETS: Record<NotifType, NotifiableRole[]> = {
 
   // Settings — admin-tier
   SETTINGS_UPDATED: ["SUPERADMIN", "ADMIN"],
+
+  // Notice board — default to all notifiable roles; overridden per notice
+  NOTICE_PUBLISHED: ["SUPERADMIN", "ADMIN", "STAFF", "TEACHER"],
 };
 
 export interface CreateNotificationOptions {

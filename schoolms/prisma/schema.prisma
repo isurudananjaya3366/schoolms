@@ -31,6 +31,12 @@ enum MarksStatus {
   PUBLISHED
 }
 
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 // ─── Embedded Types ──────────────────────────────────────
 
 type Electives {
@@ -209,4 +215,24 @@ model MarksRelease {
   @@unique([classId, term, year])
   @@index([classId])
   @@map("marksReleases")
+}
+
+// ─── Notice Board ─────────────────────────────────────────
+// Public notices created by admins; published notices appear on the public
+// notice board and push an in-app notification to the target roles.
+model Notice {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  targetRoles String[]     // ["ALL"] or specific roles e.g. ["TEACHER", "STAFF"]
+  status      NoticeStatus @default(DRAFT)
+  publishedAt DateTime?
+  expiresAt   DateTime?    // optional expiry date
+  createdBy   String       // display name of author
+  createdById String       @db.ObjectId
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("notices")
 }

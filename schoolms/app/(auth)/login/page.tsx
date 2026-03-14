@@ -13,7 +13,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Megaphone } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sign In — SchoolMS",
@@ -51,9 +51,10 @@ export default async function LoginPage({
             </Alert>
           )}
           <Tabs defaultValue="staff" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="staff">Staff / Admin</TabsTrigger>
               <TabsTrigger value="student">Student</TabsTrigger>
+              <TabsTrigger value="notices">Notice Board</TabsTrigger>
             </TabsList>
             <TabsContent value="staff">
               <LoginForm />
@@ -69,6 +70,20 @@ export default async function LoginPage({
                 </p>
                 <Button asChild className="w-full">
                   <Link href="/student">Go to Student Portal</Link>
+                </Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="notices">
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className="rounded-full bg-primary/10 p-4">
+                  <Megaphone className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  View the latest school announcements, events, and important
+                  notices published by administration.
+                </p>
+                <Button asChild className="w-full">
+                  <Link href="/notices">View Notice Board</Link>
                 </Button>
               </div>
             </TabsContent>
