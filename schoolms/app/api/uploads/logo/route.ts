@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     // Upload to Vercel Blob
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = file.name.split(".").pop() || "png";
-    const pathname = `schoolms/logo/school-logo.${ext}`;
+    const pathname = `schoolms/logo/school-logo-${Date.now()}.${ext}`;
 
     const url = await uploadBlob(pathname, buffer, file.type);
 
