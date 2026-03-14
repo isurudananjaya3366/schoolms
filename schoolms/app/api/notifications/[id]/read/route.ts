@@ -7,13 +7,13 @@ import prisma from "@/lib/prisma";
  */
 export async function POST(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
 
-    const { id } = params;
+    const { id } = await params;
     const userId = authResult.id;
     const role = authResult.role as string;
 
