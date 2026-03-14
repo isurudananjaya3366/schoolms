@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
   if (session.user.role === "STUDENT") redirect("/dashboard");
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto max-w-2xl p-4 lg:p-6">
       <NotificationsClient />
     </div>
   );

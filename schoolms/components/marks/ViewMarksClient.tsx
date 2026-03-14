@@ -310,7 +310,7 @@ export default function ViewMarksClient({ role, initialParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <h1 className="text-2xl font-bold">View Marks</h1>
         {viewMode === "student" && selectedStudent && (
           <p className="text-sm text-muted-foreground">

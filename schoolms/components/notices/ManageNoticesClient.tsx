@@ -193,7 +193,7 @@ function NoticeFormModal({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="notice-target">Target Audience</Label>
               <Select
@@ -393,7 +393,7 @@ export default function ManageNoticesClient() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Manage Notices</h1>
           <p className="text-sm text-muted-foreground">

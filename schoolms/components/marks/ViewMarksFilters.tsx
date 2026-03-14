@@ -233,7 +233,7 @@ export default function ViewMarksFilters({
 
         {/* Right group: Student Search (class view only) */}
         {viewMode === "class" && (
-          <div className="relative w-64" ref={searchRef}>
+          <div className="relative flex-1 min-w-[220px]" ref={searchRef}>
             <label className="mb-1 block text-sm font-medium">
               Student Search
             </label>

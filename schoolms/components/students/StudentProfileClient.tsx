@@ -334,7 +334,7 @@ export default function StudentProfileClient({
       <div className={`grid gap-4 ${publicMode ? "" : "md:grid-cols-3"}`}>
         <Card className={publicMode ? "col-span-full" : "md:col-span-2"}>
           <CardHeader>
-            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="size-5" />

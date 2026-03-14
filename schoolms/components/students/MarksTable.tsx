@@ -106,6 +106,7 @@ export default function MarksTable({
   }
 
   return (
+    <div className="overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow>
@@ -134,5 +135,6 @@ export default function MarksTable({
         })}
       </TableBody>
     </Table>
+    </div>
   );
 }

@@ -35,6 +35,7 @@ export default function AuditLogTable({ data, onRowClick }: AuditLogTableProps) 
 
   return (
     <TooltipProvider>
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -98,6 +99,7 @@ export default function AuditLogTable({ data, onRowClick }: AuditLogTableProps) 
           ))}
         </TableBody>
       </Table>
+      </div>
     </TooltipProvider>
   );
 }

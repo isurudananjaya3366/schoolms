@@ -30,7 +30,7 @@ export default function PaginationControl({
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-wrap items-center justify-between gap-2">
       <p className="text-sm text-muted-foreground">
         Showing {start}–{end} of {totalCount}
       </p>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { GraduationCap } from "lucide-react";
 import { NavItem } from "@/types/navigation";
@@ -39,6 +39,7 @@ export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps)
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-64 p-0">
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         <div className="flex items-center gap-2 px-4 py-4">
           <GraduationCap className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold">SchoolMS</span>

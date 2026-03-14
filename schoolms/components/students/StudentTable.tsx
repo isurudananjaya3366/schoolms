@@ -154,6 +154,7 @@ export default function StudentTable({
         </div>
       )}
 
+      <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -276,6 +277,7 @@ export default function StudentTable({
           )}
         </TableBody>
       </Table>
+      </div>
 
       <DeleteStudentDialog
         open={!!deleteTarget}
