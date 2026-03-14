@@ -17,9 +17,22 @@ export default function SidebarNav({ items }: SidebarNavProps) {
   const mainItems = items.filter((item) => item.group === "main");
   const adminItems = items.filter((item) => item.group === "admin");
 
+  // Find the most specific nav item that matches the current path.
+  // This prevents parent paths (e.g. /dashboard/marks) from being highlighted
+  // when a child path (e.g. /dashboard/marks/entry) is active.
+  const activeHref = items.reduce((best, item) => {
+    const { href } = item;
+    if (href === "/dashboard") {
+      return pathname === "/dashboard" && href.length > best.length ? href : best;
+    }
+    if (pathname === href || pathname.startsWith(href + "/")) {
+      return href.length > best.length ? href : best;
+    }
+    return best;
+  }, "");
+
   function isActive(href: string) {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname.startsWith(href);
+    return href === activeHref;
   }
 
   return (

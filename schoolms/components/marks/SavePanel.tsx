@@ -1,41 +1,56 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, SendHorizonal } from "lucide-react";
 
 interface SavePanelProps {
   dirtyCount: number;
   saving: boolean;
   hasInvalidRows: boolean;
-  onSave: () => void;
+  onSaveDraft: () => void;
+  onPublish: () => void;
 }
 
 export default function SavePanel({
   dirtyCount,
   saving,
   hasInvalidRows,
-  onSave,
+  onSaveDraft,
+  onPublish,
 }: SavePanelProps) {
   const disabled = dirtyCount === 0 || saving || hasInvalidRows;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 flex-wrap">
       <Button
-        onClick={onSave}
+        variant="outline"
+        onClick={onSaveDraft}
         disabled={disabled}
         aria-busy={saving}
         aria-disabled={disabled}
       >
         {saving ? (
-          <Loader2
-            className="mr-2 h-4 w-4 animate-spin"
-            aria-hidden="true"
-          />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
         ) : (
           <Save className="mr-2 h-4 w-4" />
         )}
-        {saving ? "Saving…" : "Save Marks"}
+        {saving ? "Saving…" : "Save as Draft"}
       </Button>
+
+      <Button
+        onClick={onPublish}
+        disabled={disabled}
+        aria-busy={saving}
+        aria-disabled={disabled}
+      >
+        {saving ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <SendHorizonal className="mr-2 h-4 w-4" />
+        )}
+        {saving ? "Publishing…" : "Publish"}
+      </Button>
+
       {dirtyCount > 0 && (
         <span className="text-sm text-muted-foreground">
           {dirtyCount} unsaved change{dirtyCount !== 1 ? "s" : ""}

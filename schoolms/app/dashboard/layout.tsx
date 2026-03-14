@@ -9,6 +9,7 @@ const ALL_NAV_ITEMS: (NavItem & { permKey?: string })[] = [
   { label: "Overview", href: "/dashboard", icon: "LayoutDashboard", minRole: "ALL", group: "main" },
   { label: "Students", href: "/dashboard/students", icon: "Users", minRole: "ALL", group: "main", permKey: "view_students" },
   { label: "Mark Entry", href: "/dashboard/marks/entry", icon: "ClipboardEdit", minRole: "ALL", group: "main", permKey: "edit_marks" },
+  { label: "Marks", href: "/dashboard/marks", icon: "ClipboardList", minRole: "ALL", group: "main", permKey: "edit_marks" },
   { label: "View Marks", href: "/dashboard/marks/view", icon: "Eye", minRole: "ALL", group: "main", permKey: "view_marks" },
   { label: "Student Reports", href: "/dashboard/student-reports", icon: "FileBarChart", minRole: "ALL", group: "main", permKey: "view_student_reports" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "BarChart3", minRole: "ALL", group: "main", permKey: "view_analytics" },

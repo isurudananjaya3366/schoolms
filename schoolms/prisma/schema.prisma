@@ -26,6 +26,11 @@ enum Term {
   TERM_3
 }
 
+enum MarksStatus {
+  DRAFT
+  PUBLISHED
+}
+
 // ─── Embedded Types ──────────────────────────────────────
 
 type Electives {
@@ -184,4 +189,24 @@ model Notification {
 
   @@index([createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+// ─── Marks Release ────────────────────────────────────────
+// Tracks whether a class's marks for a given term/year are DRAFT or PUBLISHED.
+// PUBLISHED = visible to students; DRAFT = only visible to staff/admin.
+model MarksRelease {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  classId   String      @db.ObjectId
+  term      Term
+  year      Int
+  status    MarksStatus @default(DRAFT)
+  changedBy String?     @db.ObjectId  // userId who last changed the status
+  changedAt DateTime?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([classId, term, year])
+  @@index([classId])
+  @@map("marksReleases")
 }

@@ -102,7 +102,7 @@ export function useMarkEntryState() {
   const abortRef = useRef<AbortController | null>(null);
 
   // ========================================================================
-  // Fetch settings on mount
+  // Fetch settings on mount — also auto-default year + term
   // ========================================================================
   useEffect(() => {
     let cancelled = false;
@@ -114,6 +114,8 @@ export function useMarkEntryState() {
         if (!cancelled) {
           setSettings(data);
           setYear((prev) => prev ?? parseInt(data.academic_year, 10));
+          // Default term to TERM_1 so grid loads as soon as grade+class are chosen
+          setTerm((prev) => prev ?? "TERM_1");
           setSettingsLoading(false);
         }
       } catch {
@@ -251,10 +253,51 @@ export function useMarkEntryState() {
 
         if (!controller.signal.aborted) {
           setRows(mergedRows);
-          setDirtyMap(new Map());
-          setEditedValues(new Map());
-          setInvalidRows(new Set());
           setGridLoading(false);
+
+          // Restore any unsaved changes from localStorage
+          const lsKey = `marks_draft_${classId}_${term}_${year}`;
+          try {
+            const stored = localStorage.getItem(lsKey);
+            if (stored) {
+              const cached: Record<string, string> = JSON.parse(stored);
+              const restoredEdited = new Map<string, string>(Object.entries(cached));
+              const restoredDirty = new Map<string, number | null>();
+              const restoredInvalid = new Set<string>();
+
+              for (const [key, rawVal] of restoredEdited) {
+                const sepIdx = key.indexOf(":");
+                const studentId = key.slice(0, sepIdx);
+                const subject = key.slice(sepIdx + 1);
+                const matchingRow = mergedRows.find((r) => r.studentId === studentId);
+                if (!matchingRow) continue;
+                const initialMark = matchingRow.initialMarks[subject] ?? null;
+
+                if (rawVal === "") {
+                  if (initialMark !== null) restoredDirty.set(key, null);
+                } else {
+                  const num = Number(rawVal);
+                  if (!Number.isFinite(num) || !Number.isInteger(num) || num < 0 || num > 100) {
+                    restoredInvalid.add(key);
+                  } else if (num !== initialMark) {
+                    restoredDirty.set(key, num);
+                  }
+                }
+              }
+
+              setEditedValues(restoredEdited);
+              setDirtyMap(restoredDirty);
+              setInvalidRows(restoredInvalid);
+            } else {
+              setDirtyMap(new Map());
+              setEditedValues(new Map());
+              setInvalidRows(new Set());
+            }
+          } catch {
+            setDirtyMap(new Map());
+            setEditedValues(new Map());
+            setInvalidRows(new Set());
+          }
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -370,6 +413,15 @@ export function useMarkEntryState() {
       setEditedValues((prev) => {
         const next = new Map(prev);
         next.set(key, rawValue);
+        // Persist all edited values to localStorage immediately
+        if (classId && term && year) {
+          const lsKey = `marks_draft_${classId}_${term}_${year}`;
+          try {
+            const obj: Record<string, string> = {};
+            for (const [k, v] of next) obj[k] = v;
+            localStorage.setItem(lsKey, JSON.stringify(obj));
+          } catch { /* ignore quota errors */ }
+        }
         return next;
       });
 
@@ -419,14 +471,14 @@ export function useMarkEntryState() {
         return next;
       });
     },
-    []
+    [classId, term, year]
   );
 
   // ========================================================================
-  // Save handler — group dirty entries by subject, one PATCH per subject
+  // Core save logic — shared by saveDraft and publish
   // ========================================================================
-  const handleSave = useCallback(async () => {
-    if (dirtyMap.size === 0 || !classId || !term || !year || !settings) return;
+  const saveToDB = useCallback(async () => {
+    if (dirtyMap.size === 0 || !classId || !term || !year || !settings) return null;
 
     setSaving(true);
     try {
@@ -572,6 +624,57 @@ export function useMarkEntryState() {
     }
   }, [dirtyMap, classId, term, year, settings]);
 
+  // Clear localStorage after a successful save
+  const clearLocalStorage = useCallback(() => {
+    if (classId && term && year) {
+      try {
+        localStorage.removeItem(`marks_draft_${classId}_${term}_${year}`);
+      } catch { /* ignore */ }
+    }
+  }, [classId, term, year]);
+
+  /** Save marks as DRAFT (default status if no release record exists). */
+  const handleSaveDraft = useCallback(async () => {
+    const result = await saveToDB();
+    if (!result) return null;
+    if (!result.success && "error" in result) return result;
+
+    // Ensure MarksRelease record exists as DRAFT
+    try {
+      await fetch("/api/marks/release", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId, term, year, status: "DRAFT" }),
+      });
+    } catch { /* non-fatal */ }
+
+    clearLocalStorage();
+    return result;
+  }, [saveToDB, clearLocalStorage, classId, term, year]);
+
+  /** Save marks AND set the class marks release to PUBLISHED. */
+  const handlePublish = useCallback(async () => {
+    const result = await saveToDB();
+    if (!result) return null;
+    if (!result.success && "error" in result) return result;
+
+    try {
+      const releaseRes = await fetch("/api/marks/release", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId, term, year, status: "PUBLISHED" }),
+      });
+      if (!releaseRes.ok) {
+        return { ...result, releaseError: "Marks saved but failed to publish. Try again from the Marks page." };
+      }
+    } catch {
+      return { ...result, releaseError: "Marks saved but failed to publish. Try again from the Marks page." };
+    }
+
+    clearLocalStorage();
+    return result;
+  }, [saveToDB, clearLocalStorage, classId, term, year]);
+
   // ========================================================================
   // Retry grid fetch
   // ========================================================================
@@ -614,7 +717,8 @@ export function useMarkEntryState() {
     handleTermChange,
     handleYearChange,
     handleMarkChange,
-    handleSave,
+    handleSaveDraft,
+    handlePublish,
     handleSearchChange,
     retryGridFetch,
     // Derived
@@ -622,5 +726,6 @@ export function useMarkEntryState() {
     dirtyCount,
     filtersReady,
     yearOptions,
+    studentCount: rows.length,
   };
 }

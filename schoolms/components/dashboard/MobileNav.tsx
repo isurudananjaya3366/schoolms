@@ -20,9 +20,20 @@ export default function MobileNav({ navItems, isOpen, onClose }: MobileNavProps)
   const mainItems = navItems.filter((item) => item.group === "main");
   const adminItems = navItems.filter((item) => item.group === "admin");
 
+  // Most-specific match wins — prevents parent routes from lighting up
+  const activeHref = navItems.reduce((best, item) => {
+    const { href } = item;
+    if (href === "/dashboard") {
+      return pathname === "/dashboard" && href.length > best.length ? href : best;
+    }
+    if (pathname === href || pathname.startsWith(href + "/")) {
+      return href.length > best.length ? href : best;
+    }
+    return best;
+  }, "");
+
   function isActive(href: string) {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname.startsWith(href);
+    return href === activeHref;
   }
 
   return (

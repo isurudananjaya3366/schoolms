@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -131,8 +131,8 @@ export default function PermissionsSettings() {
             </thead>
             <tbody className="divide-y">
               {Object.entries(GROUPED).map(([group, features]) => (
-                <>
-                  <tr key={`group-${group}`}>
+                <React.Fragment key={`group-${group}`}>
+                  <tr>
                     <td
                       colSpan={CONFIGURABLE_ROLES.length + 1}
                       className="py-2 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
@@ -157,7 +157,7 @@ export default function PermissionsSettings() {
                       ))}
                     </tr>
                   ))}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

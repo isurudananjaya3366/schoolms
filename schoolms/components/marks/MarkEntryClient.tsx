@@ -17,8 +17,8 @@ interface MarkEntryClientProps {
 export default function MarkEntryClient({ role }: MarkEntryClientProps) {
   const state = useMarkEntryState();
 
-  // Role check: only ADMIN, SUPERADMIN, and STAFF can access
-  if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF") {
+  // Role check: only ADMIN, SUPERADMIN, STAFF, and TEACHER can access
+  if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF" && role !== "TEACHER") {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <ShieldAlert className="h-12 w-12 text-muted-foreground" />
@@ -50,12 +50,12 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
     );
   }
 
-  const handleSave = async () => {
-    const result = await state.handleSave();
+  const handleSaveDraft = async () => {
+    const result = await state.handleSaveDraft();
     if (!result) return;
     if (result.success) {
       toast.success(
-        `${result.count} mark${result.count !== 1 ? "s" : ""} saved successfully.`
+        `${result.count} mark${result.count !== 1 ? "s" : ""} saved as draft.`
       );
     } else if ("partial" in result && result.partial) {
       toast.warning(
@@ -66,6 +66,26 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
     }
   };
 
+  const handlePublish = async () => {
+    const result = await state.handlePublish();
+    if (!result) return;
+    if (result.success) {
+      if ("releaseError" in result && result.releaseError) {
+        toast.warning(String(result.releaseError));
+      } else {
+        toast.success(
+          `${result.count} mark${result.count !== 1 ? "s" : ""} published successfully.`
+        );
+      }
+    } else if ("partial" in result && result.partial) {
+      toast.warning(
+        `Some marks could not be saved. ${result.failedKeys?.length || 0} entries failed.`
+      );
+    } else if ("error" in result) {
+      toast.error(result.error || "Failed to publish marks.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -73,6 +93,11 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
         {state.classLabel && state.term && (
           <p className="text-sm text-muted-foreground">
             {state.classLabel} · {state.term?.replace("_", " ")} · {state.year}
+            {state.studentCount > 0 && (
+              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                {state.studentCount} student{state.studentCount !== 1 ? "s" : ""}
+              </span>
+            )}
           </p>
         )}
       </div>
@@ -153,7 +178,8 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
             dirtyCount={state.dirtyCount}
             saving={state.saving}
             hasInvalidRows={state.hasInvalidRows}
-            onSave={handleSave}
+            onSaveDraft={handleSaveDraft}
+            onPublish={handlePublish}
           />
         </>
       )}
