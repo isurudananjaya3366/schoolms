@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Presentation, ExternalLink, Users, Loader2, CalendarX, Settings2 } from "lucide-react";
+import { Presentation, ExternalLink, Users, Loader2, CalendarX, Settings2, MonitorSmartphone } from "lucide-react";
 
 const GRADES = [10, 11];
 const CURRENT_YEAR = new Date().getFullYear();
@@ -42,6 +42,14 @@ export default function PresentationPreviewPage() {
   const [loadingTerms, setLoadingTerms] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [medium, setMedium] = useState<"english" | "sinhala">("english");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Fetch class groups whenever grade changes
   useEffect(() => {
@@ -314,9 +322,16 @@ export default function PresentationPreviewPage() {
             </div>
           )}
 
+          {isMobile && (
+            <div className="flex items-center gap-2 rounded-md border border-orange-400 bg-orange-100 px-4 py-3 text-sm font-medium text-orange-900 dark:border-orange-500/60 dark:bg-orange-950/40 dark:text-orange-200">
+              <MonitorSmartphone className="size-4 shrink-0" />
+              The presenter requires a desktop or laptop screen. Please open this page on a larger device to launch the presentation.
+            </div>
+          )}
+
           <Button
             className="w-full gap-2"
-            disabled={!selectedClassId || loadingClasses || loadingYears || !hasYearData}
+            disabled={isMobile || !selectedClassId || loadingClasses || loadingYears || !hasYearData}
             onClick={launchPresenter}
           >
             <ExternalLink className="size-4" />

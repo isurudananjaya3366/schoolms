@@ -139,7 +139,8 @@ function Podium({ entries }: { entries: StudentRankRow[] }) {
   const visualRanks = [2, 1, 3];
 
   return (
-    <div className="mb-6 flex items-end justify-center gap-4">
+    <div className="mb-6 overflow-x-auto">
+      <div className="flex min-w-max items-end justify-center gap-3 px-2 mx-auto">
       {ordered.map((entry, i) => {
         const visualRank = entry.rank ?? visualRanks[i];
         const style = PODIUM_STYLES[visualRank] ?? PODIUM_STYLES[3];
@@ -171,6 +172,7 @@ function Podium({ entries }: { entries: StudentRankRow[] }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

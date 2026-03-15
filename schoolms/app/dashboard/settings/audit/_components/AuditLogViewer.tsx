@@ -4,11 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollText } from "lucide-react";
+import { ScrollText, Trash2 } from "lucide-react";
 import FilterRow from "./FilterRow";
 import AuditLogTable from "./AuditLogTable";
 import RowDetailModal from "./RowDetailModal";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export interface AuditEntry {
   id: string;
@@ -163,14 +175,60 @@ export default function AuditLogViewer() {
     return `/api/audit-log/export?${params.toString()}`;
   })();
 
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearLog = async () => {
+    setClearing(true);
+    try {
+      const res = await fetch("/api/audit-log/clear", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed");
+      toast.success("Audit log cleared successfully.");
+      setData([]);
+      setTotal(0);
+      setTotalPages(0);
+      setPage(1);
+    } catch {
+      toast.error("Failed to clear audit log.");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ScrollText className="h-5 w-5" />
-            Audit Log
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <ScrollText className="h-5 w-5" />
+              Audit Log
+            </CardTitle>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" disabled={clearing}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Clear Log
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear Audit Log?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all audit log entries. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearLog}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Clear All Entries
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <FilterRow

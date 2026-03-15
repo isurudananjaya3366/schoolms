@@ -52,12 +52,12 @@ function MarkEntryRowInner({
       className={`border-b transition-colors ${isRowDirty ? "bg-amber-50/50" : ""}`}
     >
       {/* Index Number */}
-      <td className="sticky left-0 z-10 bg-white px-3 py-2 text-xs text-muted-foreground">
+      <td className="lg:sticky lg:left-0 lg:z-10 bg-white px-3 py-2 text-xs text-muted-foreground">
         {row.indexNumber ?? "-"}
       </td>
 
       {/* Student Name */}
-      <td className="sticky left-20 z-10 bg-white px-3 py-2 text-sm font-medium truncate max-w-48">
+      <td className="md:sticky md:left-0 md:z-10 lg:left-20 bg-white px-3 py-2 text-sm font-medium truncate max-w-48">
         {row.studentName}
       </td>
 

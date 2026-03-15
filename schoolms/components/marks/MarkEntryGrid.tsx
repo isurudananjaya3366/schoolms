@@ -55,10 +55,10 @@ export default function MarkEntryGrid({
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="sticky left-0 z-10 bg-[hsl(var(--muted))]/50 px-3 py-3 text-left text-xs font-medium w-20">
+              <th className="lg:sticky lg:left-0 lg:z-10 bg-[hsl(var(--muted))]/50 px-3 py-3 text-left text-xs font-medium w-20">
                 #
               </th>
-              <th className="sticky left-20 z-10 bg-[hsl(var(--muted))]/50 px-3 py-3 text-left text-xs font-medium w-48 min-w-48">
+              <th className="md:sticky md:left-0 md:z-10 lg:left-20 bg-[hsl(var(--muted))]/50 px-3 py-3 text-left text-xs font-medium w-48 min-w-48">
                 Student Name
               </th>
               {SUBJECT_KEYS.map((key) => (

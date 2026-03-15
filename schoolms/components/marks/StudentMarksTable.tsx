@@ -6,6 +6,7 @@ interface StudentDoc {
   id: string;
   name: string;
   indexNumber: string;
+  electives?: { categoryI: string; categoryII: string; categoryIII: string };
 }
 
 interface MarkRecordDoc {
@@ -65,9 +66,9 @@ export default function StudentMarksTable({
 
   const getSubjectLabel = (key: string): string => {
     if (CORE_LABELS[key]) return CORE_LABELS[key];
-    if (key === "categoryI") return electiveLabels.labelI;
-    if (key === "categoryII") return electiveLabels.labelII;
-    if (key === "categoryIII") return electiveLabels.labelIII;
+    if (key === "categoryI") return student.electives?.categoryI || electiveLabels.labelI;
+    if (key === "categoryII") return student.electives?.categoryII || electiveLabels.labelII;
+    if (key === "categoryIII") return student.electives?.categoryIII || electiveLabels.labelIII;
     return key;
   };
 
