@@ -33,6 +33,21 @@ interface SettingsData {
   elective_label_III: string;
 }
 
+/** Subject filter for teachers with specific subject assignments. */
+export interface TeacherSubjectFilter {
+  subject: string;       // "maths", "sinhala", "categoryI", etc.
+  electiveName?: string; // for elective subjects, the specific name e.g. "Tamil"
+}
+
+/** Full teacher filter — determines what class/subjects a teacher can enter marks for. */
+export interface TeacherFilter {
+  classId: string;
+  /** true = MAIN or ADDITIONAL teacher → full access to all subjects and students */
+  isMain: boolean;
+  /** populated only when isMain=false; teacher can only see/edit these subjects */
+  subjects: TeacherSubjectFilter[];
+}
+
 /** All 9 subject keys that appear in a marks record. */
 const SUBJECT_KEYS = [
   "sinhala",
@@ -55,8 +70,17 @@ function compoundKey(studentId: string, subject: string): string {
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
-  const lockedClassId = opts?.assignedClassId ?? null;
+export function useMarkEntryState(opts?: { teacherFilter?: TeacherFilter | null }) {
+  const teacherFilter = opts?.teacherFilter ?? null;
+  const lockedClassId = teacherFilter?.classId ?? null;
+  // Subject filtering: applies when teacher has explicit subject assignments
+  const isSubjectFiltered =
+    !!teacherFilter && !teacherFilter.isMain && teacherFilter.subjects.length > 0;
+
+  // Does the teacher teach at least one core (non-elective) subject?
+  // If true, all students are shown (elective cells filtered per-student in the grid).
+  const hasCoreSubject =
+    isSubjectFiltered && teacherFilter!.subjects.some((s) => !s.electiveName);
 
   // ---- Settings ----------------------------------------------------------
   const [settings, setSettings] = useState<SettingsData | null>(null);
@@ -95,8 +119,9 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
   // ---- Validation errors (compound keys) ---------------------------------
   const [invalidRows, setInvalidRows] = useState<Set<string>>(new Set());
 
-  // ---- Saving ------------------------------------------------------------
-  const [saving, setSaving] = useState(false);
+  // ---- Saving (separate flags so only the clicked button shows a spinner) ---
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   // ---- Fetch version counter (for retry) ---------------------------------
   const [fetchVersion, setFetchVersion] = useState(0);
@@ -389,17 +414,74 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
   const filtersReady = !!classId && !!term && !!year && !!settings;
 
   // ========================================================================
-  // Filtered rows - search by studentName or indexNumber
+  // Visible subject keys — restricted to teacher's assigned subjects if filtered
+  // ========================================================================
+  const visibleSubjectKeys: readonly string[] = useMemo(
+    () =>
+      isSubjectFiltered
+        ? teacherFilter!.subjects.map((sf) => sf.subject)
+        : (SUBJECT_KEYS as readonly string[]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isSubjectFiltered, teacherFilter]
+  );
+
+  // ========================================================================
+  // Elective visible student IDs
+  // For each elective subject (categoryI/II/III) that teacher is assigned to,
+  // track which student IDs should show an input cell.
+  // If a subject key is present in the map, only those student IDs get an input;
+  // all other rows for that column render blank space.
+  // Used when the teacher teaches a core subject + elective(s) simultaneously.
+  // ========================================================================
+  const electiveVisibleStudentIds = useMemo<ReadonlyMap<string, ReadonlySet<string>>>(() => {
+    const result = new Map<string, Set<string>>();
+    if (!isSubjectFiltered || !teacherFilter) return result;
+
+    for (const sf of teacherFilter.subjects) {
+      if (!sf.electiveName) continue; // core subject: no per-student hiding needed
+      const catKey = sf.subject as keyof typeof rows[0]["electives"];
+      const eligible = new Set(
+        rows
+          .filter((row) => row.electives[catKey] === sf.electiveName)
+          .map((row) => row.studentId)
+      );
+      result.set(sf.subject, eligible);
+    }
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSubjectFiltered, teacherFilter, rows]);
+
+  // ========================================================================
+  // Filtered rows - search + elective student filter for subject teachers
   // ========================================================================
   const filteredRows = useMemo<RowData[]>(() => {
-    if (!searchQuery.trim()) return rows;
+    let result = rows;
+
+    // Teacher with subject assignments but NO core subject:
+    // Only show students who chose one of the teacher's assigned electives.
+    // (When hasCoreSubject is true all students remain visible; per-cell hiding
+    //  is handled via electiveVisibleStudentIds in the grid.)
+    if (isSubjectFiltered && !hasCoreSubject) {
+      result = result.filter((row) =>
+        teacherFilter!.subjects.some((sf) => {
+          if (!sf.electiveName) return true; // core subject: all students (edge case)
+          if (sf.subject === "categoryI")   return row.electives.categoryI === sf.electiveName;
+          if (sf.subject === "categoryII")  return row.electives.categoryII === sf.electiveName;
+          if (sf.subject === "categoryIII") return row.electives.categoryIII === sf.electiveName;
+          return false;
+        })
+      );
+    }
+
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.trim().toLowerCase();
-    return rows.filter(
+    return result.filter(
       (r) =>
         r.studentName.toLowerCase().includes(q) ||
         (r.indexNumber && r.indexNumber.toLowerCase().includes(q))
     );
-  }, [rows, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, searchQuery, isSubjectFiltered, hasCoreSubject, teacherFilter]);
 
   // ========================================================================
   // Derived values
@@ -528,7 +610,6 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
   const saveToDB = useCallback(async () => {
     if (dirtyMap.size === 0 || !classId || !term || !year || !settings) return null;
 
-    setSaving(true);
     try {
       // Group dirty entries by subject
       const bySubject = new Map<
@@ -667,8 +748,6 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
         success: false as const,
         error: "Network error. Please try again.",
       };
-    } finally {
-      setSaving(false);
     }
   }, [dirtyMap, classId, term, year, settings]);
 
@@ -683,44 +762,54 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
 
   /** Save marks as DRAFT (default status if no release record exists). */
   const handleSaveDraft = useCallback(async () => {
-    const result = await saveToDB();
-    if (!result) return null;
-    if (!result.success && "error" in result) return result;
-
-    // Ensure MarksRelease record exists as DRAFT
+    setSavingDraft(true);
     try {
-      await fetch("/api/marks/release", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId, term, year, status: "DRAFT" }),
-      });
-    } catch { /* non-fatal */ }
+      const result = await saveToDB();
+      if (!result) return null;
+      if (!result.success && "error" in result) return result;
 
-    clearLocalStorage();
-    return result;
+      // Ensure MarksRelease record exists as DRAFT
+      try {
+        await fetch("/api/marks/release", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ classId, term, year, status: "DRAFT" }),
+        });
+      } catch { /* non-fatal */ }
+
+      clearLocalStorage();
+      return result;
+    } finally {
+      setSavingDraft(false);
+    }
   }, [saveToDB, clearLocalStorage, classId, term, year]);
 
   /** Save marks AND set the class marks release to PUBLISHED. */
   const handlePublish = useCallback(async () => {
-    const result = await saveToDB();
-    if (!result) return null;
-    if (!result.success && "error" in result) return result;
-
+    setPublishing(true);
     try {
-      const releaseRes = await fetch("/api/marks/release", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId, term, year, status: "PUBLISHED" }),
-      });
-      if (!releaseRes.ok) {
-        return { ...result, releaseError: "Marks saved but failed to publish. Try again from the Marks page." };
-      }
-    } catch {
-      return { ...result, releaseError: "Marks saved but failed to publish. Try again from the Marks page." };
-    }
+      const result = await saveToDB();
+      if (!result) return null;
+      if (!result.success && "error" in result) return result;
 
-    clearLocalStorage();
-    return result;
+      try {
+        const releaseRes = await fetch("/api/marks/release", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ classId, term, year, status: "PUBLISHED" }),
+        });
+        if (!releaseRes.ok) {
+          return { ...result, releaseError: "Marks saved but failed to publish. Try again from the Marks page." };
+        }
+      } catch {
+        return { ...(result as object), releaseError: "Marks saved but failed to publish. Try again from the Marks page." } as typeof result & { releaseError: string };
+      }
+
+      clearLocalStorage();
+      return result;
+    } finally {
+      setPublishing(false);
+    }
   }, [saveToDB, clearLocalStorage, classId, term, year]);
 
   // ========================================================================
@@ -756,7 +845,9 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
     editedValues,
     invalidRows,
     // Saving
-    saving,
+    savingDraft,
+    publishing,
+    saving: savingDraft || publishing, // combined flag (e.g. for disabling buttons)
     // Search
     searchQuery,
     // Handlers
@@ -777,5 +868,7 @@ export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
     yearOptionsLoading,
     studentCount: rows.length,
     isClassLocked: !!lockedClassId,
+    visibleSubjectKeys,
+    electiveVisibleStudentIds,
   };
 }

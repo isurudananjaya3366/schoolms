@@ -201,18 +201,22 @@ model Notification {
 // Tracks whether a class's marks for a given term/year are DRAFT or PUBLISHED.
 // PUBLISHED = visible to students; DRAFT = only visible to staff/admin.
 model MarksRelease {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  classId   String      @db.ObjectId
-  term      Term
-  year      Int
-  status    MarksStatus @default(DRAFT)
-  changedBy String?     @db.ObjectId  // userId who last changed the status
-  changedAt DateTime?
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  classId      String      @db.ObjectId
+  term         Term
+  year         Int
+  // null = class-level release; "maths"/"science"/etc = per-subject release
+  subject      String?
+  // For elective subjects (categoryI/II/III): the specific elective name, e.g. "Tamil"
+  electiveName String?
+  status       MarksStatus @default(DRAFT)
+  changedBy    String?     @db.ObjectId  // userId who last changed the status
+  changedAt    DateTime?
 
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  @@unique([classId, term, year])
+  @@unique([classId, term, year, subject, electiveName], name: "release_unique")
   @@index([classId])
   @@map("marksReleases")
 }
@@ -263,4 +267,37 @@ model Notice {
 
   @@index([status, createdAt(sort: Desc)])
   @@map("notices")
+}
+
+// ─── Teacher Assignments ──────────────────────────────────
+// Tracks per-class, per-subject teacher assignments.
+// MAIN/ADDITIONAL: full access to all subjects for the assigned class.
+// SUBJECT: can only enter marks for the specified subject (and, for elective
+//   subjects, only for students who chose that elective name).
+
+enum TeacherAssignmentType {
+  MAIN       // The primary class teacher — full access to all marks
+  ADDITIONAL // Extra full-access teacher for the class
+  SUBJECT    // Subject-specific teacher; subject field must be set
+}
+
+model TeacherAssignment {
+  id           String               @id @default(auto()) @map("_id") @db.ObjectId
+  classId      String               @db.ObjectId
+  teacherId    String               @db.ObjectId
+  type         TeacherAssignmentType @default(SUBJECT)
+  // "sinhala"|"buddhism"|"maths"|"science"|"english"|"history"|"categoryI"|"categoryII"|"categoryIII"
+  // null for MAIN and ADDITIONAL
+  subject      String?
+  // For elective subjects (categoryI/II/III): the specific elective name (e.g. "Tamil")
+  // null for core subjects
+  electiveName String?
+
+  createdAt    DateTime             @default(now())
+
+  // A teacher can have multiple records per class (e.g. MAIN + multiple SUBJECT assignments)
+  // Uniqueness per subject slot is enforced at the API layer
+  @@index([teacherId])
+  @@index([classId])
+  @@map("teacherAssignments")
 }

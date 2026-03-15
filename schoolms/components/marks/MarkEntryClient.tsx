@@ -1,6 +1,6 @@
 "use client";
 
-import { useMarkEntryState } from "@/hooks/useMarkEntryState";
+import { useMarkEntryState, type TeacherFilter } from "@/hooks/useMarkEntryState";
 import FilterPanel from "@/components/marks/FilterPanel";
 import MarkEntryGrid from "@/components/marks/MarkEntryGrid";
 import SavePanel from "@/components/marks/SavePanel";
@@ -12,12 +12,14 @@ import { toast } from "sonner";
 
 interface MarkEntryClientProps {
   role: string;
-  assignedClassId?: string | null;
+  teacherFilter?: TeacherFilter | null;
 }
 
-export default function MarkEntryClient({ role, assignedClassId }: MarkEntryClientProps) {
+export default function MarkEntryClient({ role, teacherFilter }: MarkEntryClientProps) {
   const isTeacher = role === "TEACHER";
-  const state = useMarkEntryState({ assignedClassId: isTeacher ? assignedClassId : null });
+  const state = useMarkEntryState({
+    teacherFilter: isTeacher ? (teacherFilter ?? null) : null,
+  });
 
   // Role check: only ADMIN, SUPERADMIN, STAFF, and TEACHER can access
   if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF" && role !== "TEACHER") {
@@ -33,7 +35,7 @@ export default function MarkEntryClient({ role, assignedClassId }: MarkEntryClie
   }
 
   // Teacher with no assigned class
-  if (isTeacher && !assignedClassId) {
+  if (isTeacher && !teacherFilter) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <UserX className="h-12 w-12 text-muted-foreground" />
@@ -189,11 +191,14 @@ export default function MarkEntryClient({ role, assignedClassId }: MarkEntryClie
               dirtyMap={state.dirtyMap}
               invalidRows={state.invalidRows}
               onMarkChange={state.handleMarkChange}
+              visibleColumns={state.visibleSubjectKeys}
+              electiveVisibleStudentIds={state.electiveVisibleStudentIds}
             />
           )}
           <SavePanel
             dirtyCount={state.dirtyCount}
-            saving={state.saving}
+            savingDraft={state.savingDraft}
+            publishing={state.publishing}
             hasInvalidRows={state.hasInvalidRows}
             onSaveDraft={handleSaveDraft}
             onPublish={handlePublish}

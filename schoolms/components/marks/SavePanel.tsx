@@ -5,7 +5,8 @@ import { Loader2, Save, SendHorizonal } from "lucide-react";
 
 interface SavePanelProps {
   dirtyCount: number;
-  saving: boolean;
+  savingDraft: boolean;
+  publishing: boolean;
   hasInvalidRows: boolean;
   onSaveDraft: () => void;
   onPublish: () => void;
@@ -13,12 +14,14 @@ interface SavePanelProps {
 
 export default function SavePanel({
   dirtyCount,
-  saving,
+  savingDraft,
+  publishing,
   hasInvalidRows,
   onSaveDraft,
   onPublish,
 }: SavePanelProps) {
-  const disabled = dirtyCount === 0 || saving || hasInvalidRows;
+  const anySaving = savingDraft || publishing;
+  const disabled = dirtyCount === 0 || anySaving || hasInvalidRows;
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
@@ -26,29 +29,29 @@ export default function SavePanel({
         variant="outline"
         onClick={onSaveDraft}
         disabled={disabled}
-        aria-busy={saving}
+        aria-busy={savingDraft}
         aria-disabled={disabled}
       >
-        {saving ? (
+        {savingDraft ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
         ) : (
           <Save className="mr-2 h-4 w-4" />
         )}
-        {saving ? "Saving…" : "Save as Draft"}
+        {savingDraft ? "Saving…" : "Save as Draft"}
       </Button>
 
       <Button
         onClick={onPublish}
         disabled={disabled}
-        aria-busy={saving}
+        aria-busy={publishing}
         aria-disabled={disabled}
       >
-        {saving ? (
+        {publishing ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
         ) : (
           <SendHorizonal className="mr-2 h-4 w-4" />
         )}
-        {saving ? "Publishing…" : "Publish"}
+        {publishing ? "Publishing…" : "Publish"}
       </Button>
 
       {dirtyCount > 0 && (

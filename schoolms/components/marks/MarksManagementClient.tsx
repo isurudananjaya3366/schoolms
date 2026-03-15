@@ -26,14 +26,26 @@ interface ReleaseRecord {
   classId: string;
   term: string;
   year: number;
+  subject: string | null;
+  electiveName: string | null;
   status: "DRAFT" | "PUBLISHED";
   changedAt: string | null;
 }
 
+/** Subject filter passed from the server page for TEACHER role */
+interface TeacherSubjectFilter {
+  /** Has MAIN or ADDITIONAL assignment → can do class-level release */
+  isMain: boolean;
+  /** SUBJECT assignments this teacher holds */
+  subjects: Array<{ subject: string; electiveName?: string }>;
+}
+
 interface MarksManagementClientProps {
   role: string;
-  // For TEACHER role: their assigned class id (pre-filled, locked)
+  /** For TEACHER role: their assigned class id (pre-filled, locked) */
   assignedClassId?: string | null;
+  /** For TEACHER role: which subjects they can release */
+  teacherSubjectFilter?: TeacherSubjectFilter | null;
 }
 
 const TERMS = [
@@ -44,6 +56,26 @@ const TERMS = [
 
 const GRADES = [10, 11];
 
+/** Human-readable label for a subject key + optional elective name */
+function subjectLabel(subject: string, electiveName?: string | null): string {
+  const CORE_LABELS: Record<string, string> = {
+    sinhala: "Sinhala",
+    buddhism: "Buddhism",
+    maths: "Mathematics",
+    science: "Science",
+    english: "English",
+    history: "History",
+  };
+  if (CORE_LABELS[subject]) return CORE_LABELS[subject];
+  const catLabels: Record<string, string> = {
+    categoryI: "Elective I",
+    categoryII: "Elective II",
+    categoryIII: "Elective III",
+  };
+  const cat = catLabels[subject] ?? subject;
+  return electiveName ? `${electiveName} (${cat})` : cat;
+}
+
 function termLabel(term: string) {
   return TERMS.find((t) => t.value === term)?.label ?? term;
 }
@@ -51,6 +83,7 @@ function termLabel(term: string) {
 export default function MarksManagementClient({
   role,
   assignedClassId,
+  teacherSubjectFilter,
 }: MarksManagementClientProps) {
   const isTeacher = role === "TEACHER";
   const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
@@ -68,17 +101,20 @@ export default function MarksManagementClient({
   const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
   const [classLoading, setClassLoading] = useState(false);
 
-  // Release states (one per term)
-  const [releases, setReleases] = useState<Record<string, ReleaseRecord | null>>({
-    TERM_1: null,
-    TERM_2: null,
-    TERM_3: null,
-  });
+  // All release records (flat array, both class-level and per-subject)
+  const [releases, setReleases] = useState<ReleaseRecord[]>([]);
   const [releasesLoading, setReleasesLoading] = useState(false);
   const [releasesError, setReleasesError] = useState<string | null>(null);
 
-  // Saving state per term
-  const [savingTerm, setSavingTerm] = useState<string | null>(null);
+  // Whether each term has any marks entered (to disable toggle if empty)
+  const [marksExistence, setMarksExistence] = useState<Record<string, boolean>>({
+    TERM_1: false,
+    TERM_2: false,
+    TERM_3: false,
+  });
+
+  // Which (term, subject, electiveName) is currently saving
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   // ── Fetch current academic year from settings + available years ──
   useEffect(() => {
@@ -125,7 +161,7 @@ export default function MarksManagementClient({
           setClassOptions([cls]);
         }
       } catch {
-        // ignore - teacher can still use filters manually
+        // ignore
       }
     }
     loadAssignedClass();
@@ -133,7 +169,7 @@ export default function MarksManagementClient({
 
   // ── Fetch class options when grade changes (admin/staff) ──
   useEffect(() => {
-    if (isTeacher) return; // teacher's class is locked
+    if (isTeacher) return;
     if (!grade) {
       setClassOptions([]);
       setClassId(null);
@@ -162,31 +198,34 @@ export default function MarksManagementClient({
       }
     }
     fetchClasses();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [grade, isTeacher]);
 
-  // ── Load release statuses when class + year are both set ──
+  // ── Load release statuses + marks existence when class + year are both set ──
   const fetchReleases = useCallback(async () => {
     if (!classId || !year) return;
     setReleasesLoading(true);
     setReleasesError(null);
     try {
       const params = new URLSearchParams({ classId, year: String(year) });
-      const res = await fetch(`/api/marks/release?${params}`);
-      if (!res.ok) throw new Error("Failed to load release statuses");
-      const data: ReleaseRecord[] = await res.json();
+      const [relRes, marksRes] = await Promise.all([
+        fetch(`/api/marks/release?${params}`),
+        fetch(`/api/marks?classId=${classId}&year=${year}`),
+      ]);
 
-      const map: Record<string, ReleaseRecord | null> = {
-        TERM_1: null,
-        TERM_2: null,
-        TERM_3: null,
-      };
-      for (const r of data) {
-        map[r.term] = r;
+      if (!relRes.ok) throw new Error("Failed to load release statuses");
+      const data: ReleaseRecord[] = await relRes.json();
+      setReleases(data);
+
+      // Derive per-term marks existence
+      const existence: Record<string, boolean> = { TERM_1: false, TERM_2: false, TERM_3: false };
+      if (marksRes.ok) {
+        const marksData: Array<{ term: string }> = await marksRes.json();
+        for (const r of marksData) {
+          if (r.term in existence) existence[r.term] = true;
+        }
       }
-      setReleases(map);
+      setMarksExistence(existence);
     } catch {
       setReleasesError("Failed to load marks release status. Please try again.");
     } finally {
@@ -198,18 +237,28 @@ export default function MarksManagementClient({
     void fetchReleases();
   }, [fetchReleases]);
 
-  // ── Toggle release status for a term ──
-  const handleToggle = async (term: string, currentStatus: "DRAFT" | "PUBLISHED" | null) => {
+  // ── Toggle release status ──
+  const handleToggle = async (
+    term: string,
+    currentStatus: "DRAFT" | "PUBLISHED" | null,
+    subject?: string | null,
+    electiveName?: string | null,
+  ) => {
     if (!classId || !year) return;
     const newStatus: "DRAFT" | "PUBLISHED" =
       currentStatus === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
 
-    setSavingTerm(term);
+    const key = `${term}::${subject ?? ""}::${electiveName ?? ""}`;
+    setSavingKey(key);
     try {
+      const body: Record<string, unknown> = { classId, term, year, status: newStatus };
+      if (subject !== undefined) body.subject = subject ?? null;
+      if (electiveName !== undefined) body.electiveName = electiveName ?? null;
+
       const res = await fetch("/api/marks/release", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId, term, year, status: newStatus }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Unknown error" }));
@@ -217,16 +266,26 @@ export default function MarksManagementClient({
         return;
       }
       const updated: ReleaseRecord = await res.json();
-      setReleases((prev) => ({ ...prev, [term]: updated }));
+      setReleases((prev) => {
+        const filtered = prev.filter(
+          (r) =>
+            !(r.term === term &&
+              (r.subject ?? null) === (subject ?? null) &&
+              (r.electiveName ?? null) === (electiveName ?? null))
+        );
+        return [...filtered, updated];
+      });
+
+      const subLabel = subject ? ` — ${subjectLabel(subject, electiveName)}` : "";
       toast.success(
         newStatus === "PUBLISHED"
-          ? `${termLabel(term)} marks published - now visible to students.`
-          : `${termLabel(term)} marks held as draft.`
+          ? `${termLabel(term)}${subLabel} marks published.`
+          : `${termLabel(term)}${subLabel} marks held as draft.`
       );
     } catch {
       toast.error("Network error. Please try again.");
     } finally {
-      setSavingTerm(null);
+      setSavingKey(null);
     }
   };
 
@@ -243,8 +302,15 @@ export default function MarksManagementClient({
     );
   }
 
-  const selectedClass =
-    classOptions.find((c) => c.id === classId) ?? null;
+  const selectedClass = classOptions.find((c) => c.id === classId) ?? null;
+
+  // Whether this teacher uses per-subject mode (has SUBJECT assignments without MAIN role)
+  const isSubjectOnlyTeacher =
+    isTeacher &&
+    teacherSubjectFilter !== null &&
+    teacherSubjectFilter !== undefined &&
+    !teacherSubjectFilter.isMain &&
+    teacherSubjectFilter.subjects.length > 0;
 
   return (
     <div className="space-y-6">
@@ -367,17 +433,88 @@ export default function MarksManagementClient({
       ) : (
         <div className="space-y-3">
           {TERMS.map(({ value: term, label }) => {
-            const record = releases[term];
-            const status = record?.status ?? null;
+            const hasMarks = marksExistence[term] ?? false;
+
+            if (isSubjectOnlyTeacher) {
+              // ── Per-subject release UI for SUBJECT-only teachers ──
+              const mySubjects = teacherSubjectFilter!.subjects;
+              return (
+                <div
+                  key={term}
+                  className={`rounded-lg border p-4 space-y-3 transition-opacity ${!hasMarks ? "opacity-50" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold">{label}</p>
+                    {!hasMarks && (
+                      <span className="text-xs text-muted-foreground">(no marks entered)</span>
+                    )}
+                  </div>
+                  {mySubjects.map(({ subject, electiveName }) => {
+                    const rel = releases.find(
+                      (r) =>
+                        r.term === term &&
+                        r.subject === subject &&
+                        (r.electiveName ?? null) === (electiveName ?? null)
+                    );
+                    const status = rel?.status ?? null;
+                    const isPublished = status === "PUBLISHED";
+                    const key = `${term}::${subject}::${electiveName ?? ""}`;
+                    const isSaving = savingKey === key;
+
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-between rounded-md border px-3 py-2 transition-colors ${
+                          isPublished ? "border-green-200 bg-green-50" : "bg-muted/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isPublished ? (
+                            <Globe className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Lock className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="text-sm font-medium">
+                            {subjectLabel(subject, electiveName)}
+                          </span>
+                          <Badge
+                            variant={isPublished ? "default" : "secondary"}
+                            className={isPublished ? "bg-green-600 hover:bg-green-600 text-xs" : "text-xs"}
+                          >
+                            {isPublished ? "Published" : "Draft"}
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={isPublished ? "outline" : "default"}
+                          onClick={() => handleToggle(term, status, subject, electiveName ?? null)}
+                          disabled={isSaving || !hasMarks}
+                        >
+                          {isSaving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                          {isPublished ? "Hold as Draft" : "Publish"}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            // ── Class-level release UI for MAIN teachers and ADMIN ──
+            const classLevelRelease = releases.find(
+              (r) => r.term === term && r.subject === null
+            ) ?? null;
+            const status = classLevelRelease?.status ?? null;
             const isPublished = status === "PUBLISHED";
-            const isSaving = savingTerm === term;
+            const key = `${term}::::`;
+            const isSaving = savingKey === key;
 
             return (
               <div
                 key={term}
                 className={`flex items-center justify-between rounded-lg border p-4 transition-colors ${
                   isPublished ? "border-green-200 bg-green-50" : "bg-card"
-                }`}
+                } ${!hasMarks ? "opacity-50" : ""}`}
               >
                 <div className="flex items-center gap-3">
                   {isPublished ? (
@@ -388,8 +525,10 @@ export default function MarksManagementClient({
                   <div>
                     <p className="text-sm font-medium">{label}</p>
                     <p className="text-xs text-muted-foreground">
-                      {record?.changedAt
-                        ? `Last changed: ${new Date(record.changedAt).toLocaleDateString()}`
+                      {!hasMarks
+                        ? "No marks entered yet"
+                        : classLevelRelease?.changedAt
+                        ? `Last changed: ${new Date(classLevelRelease.changedAt).toLocaleDateString()}`
                         : "No release record yet"}
                     </p>
                   </div>
@@ -412,8 +551,8 @@ export default function MarksManagementClient({
                     <Button
                       size="sm"
                       variant={isPublished ? "outline" : "default"}
-                      onClick={() => handleToggle(term, status)}
-                      disabled={isSaving}
+                      onClick={() => handleToggle(term, status, null, null)}
+                      disabled={isSaving || !hasMarks}
                     >
                       {isSaving ? (
                         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -430,3 +569,4 @@ export default function MarksManagementClient({
     </div>
   );
 }
+

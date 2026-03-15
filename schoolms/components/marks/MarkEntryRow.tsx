@@ -33,6 +33,13 @@ interface MarkEntryRowProps {
     rawValue: string,
     initialMark: number | null
   ) => void;
+  /** If provided, only render cells for these subject keys. */
+  visibleColumns?: readonly string[];
+  /**
+   * For elective columns: subject key → Set of studentIds that should show an input.
+   * If a student's ID is not in the set for that column, an empty cell is rendered.
+   */
+  electiveVisibleStudentIds?: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
 function MarkEntryRowInner({
@@ -41,9 +48,15 @@ function MarkEntryRowInner({
   dirtyMap,
   invalidRows,
   onMarkChange,
+  visibleColumns,
+  electiveVisibleStudentIds,
 }: MarkEntryRowProps) {
-  // Check if ANY subject for this student is dirty
-  const isRowDirty = SUBJECT_KEYS.some((s) =>
+  const activeKeys = visibleColumns
+    ? SUBJECT_KEYS.filter((k) => visibleColumns.includes(k))
+    : SUBJECT_KEYS;
+
+  // Check if ANY visible subject for this student is dirty
+  const isRowDirty = activeKeys.some((s) =>
     dirtyMap.has(`${row.studentId}:${s}`)
   );
 
@@ -62,7 +75,14 @@ function MarkEntryRowInner({
       </td>
 
       {/* Subject mark cells */}
-      {SUBJECT_KEYS.map((subject) => {
+      {activeKeys.map((subject) => {
+        // If this elective column has a student visibility restriction and this
+        // student is not in the allowed set → render an empty blank cell.
+        const electiveSet = electiveVisibleStudentIds?.get(subject);
+        if (electiveSet !== undefined && !electiveSet.has(row.studentId)) {
+          return <td key={subject} className="px-1 py-1.5" />;
+        }
+
         const key = `${row.studentId}:${subject}`;
         const initialMark = row.initialMarks[subject] ?? null;
         const edited = editedValues.get(key);

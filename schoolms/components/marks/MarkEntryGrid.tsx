@@ -38,6 +38,14 @@ interface MarkEntryGridProps {
     rawValue: string,
     initialMark: number | null
   ) => void;
+  /** If provided, only render columns for these subject keys (e.g. teacher subject filter). */
+  visibleColumns?: readonly string[];
+  /**
+   * For elective columns where the teacher only teaches a specific elective name:
+   * maps subjectKey → Set of studentIds that should show an input.
+   * Rows not in the set render a blank cell for that column.
+   */
+  electiveVisibleStudentIds?: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
 export { SUBJECT_KEYS, COLUMN_LABELS };
@@ -48,7 +56,13 @@ export default function MarkEntryGrid({
   dirtyMap,
   invalidRows,
   onMarkChange,
+  visibleColumns,
+  electiveVisibleStudentIds,
 }: MarkEntryGridProps) {
+  const activeKeys = visibleColumns
+    ? SUBJECT_KEYS.filter((k) => visibleColumns.includes(k))
+    : SUBJECT_KEYS;
+
   return (
     <div className="overflow-x-auto">
       <div className="rounded-md border min-w-[1200px]">
@@ -61,7 +75,7 @@ export default function MarkEntryGrid({
               <th className="md:sticky md:left-0 md:z-10 lg:left-20 bg-[hsl(var(--muted))]/50 px-3 py-3 text-left text-xs font-medium w-48 min-w-48">
                 Student Name
               </th>
-              {SUBJECT_KEYS.map((key) => (
+              {activeKeys.map((key) => (
                 <th
                   key={key}
                   className="px-2 py-3 text-center text-xs font-medium w-28"
@@ -80,6 +94,8 @@ export default function MarkEntryGrid({
                 dirtyMap={dirtyMap}
                 invalidRows={invalidRows}
                 onMarkChange={onMarkChange}
+                visibleColumns={visibleColumns}
+                electiveVisibleStudentIds={electiveVisibleStudentIds}
               />
             ))}
           </tbody>
