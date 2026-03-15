@@ -13,7 +13,6 @@
 | ADMIN         | admin@schoolms.com            | password123       | Can manage users/data        |
 | STAFF         | staff@schoolms.com            | password123       | Limited management access    |
 | TEACHER       | teacher@schoolms.com          | password123     | Assigned to class **10A**    |
-| STUDENT (demo)| demo.student@schoolms.com     | password123     | Linked to *Sahan Silva* (STU0001) |
 
 ---
 

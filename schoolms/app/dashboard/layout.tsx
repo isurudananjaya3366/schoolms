@@ -17,6 +17,7 @@ const ALL_NAV_ITEMS: (NavItem & { permKey?: string })[] = [
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: "Trophy", minRole: "ALL", group: "main", permKey: "view_leaderboard" },
   { label: "Presentation Preview", href: "/dashboard/preview", icon: "Presentation", minRole: "ADMIN", group: "main" },
   { label: "Meeting Calendar", href: "/dashboard/calendar", icon: "CalendarDays", minRole: "ADMIN", group: "main" },
+  { label: "Help", href: "/dashboard/help", icon: "HelpCircle", minRole: "ALL", group: "main" },
   { label: "Backup", href: "/dashboard/backup", icon: "HardDriveDownload", minRole: "SUPERADMIN", group: "admin", permKey: "view_backup" },
   { label: "Manage Notices", href: "/dashboard/notices", icon: "Megaphone", minRole: "ADMIN", group: "admin" },
   { label: "Password Requests", href: "/dashboard/settings/password-requests", icon: "KeyRound", minRole: "ADMIN", group: "admin" },

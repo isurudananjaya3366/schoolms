@@ -17,6 +17,7 @@ import {
   Bell,
   Megaphone,
   KeyRound,
+  HelpCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ const iconMap: Record<string, LucideIcon> = {
   Bell,
   Megaphone,
   KeyRound,
+  HelpCircle,
 };
 
 export function resolveIcon(name: string): LucideIcon {
