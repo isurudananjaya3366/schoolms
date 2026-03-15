@@ -55,7 +55,9 @@ function compoundKey(studentId: string, subject: string): string {
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useMarkEntryState() {
+export function useMarkEntryState(opts?: { assignedClassId?: string | null }) {
+  const lockedClassId = opts?.assignedClassId ?? null;
+
   // ---- Settings ----------------------------------------------------------
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
@@ -132,9 +134,34 @@ export function useMarkEntryState() {
   }, []);
 
   // ========================================================================
+  // For TEACHER: auto-fetch and lock to assigned class
+  // ========================================================================
+  useEffect(() => {
+    if (!lockedClassId) return;
+    let cancelled = false;
+    async function initTeacherClass() {
+      try {
+        const res = await fetch(`/api/class-groups`);
+        if (!res.ok) return;
+        const data: { id: string; grade: number; section: string }[] = await res.json();
+        const cls = data.find((c) => c.id === lockedClassId);
+        if (!cancelled && cls) {
+          setGrade(cls.grade);
+          setClassId(cls.id);
+          setClassLabel(`Grade ${cls.grade} - ${cls.section}`);
+          setClassOptions([cls]);
+        }
+      } catch { /* ignore */ }
+    }
+    initTeacherClass();
+    return () => { cancelled = true; };
+  }, [lockedClassId]);
+
+  // ========================================================================
   // Fetch class options when grade changes
   // ========================================================================
   useEffect(() => {
+    if (lockedClassId) return; // teacher's class is locked, skip grade-based fetch
     if (!grade) {
       setClassOptions([]);
       return;
@@ -167,7 +194,7 @@ export function useMarkEntryState() {
     return () => {
       cancelled = true;
     };
-  }, [grade]);
+  }, [grade, lockedClassId]);
 
   // ========================================================================
   // Fetch grid data when classId + term + year are all set
@@ -749,5 +776,6 @@ export function useMarkEntryState() {
     yearOptions,
     yearOptionsLoading,
     studentCount: rows.length,
+    isClassLocked: !!lockedClassId,
   };
 }

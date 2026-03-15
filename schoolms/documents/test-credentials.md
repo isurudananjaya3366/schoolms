@@ -9,11 +9,11 @@
 
 | Role          | Email                         | Password        | Notes                        |
 |---------------|-------------------------------|-----------------|------------------------------|
-| SUPERADMIN    | superadmin@schoolms.com       | SuperAdmin@123  | Full system access           |
-| ADMIN         | admin@schoolms.com            | Admin@123       | Can manage users/data        |
-| STAFF         | staff@schoolms.com            | Staff@123       | Limited management access    |
-| TEACHER       | teacher@schoolms.com          | Teacher@123     | Assigned to class **10A**    |
-| STUDENT (demo)| demo.student@schoolms.com     | Student@123     | Linked to *Sahan Silva* (STU0001) |
+| SUPERADMIN    | superadmin@schoolms.com       | password123  | Full system access           |
+| ADMIN         | admin@schoolms.com            | password123       | Can manage users/data        |
+| STAFF         | staff@schoolms.com            | password123       | Limited management access    |
+| TEACHER       | teacher@schoolms.com          | password123     | Assigned to class **10A**    |
+| STUDENT (demo)| demo.student@schoolms.com     | password123     | Linked to *Sahan Silva* (STU0001) |
 
 ---
 

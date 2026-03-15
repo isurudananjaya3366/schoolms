@@ -20,6 +20,7 @@ interface FilterPanelProps {
   classOptions: { id: string; grade: number; section: string }[];
   classLoading: boolean;
   searchQuery: string;
+  lockedClass?: boolean;
   onGradeChange: (grade: number) => void;
   onClassChange: (classId: string, label: string) => void;
   onTermChange: (term: string) => void;
@@ -39,6 +40,7 @@ export default function FilterPanel({
   classOptions,
   classLoading,
   searchQuery,
+  lockedClass,
   onGradeChange,
   onClassChange,
   onTermChange,
@@ -80,6 +82,7 @@ export default function FilterPanel({
         <Select
           value={grade?.toString() ?? ""}
           onValueChange={(v) => onGradeChange(parseInt(v))}
+          disabled={lockedClass}
         >
           <SelectTrigger>
             <SelectValue placeholder="Grade" />
@@ -103,7 +106,7 @@ export default function FilterPanel({
             const opt = classOptions.find((c) => c.id === v);
             if (opt) onClassChange(v, `${opt.grade}${opt.section}`);
           }}
-          disabled={!grade || classLoading}
+          disabled={lockedClass || (!grade || classLoading)}
         >
           <SelectTrigger>
             {classLoading ? (

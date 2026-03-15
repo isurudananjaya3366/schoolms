@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { hasPermission } from "@/lib/permissions";
 import MarksManagementClient from "@/components/marks/MarksManagementClient";
 
 export default async function MarksPage() {
@@ -9,8 +10,7 @@ export default async function MarksPage() {
 
   const { role, id } = session.user;
 
-  // Only TEACHER, ADMIN, SUPERADMIN can access marks management
-  if (role !== "TEACHER" && role !== "ADMIN" && role !== "SUPERADMIN") {
+  if (!(await hasPermission(role, "edit_marks"))) {
     redirect("/dashboard");
   }
 

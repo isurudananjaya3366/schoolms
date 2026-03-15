@@ -88,6 +88,11 @@ export const PERMISSION_FEATURES = {
     description: "Use the classroom presentation / preview mode",
     group: "General",
   },
+  assign_teachers: {
+    label: "Assign Teachers",
+    description: "Assign teacher users to class groups",
+    group: "Administration",
+  },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSION_FEATURES;
@@ -118,6 +123,7 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_notifications: true,
     view_calendar: true,
     view_preview: true,
+    assign_teachers: true,
   },
   STAFF: {
     view_students: true,
@@ -135,13 +141,14 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_notifications: true,
     view_calendar: true,
     view_preview: true,
+    assign_teachers: false,
   },
   TEACHER: {
     view_students: true,
     add_edit_students: false,
     delete_students: false,
     view_marks: true,
-    edit_marks: false,
+    edit_marks: true,
     view_student_reports: false,
     view_analytics: false,
     view_leaderboard: false,
@@ -152,6 +159,7 @@ export const DEFAULT_PERMISSIONS: AllRolePermissions = {
     view_notifications: true,
     view_calendar: true,
     view_preview: false,
+    assign_teachers: false,
   },
 };
 

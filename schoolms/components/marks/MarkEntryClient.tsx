@@ -7,15 +7,17 @@ import SavePanel from "@/components/marks/SavePanel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Loader2, ShieldAlert, AlertTriangle, UserX } from "lucide-react";
 import { toast } from "sonner";
 
 interface MarkEntryClientProps {
   role: string;
+  assignedClassId?: string | null;
 }
 
-export default function MarkEntryClient({ role }: MarkEntryClientProps) {
-  const state = useMarkEntryState();
+export default function MarkEntryClient({ role, assignedClassId }: MarkEntryClientProps) {
+  const isTeacher = role === "TEACHER";
+  const state = useMarkEntryState({ assignedClassId: isTeacher ? assignedClassId : null });
 
   // Role check: only ADMIN, SUPERADMIN, STAFF, and TEACHER can access
   if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF" && role !== "TEACHER") {
@@ -25,6 +27,19 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
         <p className="text-lg font-medium">Access Denied</p>
         <p className="text-sm text-muted-foreground">
           You do not have permission to access this page.
+        </p>
+      </div>
+    );
+  }
+
+  // Teacher with no assigned class
+  if (isTeacher && !assignedClassId) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <UserX className="h-12 w-12 text-muted-foreground" />
+        <p className="text-lg font-medium">No Class Assigned</p>
+        <p className="text-sm text-muted-foreground">
+          You have not been assigned a class yet. Please contact your administrator.
         </p>
       </div>
     );
@@ -112,6 +127,7 @@ export default function MarkEntryClient({ role }: MarkEntryClientProps) {
         classOptions={state.classOptions}
         classLoading={state.classLoading}
         searchQuery={state.searchQuery}
+        lockedClass={state.isClassLocked}
         onGradeChange={state.handleGradeChange}
         onClassChange={state.handleClassChange}
         onTermChange={state.handleTermChange}

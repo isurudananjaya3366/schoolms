@@ -119,7 +119,7 @@ export default function MarksManagementClient({
         const res = await fetch(`/api/class-groups?id=${assignedClassId}`);
         if (!res.ok) return;
         const data = await res.json();
-        const cls = Array.isArray(data) ? data[0] : data;
+        const cls = Array.isArray(data) ? data.find((c: { id: string }) => c.id === assignedClassId) ?? data[0] : data;
         if (cls) {
           setGrade(cls.grade);
           setClassOptions([cls]);
