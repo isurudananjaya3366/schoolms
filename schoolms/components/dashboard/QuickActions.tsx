@@ -150,7 +150,7 @@ export default function QuickActions() {
         </p>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="ghost" size="sm" className="h-8 text-sm">
-            <Link href="/student/view" target="_blank" rel="noopener noreferrer">
+            <Link href="/student" target="_blank" rel="noopener noreferrer">
               <GraduationCap className="mr-2 h-3.5 w-3.5" />
               Student Portal
             </Link>
