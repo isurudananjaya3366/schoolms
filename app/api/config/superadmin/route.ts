@@ -8,7 +8,11 @@ const superadminSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .refine((pwd) => /[A-Z]/.test(pwd), "Password must contain at least one uppercase letter")
+      .refine((pwd) => /[a-z]/.test(pwd), "Password must contain at least one lowercase letter")
+      .refine((pwd) => /[0-9]/.test(pwd), "Password must contain at least one number"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

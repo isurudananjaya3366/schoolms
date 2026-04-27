@@ -6,7 +6,12 @@ export default auth((req) => {
   const session = req.auth;
 
   // /api/config/health - always public
-  if (pathname === "/api/config/health") {
+  if (pathname === "/api/config/health" || pathname === "/api/config/health/") {
+    return NextResponse.next();
+  }
+
+  // /api/config/superadmin - public access for initial setup
+  if (pathname === "/api/config/superadmin" || pathname === "/api/config/superadmin/") {
     return NextResponse.next();
   }
 
