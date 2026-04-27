@@ -312,7 +312,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
             },
             et.termLabel
           ),
-          ...subjectCols.map((subj, si) => {
+          ...subjectCols.map((_subj, si) => {
             const cell = et.subjects[si];
             return createElement(
               Text,

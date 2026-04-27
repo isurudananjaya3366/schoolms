@@ -84,6 +84,7 @@ export const mockStudent1: PreviewData = {
     section: "A",
     className: "11A",
     electives: ELECTIVES,
+    scholarshipMarks: null,
   },
   schoolName: SCHOOL,
   academicYear: YEAR,
@@ -118,6 +119,11 @@ export const mockStudent1: PreviewData = {
     totalSubjectsRecorded: 9,
   },
   focusTerm: "TERM_3",
+  termRanks: [
+    { termKey: "TERM_1", termLabel: "Term 1", classRank: 4, classTotal: 38 },
+    { termKey: "TERM_2", termLabel: "Term 2", classRank: 3, classTotal: 38 },
+    { termKey: "TERM_3", termLabel: "Term 3", classRank: 2, classTotal: 38 },
+  ],
   annualStats: {
     overallAverage: 82.4,
     descriptor: "Excellent",
@@ -183,6 +189,7 @@ export const mockStudent2: PreviewData = {
     section: "B",
     className: "11B",
     electives: ELECTIVES,
+    scholarshipMarks: null,
   },
   schoolName: SCHOOL,
   academicYear: YEAR,
@@ -210,6 +217,11 @@ export const mockStudent2: PreviewData = {
     totalSubjectsRecorded: 9,
   },
   focusTerm: "TERM_3",
+  termRanks: [
+    { termKey: "TERM_1", termLabel: "Term 1", classRank: 22, classTotal: 40 },
+    { termKey: "TERM_2", termLabel: "Term 2", classRank: 18, classTotal: 40 },
+    { termKey: "TERM_3", termLabel: "Term 3", classRank: 15, classTotal: 40 },
+  ],
   annualStats: {
     overallAverage: 61.3,
     descriptor: "Average",
@@ -252,6 +264,7 @@ export const mockStudent3: PreviewData = {
     section: "C",
     className: "10C",
     electives: ELECTIVES,
+    scholarshipMarks: null,
   },
   schoolName: SCHOOL,
   academicYear: YEAR,
@@ -285,6 +298,10 @@ export const mockStudent3: PreviewData = {
     totalSubjectsRecorded: 9,
   },
   focusTerm: "TERM_2",
+  termRanks: [
+    { termKey: "TERM_1", termLabel: "Term 1", classRank: 5, classTotal: 35 },
+    { termKey: "TERM_2", termLabel: "Term 2", classRank: 3, classTotal: 35 },
+  ],
   annualStats: null,
   ranking: {
     classRank: 3,
@@ -322,6 +339,7 @@ export const mockStudent4: PreviewData = {
     section: "A",
     className: "10A",
     electives: ELECTIVES,
+    scholarshipMarks: null,
   },
   schoolName: SCHOOL,
   academicYear: YEAR,
@@ -348,6 +366,10 @@ export const mockStudent4: PreviewData = {
     totalSubjectsRecorded: 9,
   },
   focusTerm: "TERM_2",
+  termRanks: [
+    { termKey: "TERM_1", termLabel: "Term 1", classRank: 20, classTotal: 36 },
+    { termKey: "TERM_2", termLabel: "Term 2", classRank: 18, classTotal: 36 },
+  ],
   annualStats: null,
   ranking: {
     classRank: 18,
@@ -384,6 +406,7 @@ export const mockStudent5: PreviewData = {
     section: "B",
     className: "10B",
     electives: ELECTIVES,
+    scholarshipMarks: null,
   },
   schoolName: SCHOOL,
   academicYear: YEAR,
@@ -407,6 +430,9 @@ export const mockStudent5: PreviewData = {
     totalSubjectsRecorded: 9,
   },
   focusTerm: "TERM_1",
+  termRanks: [
+    { termKey: "TERM_1", termLabel: "Term 1", classRank: null, classTotal: 40 },
+  ],
   annualStats: null,
   ranking: null,
 };

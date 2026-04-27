@@ -50,4 +50,4 @@ prisma/generated/
 *.tsbuildinfo
 next-env.d.ts
 
-/dev-tools
+/documents/
