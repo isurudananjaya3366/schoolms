@@ -38,7 +38,7 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        if (result.error === "AccountDeactivated" || result.code === "AccountDeactivated") {
+        if (result.error === "AccountDeactivated") {
           setError("Your account has been deactivated. Contact your administrator.");
         } else {
           setError("Invalid email or password.");

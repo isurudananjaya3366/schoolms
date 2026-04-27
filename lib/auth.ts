@@ -79,18 +79,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
   debug: process.env.NODE_ENV !== "production",
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt(params: any) {
+      const { token, user } = params;
       // On initial sign-in, persist user data into token
       if (user) {
-        token.userId = user.id!;
-        token.email = user.email!;
-        token.name = user.name!;
-        token.role = user.role;
-        token.assignedClassId = user.assignedClassId ?? null;
-        token.linkedStudentId = user.linkedStudentId ?? null;
+        const customUser = user as any;
+        token.userId = customUser.id;
+        token.email = customUser.email;
+        token.name = customUser.name;
+        token.role = customUser.role;
+        token.assignedClassId = customUser.assignedClassId ?? null;
+        token.linkedStudentId = customUser.linkedStudentId ?? null;
       }
 
       // Auto-refresh: extend 8h when <2h remaining
@@ -112,7 +113,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const { default: prisma } = await import("@/lib/prisma");
           const dbUser = await prisma.user.findUnique({
-            where: { id: token.userId },
+            where: { id: token.userId as string },
             select: { sessionInvalidatedAt: true },
           });
 
@@ -135,9 +136,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token.userId) {
-        session.user.id = token.userId;
+        session.user.id = token.userId as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.role = token.role;

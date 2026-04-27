@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
@@ -22,4 +22,4 @@ export default defineConfig({
       "@upstash/redis": path.resolve(__dirname, "__mocks__/upstash-redis.ts"),
     },
   },
-});
+} as any);
