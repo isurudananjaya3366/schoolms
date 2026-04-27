@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, CSSProperties } from "react";
 import { createElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PresenterToolbar from "./PresenterToolbar";
@@ -80,14 +80,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
       const filteredChartData = data.chartData.filter((d) =>
         data.enrichedTerms.find((t) => t.termKey === d.termKey)?.hasData,
       );
-      if (filteredChartData.length >= 2) {
-        // Show focus term chart (falls back to latest if focusTerm not in filtered data)
-        const focusEntry = filteredChartData.find((d) => d.termKey === data.focusTerm);
-        const focusChartData = focusEntry
-          ? [focusEntry]
-          : [filteredChartData[filteredChartData.length - 1]];
-        list.push({ id: "latestChart", type: "latestChart", chartData: focusChartData });
-      }
+      // latestChart slide removed - focus term chart is now on the Term Marks slide
       list.push({ id: "chart", type: "chart", chartData: filteredChartData });
     }
     // Conditional: annual summary (only when all 3 terms have data)
@@ -299,24 +292,35 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
         )
       );
 
-      // Page 2: Combined term marks table
+      // Page 2: Combined term marks table (rows = terms, cols = subjects)
       const hasLatestChartPage = latestChartIdx >= 0;
       const allTermsWithData = data.enrichedTerms.filter((et) => et.hasData);
-      const termMarksCols = allTermsWithData.map((et) => et.termLabel);
-      const subjectRows = (allTermsWithData[0]?.subjects ?? []).map((subj, idx) =>
+      const subjectCols = (allTermsWithData[0]?.subjects ?? []);
+      const colWidth = subjectCols.length > 0 ? `${50 / subjectCols.length}%` : "10%";
+      const termRows = allTermsWithData.map((et, ti) =>
         createElement(
           View,
-          { key: `mr-${idx}`, style: styles.row },
-          createElement(Text, { style: styles.cellSubject }, subj.displayName),
-          ...allTermsWithData.map((et, ti) => {
-            const cell = et.subjects[idx];
+          { key: `tr-${ti}`, style: styles.row },
+          createElement(
+            Text,
+            {
+              style: {
+                ...styles.cellSubject,
+                fontWeight: et.termKey === data.focusTerm ? "bold" as const : "normal" as const,
+                color: et.termKey === data.focusTerm ? "#d97706" : "#374151",
+              },
+            },
+            et.termLabel
+          ),
+          ...subjectCols.map((subj, si) => {
+            const cell = et.subjects[si];
             return createElement(
               Text,
               {
-                key: `mc-${ti}`,
+                key: `tc-${si}`,
                 style: {
-                  width: `${50 / allTermsWithData.length}%`,
-                  fontSize: 10,
+                  width: colWidth,
+                  fontSize: 9,
                   textAlign: "right" as const,
                   ...(cell?.isW ? { color: "#dc2626", fontWeight: "bold" as const } : {}),
                 },
@@ -329,18 +333,18 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
       const headerRow = createElement(
         View,
         { key: "mh", style: { ...styles.row, borderBottomWidth: 2 } },
-        createElement(Text, { style: { ...styles.cellSubject, fontWeight: "bold" as const } }, "Subject"),
-        ...termMarksCols.map((label, ti) =>
+        createElement(Text, { style: { ...styles.cellSubject, fontWeight: "bold" as const } }, "Term"),
+        ...subjectCols.map((subj, si) =>
           createElement(Text, {
-            key: `mhc-${ti}`,
+            key: `mhc-${si}`,
             style: {
-              width: `${50 / allTermsWithData.length}%`,
-              fontSize: 10,
+              width: colWidth,
+              fontSize: 9,
               fontWeight: "bold" as const,
               textAlign: "right" as const,
-              color: allTermsWithData[ti]?.termKey === data.focusTerm ? "#d97706" : "#374151",
+              color: "#374151",
             },
-          }, label)
+          }, subj.displayName)
         )
       );
       const termPages = allTermsWithData.length > 0
@@ -355,7 +359,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
               },
               makeHeader(),
               createElement(Text, { style: styles.slideTitle }, "Term Marks"),
-              createElement(View, null, headerRow, ...subjectRows)
+              createElement(View, null, headerRow, ...termRows)
             ),
           ]
         : [];
@@ -669,10 +673,47 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
     setIsPDFExporting(false);
   }, [data, slideIndex, aspectRatio, slideDescriptors]);
 
-  const aspectClass =
-    aspectRatio === "16:9"
-      ? "aspect-video max-w-5xl"
-      : "aspect-[210/297] max-w-3xl";
+  // Design (logical) dimensions for the slide
+  const DESIGN_W = aspectRatio === "16:9" ? 1280 : 794;
+  const DESIGN_H = aspectRatio === "16:9" ? 720 : 1123;
+
+  // Container ref for measuring available space
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const TOOLBAR_H = 72; // reserved space for toolbar
+    const PADDING = 32; // total vertical padding
+    const updateScale = () => {
+      if (!containerRef.current) return;
+      const avW = containerRef.current.clientWidth;
+      const avH = window.innerHeight - TOOLBAR_H - PADDING;
+      const s = Math.min(avW / DESIGN_W, avH / DESIGN_H);
+      setScale(Math.max(0.2, Math.min(s, 2)));
+    };
+    updateScale();
+    const ro = new ResizeObserver(updateScale);
+    if (containerRef.current) ro.observe(containerRef.current);
+    window.addEventListener("resize", updateScale);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateScale);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aspectRatio]);
+
+  const slideOuterStyle: CSSProperties = {
+    width: DESIGN_W * scale,
+    height: DESIGN_H * scale,
+    flexShrink: 0,
+  };
+  const slideInnerStyle: CSSProperties = {
+    width: DESIGN_W,
+    height: DESIGN_H,
+    transform: `scale(${scale})`,
+    transformOrigin: "top left",
+    fontSize: `${fontSize}em`,
+  };
 
   const themeClass = theme === "dark" ? "dark bg-gray-900 text-white" : "bg-white text-gray-900";
 
@@ -688,8 +729,27 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
             academicYear={data.academicYear}
           />
         );
-      case "allTermsMarks":
-        return <SlideAllTermsMarks terms={desc.terms} focusTerm={data.focusTerm} />;
+      case "allTermsMarks": {
+        const filteredForFocus = data.chartData.filter((d) =>
+          data.enrichedTerms.find((t) => t.termKey === d.termKey)?.hasData,
+        );
+        const focusEntry = filteredForFocus.find((d) => d.termKey === data.focusTerm);
+        const focusChartData = focusEntry
+          ? [focusEntry]
+          : filteredForFocus.length > 0
+          ? [filteredForFocus[filteredForFocus.length - 1]]
+          : [];
+        return (
+          <SlideAllTermsMarks
+            terms={desc.terms}
+            focusTerm={data.focusTerm}
+            scholarshipMarks={data.student.scholarshipMarks}
+            termRanks={data.termRanks}
+            focusChartData={focusChartData}
+            electiveLabels={data.electiveLabels}
+          />
+        );
+      }
       case "topClass":
         return data.ranking ? (
           <SlideTopClassPerformers
@@ -766,11 +826,12 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
         onLabelChange: onLabelChange ?? (() => {}),
       }}
     >
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-20">
-      {/* Slide canvas */}
+    <div ref={containerRef} className="h-screen overflow-hidden flex flex-col items-center justify-center py-4 pb-20 px-4">
+      {/* Slide canvas - scale-to-fit */}
+      <div style={slideOuterStyle} className="shrink-0">
       <div
-        style={{ fontSize: `${fontSize}em` }}
-        className={`w-full ${aspectClass} ${themeClass} rounded-xl shadow-2xl border overflow-hidden relative`}
+        style={slideInnerStyle}
+        className={`${themeClass} rounded-xl shadow-2xl border overflow-hidden relative`}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -784,6 +845,7 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
             {renderSlide()}
           </motion.div>
         </AnimatePresence>
+      </div>
       </div>
 
       {/* Toolbar */}
@@ -802,6 +864,8 @@ export default function SlideRenderer({ data, onLastSlide, onFirstSlide, labels,
         onPrint={handlePrint}
         onDownloadPDF={handleDownloadPDF}
         isPDFExporting={isPDFExporting}
+        hasPrevStudent={!!onFirstSlide}
+        hasNextStudent={!!onLastSlide}
       />
     </div>
     </EditLabelsContext.Provider>

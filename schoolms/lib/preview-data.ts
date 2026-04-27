@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { SUBJECT_KEYS, getSubjectColor, getSubjectDisplayName } from "@/lib/chartPalette";
 import { applyWRule, isWMark } from "@/lib/w-rule";
 import type { TermMarkData, ElectiveLabels } from "@/types/charts";
-import type { PreviewData, EnrichedTerm, EnrichedSubject, PreviewRanking, AnnualSubjectAverage } from "@/types/preview";
+import type { PreviewData, EnrichedTerm, EnrichedSubject, PreviewRanking, PreviewTermRank, AnnualSubjectAverage } from "@/types/preview";
 
 const TERM_ORDER = ["TERM_1", "TERM_2", "TERM_3"] as const;
 const TERM_LABELS: Record<string, string> = {
@@ -265,8 +265,8 @@ export async function buildPreviewData(
         id: true,
         name: true,
         markRecords: year
-          ? { where: { year }, select: { marks: true } }
-          : { select: { marks: true } },
+          ? { where: { year }, select: { marks: true, term: true } }
+          : { select: { marks: true, term: true } },
       },
     }),
     prisma.student.findMany({
@@ -292,6 +292,36 @@ export async function buildPreviewData(
   const sectionSorted = rankStudents(sectionStudents);
   const classRankIdx = classSorted.findIndex((s) => s.id === studentId);
   const sectionRankIdx = sectionSorted.findIndex((s) => s.id === studentId);
+
+  // Per-term class ranks
+  const termRanks: PreviewTermRank[] = TERM_ORDER.map((termKey) => {
+    const termLabel = TERM_LABELS[termKey];
+    // Sum marks for each student in this term
+    const termScores = classStudents
+      .map((s) => {
+        const rec = (s.markRecords as { marks: unknown; term?: string }[]).find(
+          (r: any) => r.term === termKey
+        );
+        const marks = rec?.marks as Record<string, number | null> | null;
+        let total = 0;
+        let count = 0;
+        if (marks) {
+          for (const val of Object.values(marks)) {
+            if (typeof val === "number" && val >= 0) { total += val; count++; }
+          }
+        }
+        return { id: s.id, total, count };
+      })
+      .sort((a, b) => b.total - a.total);
+    const idx = termScores.findIndex((s) => s.id === studentId);
+    const hasAnyData = termScores.some((s) => s.count > 0);
+    return {
+      termKey,
+      termLabel,
+      classRank: hasAnyData && idx >= 0 ? idx + 1 : null,
+      classTotal: classSorted.length,
+    };
+  });
 
   const ranking: PreviewRanking = {
     classRank: classRankIdx >= 0 ? classRankIdx + 1 : null,
@@ -323,6 +353,7 @@ export async function buildPreviewData(
         categoryII: string;
         categoryIII: string;
       },
+      scholarshipMarks: student.scholarshipMarks ?? null,
     },
     schoolName,
     academicYear,
@@ -345,6 +376,7 @@ export async function buildPreviewData(
     focusTerm: activeFocusTermKey,
     annualStats,
     ranking,
+    termRanks,
   };
 
   // Serialize to remove Prisma internals / BigInt / ObjectId

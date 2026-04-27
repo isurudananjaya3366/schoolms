@@ -31,7 +31,7 @@ export default auth((req) => {
       return NextResponse.redirect(loginUrl);
     }
     // DB configured + session: require SUPERADMIN
-    if (session.user.role !== "SUPERADMIN") {
+    if (session?.user?.role !== "SUPERADMIN") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
@@ -53,7 +53,7 @@ export default auth((req) => {
       return NextResponse.redirect(loginUrl);
     }
     // Non-students are redirected to the dashboard
-    if (session.user.role !== "STUDENT") {
+    if (session?.user?.role !== "STUDENT") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
@@ -70,7 +70,7 @@ export default auth((req) => {
       return NextResponse.redirect(loginUrl);
     }
     // STUDENT role is not allowed in the dashboard - redirect to student portal
-    if (session.user.role === "STUDENT") {
+    if (session?.user?.role === "STUDENT") {
       return NextResponse.redirect(new URL("/student/profile", req.url));
     }
     return NextResponse.next();

@@ -27,16 +27,26 @@ interface StudentPerformanceBarProps {
   isAnimationActive?: boolean;
 }
 
-const renderCustomLabel = (props: any, _subjectKey: string) => {
+// Term opacities - same subject color per term but lighter for later terms
+const TERM_OPACITIES = [1, 0.65, 0.38];
+
+function applyOpacity(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const renderCustomLabel = (_termColor: string) => (props: any) => {
   const { x, y, width, value } = props;
   if (value === null || value === undefined) return null;
   const isW = value < 35;
   return (
     <text
       x={x + width / 2}
-      y={y - 5}
+      y={y - 4}
       textAnchor="middle"
-      fontSize={11}
+      fontSize={10}
       fontWeight={isW ? "bold" : "normal"}
       fill={isW ? "#dc2626" : "#374151"}
     >
@@ -52,7 +62,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <p className="mb-1 font-medium text-sm">{label}</p>
       {payload.map((entry: any) => {
         const val = entry.value;
-        const isW = val !== null && val < 35;
+        if (val === null || val === undefined) return null;
+        const isW = val < 35;
         return (
           <div key={entry.dataKey} className="flex items-center gap-2 text-xs">
             <span
@@ -60,12 +71,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               style={{ backgroundColor: entry.color }}
             />
             <span>{entry.name}:</span>
-            <span className={isW ? "font-bold text-red-600" : ""}>
-              {val === null ? "-" : val}
-            </span>
-            <span className="text-muted-foreground">
-              {val === null ? "" : isW ? "W" : "Pass"}
-            </span>
+            <span className={isW ? "font-bold text-red-600" : ""}>{val}</span>
+            {isW && <span className="text-red-500">W</span>}
           </div>
         );
       })}
@@ -78,44 +85,103 @@ export default function StudentPerformanceBar({
   electiveLabels,
   isAnimationActive = true,
 }: StudentPerformanceBarProps) {
+  // Reshape: group by subject, with one key per term
+  const activeKeys = SUBJECT_KEYS.filter((key) =>
+    data.some((row) => row[key] !== null && row[key] !== undefined)
+  );
+
+  const chartData = activeKeys.map((key) => {
+    const entry: Record<string, any> = {
+      subject: getSubjectDisplayName(key, electiveLabels),
+      subjectKey: key,
+    };
+    data.forEach((row) => {
+      entry[row.term] = row[key] ?? null;
+    });
+    return entry;
+  });
+
   return (
-    <ResponsiveContainer width="100%" height={380}>
-      <BarChart data={data} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart
+        data={chartData}
+        margin={{ top: 20, right: 20, bottom: 60, left: 0 }}
+      >
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="term" />
+        <XAxis
+          dataKey="subject"
+          interval={0}
+          tick={{ fontSize: 11, fill: "#374151" }}
+          angle={-35}
+          textAnchor="end"
+          height={65}
+        />
         <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
         <Tooltip content={<CustomTooltip />} />
-        <Legend />
+        <Legend
+          verticalAlign="top"
+          wrapperStyle={{ paddingBottom: 8 }}
+          content={() => (
+            <div className="flex justify-center gap-4 pb-2">
+              {data.map((termRow, i) => {
+                const opacity = TERM_OPACITIES[i] ?? TERM_OPACITIES[0];
+                return (
+                  <div key={termRow.term} className="flex items-center gap-1.5 text-xs">
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 12,
+                        height: 12,
+                        borderRadius: 2,
+                        backgroundColor: applyOpacity("#2563eb", opacity),
+                        border: "1px solid rgba(0,0,0,0.15)",
+                      }}
+                    />
+                    <span>{termRow.term}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        />
         <ReferenceLine
           y={35}
           stroke="#dc2626"
           strokeDasharray="4 4"
-          label={{ value: "W threshold", position: "right", fill: "#dc2626", fontSize: 12 }}
+          label={{ value: "W", position: "right", fill: "#dc2626", fontSize: 12 }}
         />
-        {SUBJECT_KEYS.map((key) => (
-          <Bar
-            key={key}
-            dataKey={key}
-            name={getSubjectDisplayName(key, electiveLabels)}
-            fill={getSubjectColor(key)}
-            isAnimationActive={isAnimationActive}
-          >
-            <LabelList
-              dataKey={key}
-              position="top"
-              content={(props: any) => renderCustomLabel(props, key)}
-            />
-            {data.map((entry, index) => {
-              const val = entry[key] as number | null;
-              return (
-                <Cell
-                  key={`cell-${key}-${index}`}
-                  fill={val !== null && val < 35 ? W_BAR_COLOR : getSubjectColor(key)}
-                />
-              );
-            })}
-          </Bar>
-        ))}
+        {data.map((termRow, i) => {
+          const opacity = TERM_OPACITIES[i] ?? TERM_OPACITIES[0];
+          return (
+            <Bar
+              key={termRow.term}
+              dataKey={termRow.term}
+              name={termRow.term}
+              fill="#888"
+              isAnimationActive={isAnimationActive}
+            >
+              <LabelList
+                dataKey={termRow.term}
+                position="top"
+                content={renderCustomLabel("")}
+              />
+              {chartData.map((entry, idx) => {
+                const val = entry[termRow.term] as number | null;
+                const subjectColor = getSubjectColor(entry.subjectKey);
+                return (
+                  <Cell
+                    key={`cell-${termRow.term}-${idx}`}
+                    fill={
+                      val !== null && val < 35
+                        ? applyOpacity(W_BAR_COLOR, opacity)
+                        : applyOpacity(subjectColor, opacity)
+                    }
+                  />
+                );
+              })}
+            </Bar>
+          );
+        })}
       </BarChart>
     </ResponsiveContainer>
   );

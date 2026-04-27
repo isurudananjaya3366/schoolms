@@ -195,6 +195,7 @@ export default async function PreviewStudentPage({
       section: student.class.section,
       className: `${student.class.grade}${student.class.section}`,
       electives: student.electives as { categoryI: string; categoryII: string; categoryIII: string },
+      scholarshipMarks: (student as { scholarshipMarks?: number | null }).scholarshipMarks ?? null,
     },
     schoolName,
     academicYear,
@@ -217,6 +218,7 @@ export default async function PreviewStudentPage({
     focusTerm,
     annualStats,
     ranking: null,
+    termRanks: [],
   };
 
   // Serialize to avoid ObjectId issues

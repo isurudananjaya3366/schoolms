@@ -79,6 +79,13 @@ export interface AnnualSubjectAverage {
   wCount: number;
 }
 
+export interface PreviewTermRank {
+  termKey: string;
+  termLabel: string;
+  classRank: number | null;
+  classTotal: number;
+}
+
 export interface PreviewData {
   student: {
     id: string;
@@ -88,6 +95,7 @@ export interface PreviewData {
     section: string;
     className: string; // "10A"
     electives: { categoryI: string; categoryII: string; categoryIII: string };
+    scholarshipMarks: number | null;
   };
   schoolName: string;
   academicYear: string;
@@ -121,4 +129,5 @@ export interface PreviewData {
     subjectAverages: AnnualSubjectAverage[];
   } | null;
   ranking: PreviewRanking | null;
+  termRanks: PreviewTermRank[];
 }

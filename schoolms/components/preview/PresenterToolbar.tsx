@@ -33,6 +33,10 @@ interface PresenterToolbarProps {
   onPrint: () => void;
   onDownloadPDF: () => void;
   isPDFExporting: boolean;
+  /** When true the Prev button stays enabled even at slide 0 (jumps to prev student) */
+  hasPrevStudent?: boolean;
+  /** When true the Next button stays enabled even at last slide (jumps to next student) */
+  hasNextStudent?: boolean;
 }
 
 export default function PresenterToolbar({
@@ -50,6 +54,8 @@ export default function PresenterToolbar({
   onPrint,
   onDownloadPDF,
   isPDFExporting,
+  hasPrevStudent,
+  hasNextStudent,
 }: PresenterToolbarProps) {
   const [isThumbnailOpen, setIsThumbnailOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -127,7 +133,7 @@ export default function PresenterToolbar({
         <div className="flex items-center gap-2">
           {/* Slide counter (clickable) */}
           <button
-            className="text-sm font-mono text-muted-foreground hover:text-foreground cursor-pointer underline-offset-2 hover:underline min-w-[50px]"
+            className="text-sm font-mono text-muted-foreground hover:text-foreground cursor-pointer underline-offset-2 hover:underline min-w-12.5"
             onClick={() => setIsThumbnailOpen(!isThumbnailOpen)}
           >
             {slideIndex + 1} / {totalSlides}
@@ -141,7 +147,7 @@ export default function PresenterToolbar({
             size="icon"
             className="h-8 w-8"
             onClick={onPrev}
-            disabled={slideIndex === 0}
+            disabled={slideIndex === 0 && !hasPrevStudent}
             aria-label="Previous slide"
           >
             <ChevronLeft className="size-4" />
@@ -151,7 +157,7 @@ export default function PresenterToolbar({
             size="icon"
             className="h-8 w-8"
             onClick={onNext}
-            disabled={slideIndex === totalSlides - 1}
+            disabled={slideIndex === totalSlides - 1 && !hasNextStudent}
             aria-label="Next slide"
           >
             <ChevronRight className="size-4" />
